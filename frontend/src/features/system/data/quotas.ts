@@ -777,6 +777,12 @@ export type ProviderQuotaChannel = {
         quotaData: ProviderOllamaQuotaData;
       };
     }
+  | {
+      type: 'qianwen_token_plan' | 'qianwen_token_plan_anthropic';
+      quotaStatus: {
+        quotaData: ProviderQuotaDataCommon;
+      };
+    }
 );
 
 type ProviderQuotaStatusNode = {
@@ -978,6 +984,13 @@ function parseChannelNode(node: QueryChannelNodeWithQuota): ProviderQuotaChannel
       ...base,
       type: node.type as 'commandcode' | 'commandcode_anthropic',
       quotaStatus: { ...base.quotaStatus, quotaData: node.providerQuotaStatus.quotaData as ProviderCommandCodeQuotaData },
+    };
+  }
+  if (node.type === 'qianwen_token_plan' || node.type === 'qianwen_token_plan_anthropic') {
+    return {
+      ...base,
+      type: node.type,
+      quotaStatus: { ...base.quotaStatus, quotaData: node.providerQuotaStatus.quotaData as ProviderQuotaDataCommon },
     };
   }
   if (node.type === 'ollama' || node.type === 'ollama_anthropic') {

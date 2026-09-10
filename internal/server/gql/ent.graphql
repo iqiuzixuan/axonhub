@@ -1310,6 +1310,8 @@ enum ChannelType @goModel(model: "github.com/looplj/axonhub/internal/ent/channel
   modelscope
   bailian
   bailian_anthropic
+  qianwen_token_plan
+  qianwen_token_plan_anthropic
   moonshot_coding
   jina
   github
@@ -3778,6 +3780,7 @@ enum ProviderQuotaStatusProviderType @goModel(model: "github.com/looplj/axonhub/
   zenmux
   commandcode
   ollama
+  qianwen_token_plan
 }
 """
 ProviderQuotaStatusStatus is enum for the field status

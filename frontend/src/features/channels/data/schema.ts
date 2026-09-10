@@ -109,6 +109,8 @@ export const channelTypeSchema = z.enum([
   'modelscope',
   'bailian',
   'bailian_anthropic',
+  'qianwen_token_plan',
+  'qianwen_token_plan_anthropic',
   'moonshot_coding',
   'jina',
   'github',
@@ -314,9 +316,15 @@ export const ollamaQuotaSettingsSchema = z.object({
 });
 export type OllamaQuotaSettings = z.infer<typeof ollamaQuotaSettingsSchema>;
 
+export const qianwenTokenPlanQuotaSettingsSchema = z.object({
+  authCookie: z.string().optional().nullable(),
+});
+export type QianwenTokenPlanQuotaSettings = z.infer<typeof qianwenTokenPlanQuotaSettingsSchema>;
+
 export const channelProviderQuotaSettingsSchema = z.object({
   commandCode: commandCodeQuotaSettingsSchema.optional().nullable(),
   ollama: ollamaQuotaSettingsSchema.optional().nullable(),
+  qianwenTokenPlan: qianwenTokenPlanQuotaSettingsSchema.optional().nullable(),
 });
 export type ChannelProviderQuotaSettings = z.infer<typeof channelProviderQuotaSettingsSchema>;
 

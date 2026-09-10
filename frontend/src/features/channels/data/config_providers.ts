@@ -222,6 +222,12 @@ export const PROVIDER_CONFIGS: Record<string, ProviderConfig> = {
     color: 'bg-purple-100 text-purple-800 border-purple-200',
     channelTypes: ['modelscope'],
   },
+  qianwen_token_plan: {
+    provider: 'qianwen_token_plan',
+    icon: Bailian,
+    color: 'bg-purple-100 text-purple-800 border-purple-200',
+    channelTypes: ['qianwen_token_plan', 'qianwen_token_plan_anthropic'],
+  },
   bailian: {
     provider: 'bailian',
     icon: Bailian,

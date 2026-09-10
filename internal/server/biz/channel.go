@@ -531,6 +531,11 @@ func (svc *ChannelService) ListModels(ctx context.Context, input ListModelsInput
 // createChannel creates a new channel without triggering a reload.
 // This is useful for batch operations where reload should happen once at the end.
 func (svc *ChannelService) createChannel(ctx context.Context, input ent.CreateChannelInput) (*ent.Channel, error) {
+	var quotaErr error
+	input.Settings, quotaErr = normalizeQianwenQuotaSettings(input.Settings, input.Type)
+	if quotaErr != nil {
+		return nil, quotaErr
+	}
 	sanitizedSettings, err := normalizeCommandCodeQuotaCookieSettings(input.Settings, input.Type)
 	if err != nil {
 		return nil, err
@@ -839,13 +844,19 @@ func (svc *ChannelService) UpdateChannel(ctx context.Context, id int, input *ent
 	commandCodeQuotaSettings := input.Settings != nil &&
 		(isCommandCodeChannelType(effectiveType) ||
 			(input.Settings.ProviderQuota != nil && input.Settings.ProviderQuota.CommandCode != nil))
-	guardProviderIdentity := input.Type != nil || input.BaseURL != nil || input.Endpoints != nil || commandCodeQuotaSettings
+	qianwenQuotaSettings := input.Settings != nil && (isQianwenTokenPlanChannelType(effectiveType) ||
+		(input.Settings.ProviderQuota != nil && input.Settings.ProviderQuota.QianwenTokenPlan != nil))
+	guardProviderIdentity := input.Type != nil || input.BaseURL != nil || input.Endpoints != nil || commandCodeQuotaSettings || qianwenQuotaSettings
 
 	// A cleared Command Code quota cookie must invalidate the old persisted
 	// status, regardless of whether the client sent null or an empty object.
 	quotaCookieCleared := false
 
 	if input.Settings != nil {
+		input.Settings, err = normalizeQianwenQuotaSettings(input.Settings, effectiveType)
+		if err != nil {
+			return nil, err
+		}
 		if isCommandCodeChannelType(effectiveType) && (input.Settings.ProviderQuota == nil || commandCodeQuotaCookieIsBlank(input.Settings)) {
 			input.Settings = clearCommandCodeQuotaSettings(input.Settings)
 			quotaCookieCleared = true
@@ -1027,8 +1038,7 @@ func (svc *ChannelService) UpdateChannel(ctx context.Context, id int, input *ent
 
 	var updated *ent.Channel
 	providerIdentityChanged := false
-	clearStaleQuotaSettings := input.Settings == nil && input.Type != nil &&
-		!isCommandCodeChannelType(*input.Type)
+	clearStaleQuotaSettings := input.Settings == nil && input.Type != nil
 	err = svc.RunInTransaction(ctx, func(ctx context.Context) error {
 		db := svc.entFromContext(ctx)
 
@@ -1070,7 +1080,15 @@ func (svc *ChannelService) UpdateChannel(ctx context.Context, id int, input *ent
 			if err != nil {
 				return fmt.Errorf("failed to load channel settings: %w", err)
 			}
-			mut.SetSettings(clearCommandCodeQuotaSettings(existingSettings.Settings))
+			settings := existingSettings.Settings
+			if !isCommandCodeChannelType(*input.Type) {
+				settings = clearCommandCodeQuotaSettings(settings)
+			}
+			settings, err = normalizeQianwenQuotaSettings(settings, *input.Type)
+			if err != nil {
+				return err
+			}
+			mut.SetSettings(settings)
 		}
 
 		if input.Policies != nil {
@@ -1146,7 +1164,7 @@ func (svc *ChannelService) UpdateChannel(ctx context.Context, id int, input *ent
 	if ent.TxFromContext(ctx) == nil {
 		updated.Unwrap()
 	}
-	if providerIdentityChanged || quotaCookieCleared {
+	if providerIdentityChanged || quotaCookieCleared || qianwenQuotaSettings {
 		runAfterCommit(ctx, func(ctx context.Context) {
 			svc.invalidateProviderQuota(ctx, id)
 		})

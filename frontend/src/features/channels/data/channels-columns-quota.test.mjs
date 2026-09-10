@@ -35,8 +35,8 @@ const { pageInfoSchema } = await import(
 );
 globalThis.__importStubs = { z, pageInfoSchema };
 
-const { parseQuotaLimits } = await loadModule('features/system/data/quotas.ts', (s) =>
-  s.replace(/export function useProviderQuotaStatuses[\s\S]*$/m, '')
+const { parseQuotaLimits, parseChannelNode } = await loadModule('features/system/data/quotas.ts', (s) =>
+  s.replace(/export function useProviderQuotaStatuses[\s\S]*$/m, '').replace('function parseChannelNode(', 'export function parseChannelNode(')
 );
 
 const { channelSchema } = await loadModule('features/channels/data/schema.ts', (s) => s.replace(/z\.url\(/g, 'z.string().url('));
@@ -168,6 +168,8 @@ test('no provider fallback: channels table renders quota for any channel type wi
     'cline',
     'nanogpt',
     'minimax',
+    'qianwen_token_plan',
+    'qianwen_token_plan_anthropic',
     'openai',
   ]) {
     const parsed = channelSchema.safeParse(
@@ -278,4 +280,33 @@ test('more than five normalized limits expose the remaining rows for expansion',
   assert.deepEqual(limits.map((limit) => limit.window), ['5h', '7d', '30d', 'daily', 'weekly', 'monthly']);
   assert.match(columns, /const visibleLimits = isExpanded \? limits : limits\.slice\(0, QUOTA_VISIBLE_LIMIT\)/);
   assert.match(columns, /const hiddenCount = limits\.length - QUOTA_VISIBLE_LIMIT/);
+});
+
+test('Qianwen personal quota retains its seven-day remaining percentage and reset without fabricated credit totals', () => {
+  assert.match(columnsSource, /limit\.nextResetAt &&[\s\S]*?quota\.label\.resets_at_time[\s\S]*?format\(new Date\(limit\.nextResetAt\)/);
+  for (const type of ['qianwen_token_plan', 'qianwen_token_plan_anthropic']) {
+    const providerQuotaStatus = {
+      providerType: 'qianwen_token_plan', status: 'available', ready: true,
+      quotaData: { _limits: [{ type: 'token', window: '7d', usageRatio: 0.52, status: 'available', ready: true, nextResetAt: '2026-09-13T00:00:00Z' }] },
+    };
+    const channel = channelSchema.parse(channelFixture({ type, providerQuotaStatus }));
+    const parsed = parseChannelNode(channel);
+    assert.equal(parsed.type, type);
+    assert.equal(parsed.quotaStatus.limits.length, 1);
+    const [limit] = parsed.quotaStatus.limits;
+    assert.equal(Math.round(100 - limit.usageRatio * 100), 48);
+    assert.equal(limit.window, '7d');
+    assert.equal(limit.nextResetAt, '2026-09-13T00:00:00Z');
+    assert.equal(limit.periodQuota, undefined);
+    assert.equal(limit.periodCost, undefined);
+    const unavailable = parseChannelNode({ ...channel, providerQuotaStatus: { ...providerQuotaStatus, quotaData: {} } });
+    assert.deepEqual(unavailable.quotaStatus.limits, []);
+  }
+});
+
+test('channel queries recall the Qianwen quota cookie for edit, duplicate, and refresh flows', () => {
+  const source = read('features/channels/data/channels.ts');
+  const providerQuotaBlocks = source.match(/providerQuota\s*\{[\s\S]*?ollama\s*\{\s*authCookie\s*\}/g) ?? [];
+  assert.equal(providerQuotaBlocks.length, 7);
+  assert.equal((source.match(/qianwenTokenPlan\s*\{\s*authCookie\s*\}/g) ?? []).length, providerQuotaBlocks.length);
 });

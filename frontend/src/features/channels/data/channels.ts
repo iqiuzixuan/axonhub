@@ -131,6 +131,9 @@ const CREATE_CHANNEL_MUTATION = `
           ollama {
             authCookie
           }
+          qianwenTokenPlan {
+            authCookie
+          }
         }
       }
       orderingWeight
@@ -212,6 +215,9 @@ const DUPLICATE_CHANNEL_MUTATION = `
             authCookie
           }
           ollama {
+            authCookie
+          }
+          qianwenTokenPlan {
             authCookie
           }
         }
@@ -297,6 +303,9 @@ const BULK_CREATE_CHANNELS_MUTATION = `
           ollama {
             authCookie
           }
+          qianwenTokenPlan {
+            authCookie
+          }
         }
       }
       orderingWeight
@@ -378,6 +387,9 @@ const UPDATE_CHANNEL_MUTATION = `
             authCookie
           }
           ollama {
+            authCookie
+          }
+          qianwenTokenPlan {
             authCookie
           }
         }
@@ -576,6 +588,9 @@ const BULK_IMPORT_CHANNELS_MUTATION = `
               authCookie
             }
             ollama {
+              authCookie
+            }
+            qianwenTokenPlan {
               authCookie
             }
           }
@@ -817,6 +832,9 @@ const BULK_UPDATE_CHANNEL_ORDERING_MUTATION = `
             ollama {
               authCookie
             }
+            qianwenTokenPlan {
+              authCookie
+            }
           }
         }
       }
@@ -993,6 +1011,9 @@ const CHANNEL_QUERY_FULL_NODE_SELECTION = `
                 authCookie
               }
               ollama {
+                authCookie
+              }
+              qianwenTokenPlan {
                 authCookie
               }
             }

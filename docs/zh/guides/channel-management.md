@@ -52,6 +52,19 @@
 | API Key | sk-your-deepseek-key |
 | 支持模型 | deepseek-chat, deepseek-reasoner |
 
+### 千问 Token Plan 个人版
+
+选择独立的“千问 Token Plan”提供商，填写套餐专属 API Key，并选择套餐支持的模型。按所选协议使用默认地址：
+
+- OpenAI Chat Completions：`https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1`
+- Anthropic Messages：`https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic`
+
+套餐用量查询还需要填写“用量查询 Cookie（可选）”。登录与套餐 Key 相同账户的千问工作台，在浏览器开发者工具的网络面板中打开个人套餐用量页，复制请求头中的完整 `Cookie` 到渠道配置。后端使用该 Cookie 查询个人套餐七天窗口，渠道列表显示剩余百分比，悬停可查看重置时间。仅填写 API Key 可以调用模型，但不能查询工作台套餐用量。
+
+用量属于 Cookie 登录账户，无法通过此查询核对它与渠道 Key 的归属。Cookie 过期后需重新登录并更新；清空 Cookie 会停止采集。该查询接入工作台接口，尚非稳定公开 API，不包含团队版、加油包余额或总 Credits；不要把它当作整个账户所有可用额度。缺失用量不会显示为剩余 100%。
+
+接口与模型说明见[官方个人版快速开始](https://platform.qianwenai.com/docs/token-plan/personal/token-plan-personal-quickstart)。
+
 ## 配置多个 API Key
 
 当一个账号有多个 API Key 时，可以都配置到同一个渠道中，AxonHub 会自动轮流使用，提高稳定性。

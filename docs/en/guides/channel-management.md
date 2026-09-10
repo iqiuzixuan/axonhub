@@ -52,6 +52,19 @@ In short: **API Key Profile renames → Model Association selects channel → Ch
 | API Key | sk-your-deepseek-key |
 | Supported Models | deepseek-chat, deepseek-reasoner |
 
+### Qianwen Token Plan Personal
+
+Select the separate **Qianwen Token Plan** provider, enter its plan-specific API key, and choose models available in your plan. The default URLs depend on the selected protocol:
+
+- OpenAI Chat Completions: `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1`
+- Anthropic Messages: `https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic`
+
+Quota collection additionally requires the optional **Qianwen console Cookie**. Sign in to the console with the same account as the plan key, open the personal plan usage page with the browser's Network panel, and copy the complete request `Cookie` header into the channel settings. The backend reads the personal plan's seven-day window. The channel list displays its remaining percentage and shows the reset time on hover. The API key alone enables inference but cannot query console quota.
+
+Quota belongs to the account authenticated by the cookie; this query cannot verify ownership against the channel key. Update the cookie after its session expires. Clearing it disables collection. This integration uses a console endpoint rather than a stable public API. It does not include team plans, add-on balances, or total Credits, so it is not a measure of all capacity available to the account. Missing usage is never displayed as 100% remaining.
+
+See the [official personal plan quickstart](https://platform.qianwenai.com/docs/token-plan/personal/token-plan-personal-quickstart) for endpoint and model details.
+
 ## Multiple API Keys
 
 When an account has multiple API Keys, you can configure them all in the same channel. AxonHub will automatically rotate between them for better stability.

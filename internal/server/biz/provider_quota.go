@@ -76,6 +76,8 @@ var providerQuotaChannelTypes = []channel.Type{
 	channel.TypeZhipuAnthropic,
 	channel.TypeZai,
 	channel.TypeZaiAnthropic,
+	channel.TypeQianwenTokenPlan,
+	channel.TypeQianwenTokenPlanAnthropic,
 	channel.TypeCommandcode,
 	channel.TypeCommandcodeAnthropic,
 	channel.TypeOllama,
@@ -393,6 +395,7 @@ func (svc *ProviderQuotaService) registerProviderQuotaSupport() {
 	svc.registerMinimaxSupport()
 	svc.registerZhipuSupport()
 	svc.registerZaiSupport()
+	svc.registerQianwenTokenPlanSupport()
 	svc.registerCharmHyperSupport()
 	svc.registerCommandCodeSupport()
 	svc.registerOllamaSupport()
@@ -482,6 +485,10 @@ func (svc *ProviderQuotaService) registerZhipuSupport() {
 
 func (svc *ProviderQuotaService) registerZaiSupport() {
 	svc.checkers["zai"] = provider_quota.NewZaiQuotaChecker(svc.httpClient)
+}
+
+func (svc *ProviderQuotaService) registerQianwenTokenPlanSupport() {
+	svc.checkers["qianwen_token_plan"] = provider_quota.NewQianwenTokenPlanQuotaChecker(svc.httpClient)
 }
 
 func (svc *ProviderQuotaService) registerCharmHyperSupport() {
@@ -1048,6 +1055,8 @@ func (svc *ProviderQuotaService) getProviderType(ch *ent.Channel) string {
 		return "zhipu"
 	case channel.TypeZai, channel.TypeZaiAnthropic:
 		return "zai"
+	case channel.TypeQianwenTokenPlan, channel.TypeQianwenTokenPlanAnthropic:
+		return "qianwen_token_plan"
 	case channel.TypeCommandcode, channel.TypeCommandcodeAnthropic:
 		return "commandcode"
 	case channel.TypeOllama, channel.TypeOllamaAnthropic:
@@ -1058,6 +1067,13 @@ func (svc *ProviderQuotaService) getProviderType(ch *ent.Channel) string {
 }
 
 func hasCredentialsForProvider(ch *ent.Channel) bool {
+	if ch.Type == channel.TypeQianwenTokenPlan || ch.Type == channel.TypeQianwenTokenPlanAnthropic {
+		if ch.Settings == nil || ch.Settings.ProviderQuota == nil || ch.Settings.ProviderQuota.QianwenTokenPlan == nil {
+			return false
+		}
+		_, err := provider_quota.NormalizeQianwenQuotaCookie(ch.Settings.ProviderQuota.QianwenTokenPlan.AuthCookie)
+		return err == nil
+	}
 	switch ch.Type { //nolint:exhaustive // Only ZenMux uses the separate management credential.
 	case channel.TypeZenmux, channel.TypeZenmuxResponses, channel.TypeZenmuxAnthropic, channel.TypeZenmuxGemini, channel.TypeZenmuxVideo:
 		return strings.TrimSpace(ch.Credentials.ManagementAPIKey) != ""

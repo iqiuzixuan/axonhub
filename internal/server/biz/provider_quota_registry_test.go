@@ -24,7 +24,7 @@ func TestProviderQuotaService_RegistryCoverageMatrix(t *testing.T) {
 		"apertis", "antigravity", "charm_hyper", "claudecode", "cline", "codex",
 		"commandcode", "github_copilot", "kimi_code", "minimax", "nanogpt",
 		"neuralwatt", "opencode_go", "synthetic", "wafer", "xai_subscription",
-		"ollama", "zenmux", "zhipu", "zai",
+		"ollama", "zenmux", "zhipu", "zai", "qianwen_token_plan",
 	}
 	require.ElementsMatch(t, expectedCheckers, mapKeys(svc.checkers))
 
@@ -63,6 +63,8 @@ func TestProviderQuotaService_RegistryCoverageMatrix(t *testing.T) {
 		{"zhipu", channel.TypeZhipuAnthropic, ""},
 		{"zai", channel.TypeZai, ""},
 		{"zai", channel.TypeZaiAnthropic, ""},
+		{"qianwen_token_plan", channel.TypeQianwenTokenPlan, ""},
+		{"qianwen_token_plan", channel.TypeQianwenTokenPlanAnthropic, ""},
 		{"charm_hyper", channel.TypeOpenai, "https://hyper.charm.land"},
 		{"charm_hyper", channel.TypeOpenaiResponses, "https://hyper.charm.land"},
 		{"commandcode", channel.TypeCommandcode, ""},
