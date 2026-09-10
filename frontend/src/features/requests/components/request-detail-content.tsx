@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { DashboardIcon } from '@radix-ui/react-icons';
 import { zhCN, enUS } from 'date-fns/locale';
@@ -7,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { copyTextToClipboard } from '@/lib/clipboard';
 import { extractNumberID } from '@/lib/utils';
+import { useRequestPermissions } from '@/hooks/useRequestPermissions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,6 +37,8 @@ interface RequestDetailContentProps {
 
 export function RequestDetailContent({ requestId, projectId, previewRequest, isPreviewStreaming = false }: RequestDetailContentProps) {
   const { t, i18n } = useTranslation();
+  const { canViewChannels } = useRequestPermissions();
+  const queryClient = useQueryClient();
   const locale = i18n.language === 'zh' ? zhCN : enUS;
 
   const [showResponseChunks, setShowResponseChunks] = useState(false);
@@ -53,6 +57,13 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
   const { data: settings } = useGeneralSettings();
   const { data: requestData, isLoading } = useRequest(requestId, { projectId, disableAutoRefresh: isPreviewStreaming });
   const request = previewRequest ?? requestData;
+  const latestExecution = (requestData?.executions ?? request?.executions)?.edges[0]?.node;
+
+  // Refresh attempt details when retries switch keys or the request finishes.
+  useEffect(() => {
+    if (!latestExecution?.id) return;
+    void queryClient.invalidateQueries({ queryKey: ['request-executions', requestId] });
+  }, [queryClient, requestId, latestExecution?.id, request?.status]);
 
   // Auto-select the appropriate request-body view once data is available:
   // use the conversation view only when the body actually parses as a conversation.
@@ -370,7 +381,7 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className='grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3'>
+          <div className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${canViewChannels ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
             <div className='bg-muted/30 flex items-center justify-between gap-2 rounded-lg border px-3 py-2'>
               <div className='flex items-center gap-2'>
                 <Database className='text-primary h-3.5 w-3.5' />
@@ -380,6 +391,18 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
                 {request.channel?.name || t('requests.columns.unknown')}
               </p>
             </div>
+
+            {canViewChannels && (
+              <div className='bg-muted/30 flex items-center justify-between gap-2 rounded-lg border px-3 py-2'>
+                <div className='flex items-center gap-2'>
+                  <Key className='text-primary h-3.5 w-3.5' />
+                  <span className='text-xs font-medium'>{t('requests.dialogs.requestDetail.fields.channelApiKey')}</span>
+                </div>
+                <p className='bg-background whitespace-nowrap rounded border px-2 py-0.5 font-mono text-xs'>
+                  {latestExecution?.channelAPIKeyMasked || t('requests.dialogs.requestDetail.fields.channelApiKeyNotRecorded')}
+                </p>
+              </div>
+            )}
 
             <div className='bg-muted/30 flex items-center justify-between gap-2 rounded-lg border px-3 py-2'>
               <div className='flex items-center gap-2'>
@@ -793,7 +816,7 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
                           </div>
                         </CardHeader>
                         <CardContent className='space-y-6'>
-                          <div className='grid grid-cols-1 gap-4 sm:grid-cols-5'>
+                          <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${canViewChannels ? 'lg:grid-cols-3' : 'lg:grid-cols-5'}`}>
                             <div className='bg-background space-y-2 rounded-lg border p-3'>
                               <span className='flex items-center gap-2 text-sm font-medium'>
                                 <Database className='text-primary h-4 w-4' />
@@ -803,6 +826,17 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
                                 {execution.channel?.name || t('requests.columns.unknown')}
                               </p>
                             </div>
+                            {canViewChannels && (
+                              <div className='bg-background space-y-2 rounded-lg border p-3'>
+                                <span className='flex items-center gap-2 text-sm font-medium'>
+                                  <Key className='text-primary h-4 w-4' />
+                                  {t('requests.dialogs.requestDetail.fields.channelApiKey')}
+                                </span>
+                                <p className='text-muted-foreground font-mono text-sm'>
+                                  {execution.channelAPIKeyMasked || t('requests.dialogs.requestDetail.fields.channelApiKeyNotRecorded')}
+                                </p>
+                              </div>
+                            )}
                             <div className='bg-background space-y-2 rounded-lg border p-3'>
                               <span className='flex items-center gap-2 text-sm font-medium'>
                                 <Clock className='text-primary h-4 w-4' />

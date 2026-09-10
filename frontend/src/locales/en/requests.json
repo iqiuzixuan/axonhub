@@ -131,6 +131,8 @@
   "requests.dialogs.curlPreview.title": "cURL Command",
   "requests.dialogs.curlPreview.copyNonStream": "Copy (Non-streaming)",
   "requests.dialogs.requestDetail.fields.apiKeyName": "API Key Name",
+  "requests.dialogs.requestDetail.fields.channelApiKey": "Channel API Key",
+  "requests.dialogs.requestDetail.fields.channelApiKeyNotRecorded": "Not recorded",
   "requests.dialogs.requestDetail.fields.startTime": "Start Time",
   "requests.dialogs.requestDetail.fields.endTime": "End Time",
   "requests.dialogs.requestDetail.execution": "Execution #{{index}}",
