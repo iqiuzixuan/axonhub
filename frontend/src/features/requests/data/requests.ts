@@ -128,6 +128,15 @@ function buildRequestDetailQuery(permissions: { canViewApiKeys: boolean; canView
           channel {
             id
             name
+          }
+          executions(first: 1, orderBy: { field: CREATED_AT, direction: DESC }) {
+            edges {
+              node {
+                id
+                channelAPIKeyMasked
+              }
+              cursor
+            }
           }`
     : '';
 
@@ -191,6 +200,15 @@ function buildRequestDetailPollingQuery(permissions: { canViewApiKeys: boolean; 
           channel {
             id
             name
+          }
+          executions(first: 1, orderBy: { field: CREATED_AT, direction: DESC }) {
+            edges {
+              node {
+                id
+                channelAPIKeyMasked
+              }
+              cursor
+            }
           }`
     : '';
 
@@ -221,6 +239,7 @@ function buildRequestDetailPollingQuery(permissions: { canViewApiKeys: boolean; 
 function buildRequestExecutionsQuery(permissions: { canViewChannels: boolean }) {
   const channelFields = permissions.canViewChannels
     ? `
+              channelAPIKeyMasked
               channel {
                   id
                   name

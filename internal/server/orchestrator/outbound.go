@@ -8,6 +8,7 @@ import (
 
 	"github.com/samber/lo"
 
+	"github.com/looplj/axonhub/internal/contexts"
 	"github.com/looplj/axonhub/internal/ent"
 	"github.com/looplj/axonhub/internal/ent/requestexecution"
 	"github.com/looplj/axonhub/internal/log"
@@ -510,6 +511,8 @@ func (p *PersistentOutboundTransformer) TransformRequest(ctx context.Context, ll
 	p.state.CurrentCandidate = candidate
 	p.state.StreamCompleted = false
 	p.state.OutboundStreamTerminal = streamTerminalNone
+	// A channel without an API key must not inherit the previous attempt's key.
+	ctx = contexts.WithChannelAPIKey(ctx, "")
 	p.refreshCandidateAPIFormat(ctx, candidate, p.state.CurrentModelIndex, llmRequest)
 
 	p.wrapped = selectOutboundForCandidate(candidate)

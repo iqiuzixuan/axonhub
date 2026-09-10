@@ -25,6 +25,7 @@ export const requestExecutionSchema = z.object({
   // requestID: z.string(),
   // channelID: z.number(),
   channel: channelSchema.partial().nullable().optional(),
+  channelAPIKeyMasked: z.string().nullable().optional(),
   modelID: z.string(),
   requestHeaders: z.any().nullable().optional(),
   requestBody: z.any(), // JSONRawMessage

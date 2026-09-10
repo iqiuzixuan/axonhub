@@ -122,6 +122,20 @@ func (_c *RequestExecutionCreate) SetModelID(v string) *RequestExecutionCreate {
 	return _c
 }
 
+// SetChannelAPIKeyMasked sets the "channel_api_key_masked" field.
+func (_c *RequestExecutionCreate) SetChannelAPIKeyMasked(v string) *RequestExecutionCreate {
+	_c.mutation.SetChannelAPIKeyMasked(v)
+	return _c
+}
+
+// SetNillableChannelAPIKeyMasked sets the "channel_api_key_masked" field if the given value is not nil.
+func (_c *RequestExecutionCreate) SetNillableChannelAPIKeyMasked(v *string) *RequestExecutionCreate {
+	if v != nil {
+		_c.SetChannelAPIKeyMasked(*v)
+	}
+	return _c
+}
+
 // SetFormat sets the "format" field.
 func (_c *RequestExecutionCreate) SetFormat(v string) *RequestExecutionCreate {
 	_c.mutation.SetFormat(v)
@@ -453,6 +467,10 @@ func (_c *RequestExecutionCreate) createSpec() (*RequestExecution, *sqlgraph.Cre
 	if value, ok := _c.mutation.ModelID(); ok {
 		_spec.SetField(requestexecution.FieldModelID, field.TypeString, value)
 		_node.ModelID = value
+	}
+	if value, ok := _c.mutation.ChannelAPIKeyMasked(); ok {
+		_spec.SetField(requestexecution.FieldChannelAPIKeyMasked, field.TypeString, value)
+		_node.ChannelAPIKeyMasked = &value
 	}
 	if value, ok := _c.mutation.Format(); ok {
 		_spec.SetField(requestexecution.FieldFormat, field.TypeString, value)
@@ -885,6 +903,9 @@ func (u *RequestExecutionUpsertOne) UpdateNewValues() *RequestExecutionUpsertOne
 		}
 		if _, exists := u.create.mutation.ModelID(); exists {
 			s.SetIgnore(requestexecution.FieldModelID)
+		}
+		if _, exists := u.create.mutation.ChannelAPIKeyMasked(); exists {
+			s.SetIgnore(requestexecution.FieldChannelAPIKeyMasked)
 		}
 		if _, exists := u.create.mutation.Format(); exists {
 			s.SetIgnore(requestexecution.FieldFormat)
@@ -1402,6 +1423,9 @@ func (u *RequestExecutionUpsertBulk) UpdateNewValues() *RequestExecutionUpsertBu
 			}
 			if _, exists := b.mutation.ModelID(); exists {
 				s.SetIgnore(requestexecution.FieldModelID)
+			}
+			if _, exists := b.mutation.ChannelAPIKeyMasked(); exists {
+				s.SetIgnore(requestexecution.FieldChannelAPIKeyMasked)
 			}
 			if _, exists := b.mutation.Format(); exists {
 				s.SetIgnore(requestexecution.FieldFormat)

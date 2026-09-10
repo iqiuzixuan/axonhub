@@ -1517,6 +1517,7 @@ type ComplexityRoot struct {
 
 	RequestExecution struct {
 		Channel                    func(childComplexity int) int
+		ChannelAPIKeyMasked        func(childComplexity int) int
 		ChannelID                  func(childComplexity int) int
 		CreatedAt                  func(childComplexity int) int
 		DataStorage                func(childComplexity int) int
@@ -9177,6 +9178,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.RequestExecution.Channel(childComplexity), true
+	case "RequestExecution.channelAPIKeyMasked":
+		if e.complexity.RequestExecution.ChannelAPIKeyMasked == nil {
+			break
+		}
+
+		return e.complexity.RequestExecution.ChannelAPIKeyMasked(childComplexity), true
 	case "RequestExecution.channelID":
 		if e.complexity.RequestExecution.ChannelID == nil {
 			break
@@ -49654,6 +49661,35 @@ func (ec *executionContext) fieldContext_RequestExecution_modelID(_ context.Cont
 	return fc, nil
 }
 
+func (ec *executionContext) _RequestExecution_channelAPIKeyMasked(ctx context.Context, field graphql.CollectedField, obj *ent.RequestExecution) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RequestExecution_channelAPIKeyMasked,
+		func(ctx context.Context) (any, error) {
+			return obj.ChannelAPIKeyMasked, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RequestExecution_channelAPIKeyMasked(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RequestExecution",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _RequestExecution_format(ctx context.Context, field graphql.CollectedField, obj *ent.RequestExecution) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -50479,6 +50515,8 @@ func (ec *executionContext) fieldContext_RequestExecutionEdge_node(_ context.Con
 				return ec.fieldContext_RequestExecution_externalID(ctx, field)
 			case "modelID":
 				return ec.fieldContext_RequestExecution_modelID(ctx, field)
+			case "channelAPIKeyMasked":
+				return ec.fieldContext_RequestExecution_channelAPIKeyMasked(ctx, field)
 			case "format":
 				return ec.fieldContext_RequestExecution_format(ctx, field)
 			case "reasoningEffort":
@@ -78723,7 +78761,7 @@ func (ec *executionContext) unmarshalInputRequestExecutionWhereInput(ctx context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "projectID", "projectIDNEQ", "projectIDIn", "projectIDNotIn", "projectIDGT", "projectIDGTE", "projectIDLT", "projectIDLTE", "requestID", "requestIDNEQ", "requestIDIn", "requestIDNotIn", "channelID", "channelIDNEQ", "channelIDIn", "channelIDNotIn", "channelIDIsNil", "channelIDNotNil", "dataStorageID", "dataStorageIDNEQ", "dataStorageIDIn", "dataStorageIDNotIn", "dataStorageIDIsNil", "dataStorageIDNotNil", "externalID", "externalIDNEQ", "externalIDIn", "externalIDNotIn", "externalIDGT", "externalIDGTE", "externalIDLT", "externalIDLTE", "externalIDContains", "externalIDHasPrefix", "externalIDHasSuffix", "externalIDIsNil", "externalIDNotNil", "externalIDEqualFold", "externalIDContainsFold", "modelID", "modelIDNEQ", "modelIDIn", "modelIDNotIn", "modelIDGT", "modelIDGTE", "modelIDLT", "modelIDLTE", "modelIDContains", "modelIDHasPrefix", "modelIDHasSuffix", "modelIDEqualFold", "modelIDContainsFold", "format", "formatNEQ", "formatIn", "formatNotIn", "formatGT", "formatGTE", "formatLT", "formatLTE", "formatContains", "formatHasPrefix", "formatHasSuffix", "formatEqualFold", "formatContainsFold", "reasoningEffort", "reasoningEffortNEQ", "reasoningEffortIn", "reasoningEffortNotIn", "reasoningEffortGT", "reasoningEffortGTE", "reasoningEffortLT", "reasoningEffortLTE", "reasoningEffortContains", "reasoningEffortHasPrefix", "reasoningEffortHasSuffix", "reasoningEffortIsNil", "reasoningEffortNotNil", "reasoningEffortEqualFold", "reasoningEffortContainsFold", "errorMessage", "errorMessageNEQ", "errorMessageIn", "errorMessageNotIn", "errorMessageGT", "errorMessageGTE", "errorMessageLT", "errorMessageLTE", "errorMessageContains", "errorMessageHasPrefix", "errorMessageHasSuffix", "errorMessageIsNil", "errorMessageNotNil", "errorMessageEqualFold", "errorMessageContainsFold", "responseStatusCode", "responseStatusCodeNEQ", "responseStatusCodeIn", "responseStatusCodeNotIn", "responseStatusCodeGT", "responseStatusCodeGTE", "responseStatusCodeLT", "responseStatusCodeLTE", "responseStatusCodeIsNil", "responseStatusCodeNotNil", "status", "statusNEQ", "statusIn", "statusNotIn", "stream", "streamNEQ", "metricsLatencyMs", "metricsLatencyMsNEQ", "metricsLatencyMsIn", "metricsLatencyMsNotIn", "metricsLatencyMsGT", "metricsLatencyMsGTE", "metricsLatencyMsLT", "metricsLatencyMsLTE", "metricsLatencyMsIsNil", "metricsLatencyMsNotNil", "metricsFirstTokenLatencyMs", "metricsFirstTokenLatencyMsNEQ", "metricsFirstTokenLatencyMsIn", "metricsFirstTokenLatencyMsNotIn", "metricsFirstTokenLatencyMsGT", "metricsFirstTokenLatencyMsGTE", "metricsFirstTokenLatencyMsLT", "metricsFirstTokenLatencyMsLTE", "metricsFirstTokenLatencyMsIsNil", "metricsFirstTokenLatencyMsNotNil", "metricsReasoningDurationMs", "metricsReasoningDurationMsNEQ", "metricsReasoningDurationMsIn", "metricsReasoningDurationMsNotIn", "metricsReasoningDurationMsGT", "metricsReasoningDurationMsGTE", "metricsReasoningDurationMsLT", "metricsReasoningDurationMsLTE", "metricsReasoningDurationMsIsNil", "metricsReasoningDurationMsNotNil", "requestURL", "requestURLNEQ", "requestURLIn", "requestURLNotIn", "requestURLGT", "requestURLGTE", "requestURLLT", "requestURLLTE", "requestURLContains", "requestURLHasPrefix", "requestURLHasSuffix", "requestURLIsNil", "requestURLNotNil", "requestURLEqualFold", "requestURLContainsFold", "passThroughApplied", "passThroughAppliedNEQ", "hasRequest", "hasRequestWith", "hasChannel", "hasChannelWith", "hasDataStorage", "hasDataStorageWith"}
+	fieldsInOrder := [...]string{"not", "and", "or", "id", "idNEQ", "idIn", "idNotIn", "idGT", "idGTE", "idLT", "idLTE", "createdAt", "createdAtNEQ", "createdAtIn", "createdAtNotIn", "createdAtGT", "createdAtGTE", "createdAtLT", "createdAtLTE", "updatedAt", "updatedAtNEQ", "updatedAtIn", "updatedAtNotIn", "updatedAtGT", "updatedAtGTE", "updatedAtLT", "updatedAtLTE", "projectID", "projectIDNEQ", "projectIDIn", "projectIDNotIn", "projectIDGT", "projectIDGTE", "projectIDLT", "projectIDLTE", "requestID", "requestIDNEQ", "requestIDIn", "requestIDNotIn", "channelID", "channelIDNEQ", "channelIDIn", "channelIDNotIn", "channelIDIsNil", "channelIDNotNil", "dataStorageID", "dataStorageIDNEQ", "dataStorageIDIn", "dataStorageIDNotIn", "dataStorageIDIsNil", "dataStorageIDNotNil", "externalID", "externalIDNEQ", "externalIDIn", "externalIDNotIn", "externalIDGT", "externalIDGTE", "externalIDLT", "externalIDLTE", "externalIDContains", "externalIDHasPrefix", "externalIDHasSuffix", "externalIDIsNil", "externalIDNotNil", "externalIDEqualFold", "externalIDContainsFold", "modelID", "modelIDNEQ", "modelIDIn", "modelIDNotIn", "modelIDGT", "modelIDGTE", "modelIDLT", "modelIDLTE", "modelIDContains", "modelIDHasPrefix", "modelIDHasSuffix", "modelIDEqualFold", "modelIDContainsFold", "channelAPIKeyMasked", "channelAPIKeyMaskedNEQ", "channelAPIKeyMaskedIn", "channelAPIKeyMaskedNotIn", "channelAPIKeyMaskedGT", "channelAPIKeyMaskedGTE", "channelAPIKeyMaskedLT", "channelAPIKeyMaskedLTE", "channelAPIKeyMaskedContains", "channelAPIKeyMaskedHasPrefix", "channelAPIKeyMaskedHasSuffix", "channelAPIKeyMaskedIsNil", "channelAPIKeyMaskedNotNil", "channelAPIKeyMaskedEqualFold", "channelAPIKeyMaskedContainsFold", "format", "formatNEQ", "formatIn", "formatNotIn", "formatGT", "formatGTE", "formatLT", "formatLTE", "formatContains", "formatHasPrefix", "formatHasSuffix", "formatEqualFold", "formatContainsFold", "reasoningEffort", "reasoningEffortNEQ", "reasoningEffortIn", "reasoningEffortNotIn", "reasoningEffortGT", "reasoningEffortGTE", "reasoningEffortLT", "reasoningEffortLTE", "reasoningEffortContains", "reasoningEffortHasPrefix", "reasoningEffortHasSuffix", "reasoningEffortIsNil", "reasoningEffortNotNil", "reasoningEffortEqualFold", "reasoningEffortContainsFold", "errorMessage", "errorMessageNEQ", "errorMessageIn", "errorMessageNotIn", "errorMessageGT", "errorMessageGTE", "errorMessageLT", "errorMessageLTE", "errorMessageContains", "errorMessageHasPrefix", "errorMessageHasSuffix", "errorMessageIsNil", "errorMessageNotNil", "errorMessageEqualFold", "errorMessageContainsFold", "responseStatusCode", "responseStatusCodeNEQ", "responseStatusCodeIn", "responseStatusCodeNotIn", "responseStatusCodeGT", "responseStatusCodeGTE", "responseStatusCodeLT", "responseStatusCodeLTE", "responseStatusCodeIsNil", "responseStatusCodeNotNil", "status", "statusNEQ", "statusIn", "statusNotIn", "stream", "streamNEQ", "metricsLatencyMs", "metricsLatencyMsNEQ", "metricsLatencyMsIn", "metricsLatencyMsNotIn", "metricsLatencyMsGT", "metricsLatencyMsGTE", "metricsLatencyMsLT", "metricsLatencyMsLTE", "metricsLatencyMsIsNil", "metricsLatencyMsNotNil", "metricsFirstTokenLatencyMs", "metricsFirstTokenLatencyMsNEQ", "metricsFirstTokenLatencyMsIn", "metricsFirstTokenLatencyMsNotIn", "metricsFirstTokenLatencyMsGT", "metricsFirstTokenLatencyMsGTE", "metricsFirstTokenLatencyMsLT", "metricsFirstTokenLatencyMsLTE", "metricsFirstTokenLatencyMsIsNil", "metricsFirstTokenLatencyMsNotNil", "metricsReasoningDurationMs", "metricsReasoningDurationMsNEQ", "metricsReasoningDurationMsIn", "metricsReasoningDurationMsNotIn", "metricsReasoningDurationMsGT", "metricsReasoningDurationMsGTE", "metricsReasoningDurationMsLT", "metricsReasoningDurationMsLTE", "metricsReasoningDurationMsIsNil", "metricsReasoningDurationMsNotNil", "requestURL", "requestURLNEQ", "requestURLIn", "requestURLNotIn", "requestURLGT", "requestURLGTE", "requestURLLT", "requestURLLTE", "requestURLContains", "requestURLHasPrefix", "requestURLHasSuffix", "requestURLIsNil", "requestURLNotNil", "requestURLEqualFold", "requestURLContainsFold", "passThroughApplied", "passThroughAppliedNEQ", "hasRequest", "hasRequestWith", "hasChannel", "hasChannelWith", "hasDataStorage", "hasDataStorageWith"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -79363,6 +79401,111 @@ func (ec *executionContext) unmarshalInputRequestExecutionWhereInput(ctx context
 				return it, err
 			}
 			it.ModelIDContainsFold = data
+		case "channelAPIKeyMasked":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelAPIKeyMasked"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ChannelAPIKeyMasked = data
+		case "channelAPIKeyMaskedNEQ":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelAPIKeyMaskedNEQ"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ChannelAPIKeyMaskedNEQ = data
+		case "channelAPIKeyMaskedIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelAPIKeyMaskedIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ChannelAPIKeyMaskedIn = data
+		case "channelAPIKeyMaskedNotIn":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelAPIKeyMaskedNotIn"))
+			data, err := ec.unmarshalOString2ᚕstringᚄ(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ChannelAPIKeyMaskedNotIn = data
+		case "channelAPIKeyMaskedGT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelAPIKeyMaskedGT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ChannelAPIKeyMaskedGT = data
+		case "channelAPIKeyMaskedGTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelAPIKeyMaskedGTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ChannelAPIKeyMaskedGTE = data
+		case "channelAPIKeyMaskedLT":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelAPIKeyMaskedLT"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ChannelAPIKeyMaskedLT = data
+		case "channelAPIKeyMaskedLTE":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelAPIKeyMaskedLTE"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ChannelAPIKeyMaskedLTE = data
+		case "channelAPIKeyMaskedContains":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelAPIKeyMaskedContains"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ChannelAPIKeyMaskedContains = data
+		case "channelAPIKeyMaskedHasPrefix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelAPIKeyMaskedHasPrefix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ChannelAPIKeyMaskedHasPrefix = data
+		case "channelAPIKeyMaskedHasSuffix":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelAPIKeyMaskedHasSuffix"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ChannelAPIKeyMaskedHasSuffix = data
+		case "channelAPIKeyMaskedIsNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelAPIKeyMaskedIsNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ChannelAPIKeyMaskedIsNil = data
+		case "channelAPIKeyMaskedNotNil":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelAPIKeyMaskedNotNil"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ChannelAPIKeyMaskedNotNil = data
+		case "channelAPIKeyMaskedEqualFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelAPIKeyMaskedEqualFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ChannelAPIKeyMaskedEqualFold = data
+		case "channelAPIKeyMaskedContainsFold":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("channelAPIKeyMaskedContainsFold"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ChannelAPIKeyMaskedContainsFold = data
 		case "format":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("format"))
 			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
@@ -104555,6 +104698,8 @@ func (ec *executionContext) _RequestExecution(ctx context.Context, sel ast.Selec
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&out.Invalids, 1)
 			}
+		case "channelAPIKeyMasked":
+			out.Values[i] = ec._RequestExecution_channelAPIKeyMasked(ctx, field, obj)
 		case "format":
 			out.Values[i] = ec._RequestExecution_format(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

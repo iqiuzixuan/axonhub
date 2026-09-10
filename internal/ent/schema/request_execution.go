@@ -48,6 +48,11 @@ func (RequestExecution) Fields() []ent.Field {
 			Optional().
 			MaxLen(512),
 		field.String("model_id").Immutable(),
+		field.String("channel_api_key_masked").
+			Optional().
+			Nillable().
+			Immutable().
+			Comment("Masked channel API key selected for this execution attempt"),
 		//  The format of the request, e.g: openai/chat_completions, claude/messages, openai/response.
 		field.String("format").Immutable().Default("openai/chat_completions"),
 		field.String("reasoning_effort").

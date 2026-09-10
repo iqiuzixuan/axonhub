@@ -18886,6 +18886,7 @@ type RequestExecutionMutation struct {
 	addproject_id                     *int
 	external_id                       *string
 	model_id                          *string
+	channel_api_key_masked            *string
 	format                            *string
 	reasoning_effort                  *string
 	request_body                      *objects.JSONRawMessage
@@ -19364,6 +19365,55 @@ func (m *RequestExecutionMutation) OldModelID(ctx context.Context) (v string, er
 // ResetModelID resets all changes to the "model_id" field.
 func (m *RequestExecutionMutation) ResetModelID() {
 	m.model_id = nil
+}
+
+// SetChannelAPIKeyMasked sets the "channel_api_key_masked" field.
+func (m *RequestExecutionMutation) SetChannelAPIKeyMasked(s string) {
+	m.channel_api_key_masked = &s
+}
+
+// ChannelAPIKeyMasked returns the value of the "channel_api_key_masked" field in the mutation.
+func (m *RequestExecutionMutation) ChannelAPIKeyMasked() (r string, exists bool) {
+	v := m.channel_api_key_masked
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChannelAPIKeyMasked returns the old "channel_api_key_masked" field's value of the RequestExecution entity.
+// If the RequestExecution object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestExecutionMutation) OldChannelAPIKeyMasked(ctx context.Context) (v *string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChannelAPIKeyMasked is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChannelAPIKeyMasked requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChannelAPIKeyMasked: %w", err)
+	}
+	return oldValue.ChannelAPIKeyMasked, nil
+}
+
+// ClearChannelAPIKeyMasked clears the value of the "channel_api_key_masked" field.
+func (m *RequestExecutionMutation) ClearChannelAPIKeyMasked() {
+	m.channel_api_key_masked = nil
+	m.clearedFields[requestexecution.FieldChannelAPIKeyMasked] = struct{}{}
+}
+
+// ChannelAPIKeyMaskedCleared returns if the "channel_api_key_masked" field was cleared in this mutation.
+func (m *RequestExecutionMutation) ChannelAPIKeyMaskedCleared() bool {
+	_, ok := m.clearedFields[requestexecution.FieldChannelAPIKeyMasked]
+	return ok
+}
+
+// ResetChannelAPIKeyMasked resets all changes to the "channel_api_key_masked" field.
+func (m *RequestExecutionMutation) ResetChannelAPIKeyMasked() {
+	m.channel_api_key_masked = nil
+	delete(m.clearedFields, requestexecution.FieldChannelAPIKeyMasked)
 }
 
 // SetFormat sets the "format" field.
@@ -20298,7 +20348,7 @@ func (m *RequestExecutionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RequestExecutionMutation) Fields() []string {
-	fields := make([]string, 0, 23)
+	fields := make([]string, 0, 24)
 	if m.created_at != nil {
 		fields = append(fields, requestexecution.FieldCreatedAt)
 	}
@@ -20322,6 +20372,9 @@ func (m *RequestExecutionMutation) Fields() []string {
 	}
 	if m.model_id != nil {
 		fields = append(fields, requestexecution.FieldModelID)
+	}
+	if m.channel_api_key_masked != nil {
+		fields = append(fields, requestexecution.FieldChannelAPIKeyMasked)
 	}
 	if m.format != nil {
 		fields = append(fields, requestexecution.FieldFormat)
@@ -20392,6 +20445,8 @@ func (m *RequestExecutionMutation) Field(name string) (ent.Value, bool) {
 		return m.ExternalID()
 	case requestexecution.FieldModelID:
 		return m.ModelID()
+	case requestexecution.FieldChannelAPIKeyMasked:
+		return m.ChannelAPIKeyMasked()
 	case requestexecution.FieldFormat:
 		return m.Format()
 	case requestexecution.FieldReasoningEffort:
@@ -20447,6 +20502,8 @@ func (m *RequestExecutionMutation) OldField(ctx context.Context, name string) (e
 		return m.OldExternalID(ctx)
 	case requestexecution.FieldModelID:
 		return m.OldModelID(ctx)
+	case requestexecution.FieldChannelAPIKeyMasked:
+		return m.OldChannelAPIKeyMasked(ctx)
 	case requestexecution.FieldFormat:
 		return m.OldFormat(ctx)
 	case requestexecution.FieldReasoningEffort:
@@ -20541,6 +20598,13 @@ func (m *RequestExecutionMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetModelID(v)
+		return nil
+	case requestexecution.FieldChannelAPIKeyMasked:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChannelAPIKeyMasked(v)
 		return nil
 	case requestexecution.FieldFormat:
 		v, ok := value.(string)
@@ -20749,6 +20813,9 @@ func (m *RequestExecutionMutation) ClearedFields() []string {
 	if m.FieldCleared(requestexecution.FieldExternalID) {
 		fields = append(fields, requestexecution.FieldExternalID)
 	}
+	if m.FieldCleared(requestexecution.FieldChannelAPIKeyMasked) {
+		fields = append(fields, requestexecution.FieldChannelAPIKeyMasked)
+	}
 	if m.FieldCleared(requestexecution.FieldReasoningEffort) {
 		fields = append(fields, requestexecution.FieldReasoningEffort)
 	}
@@ -20801,6 +20868,9 @@ func (m *RequestExecutionMutation) ClearField(name string) error {
 		return nil
 	case requestexecution.FieldExternalID:
 		m.ClearExternalID()
+		return nil
+	case requestexecution.FieldChannelAPIKeyMasked:
+		m.ClearChannelAPIKeyMasked()
 		return nil
 	case requestexecution.FieldReasoningEffort:
 		m.ClearReasoningEffort()
@@ -20863,6 +20933,9 @@ func (m *RequestExecutionMutation) ResetField(name string) error {
 		return nil
 	case requestexecution.FieldModelID:
 		m.ResetModelID()
+		return nil
+	case requestexecution.FieldChannelAPIKeyMasked:
+		m.ResetChannelAPIKeyMasked()
 		return nil
 	case requestexecution.FieldFormat:
 		m.ResetFormat()

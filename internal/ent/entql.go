@@ -443,6 +443,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			requestexecution.FieldDataStorageID:              {Type: field.TypeInt, Column: requestexecution.FieldDataStorageID},
 			requestexecution.FieldExternalID:                 {Type: field.TypeString, Column: requestexecution.FieldExternalID},
 			requestexecution.FieldModelID:                    {Type: field.TypeString, Column: requestexecution.FieldModelID},
+			requestexecution.FieldChannelAPIKeyMasked:        {Type: field.TypeString, Column: requestexecution.FieldChannelAPIKeyMasked},
 			requestexecution.FieldFormat:                     {Type: field.TypeString, Column: requestexecution.FieldFormat},
 			requestexecution.FieldReasoningEffort:            {Type: field.TypeString, Column: requestexecution.FieldReasoningEffort},
 			requestexecution.FieldRequestBody:                {Type: field.TypeJSON, Column: requestexecution.FieldRequestBody},
@@ -3559,6 +3560,11 @@ func (f *RequestExecutionFilter) WhereExternalID(p entql.StringP) {
 // WhereModelID applies the entql string predicate on the model_id field.
 func (f *RequestExecutionFilter) WhereModelID(p entql.StringP) {
 	f.Where(p.Field(requestexecution.FieldModelID))
+}
+
+// WhereChannelAPIKeyMasked applies the entql string predicate on the channel_api_key_masked field.
+func (f *RequestExecutionFilter) WhereChannelAPIKeyMasked(p entql.StringP) {
+	f.Where(p.Field(requestexecution.FieldChannelAPIKeyMasked))
 }
 
 // WhereFormat applies the entql string predicate on the format field.

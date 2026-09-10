@@ -379,6 +379,10 @@ func (s *RequestService) CreateRequestExecution(
 		SetRequestHeaders(requestHeadersBytes).
 		SetPassThroughApplied(passThroughApplied)
 
+	if apiKey, ok := contexts.GetChannelAPIKey(ctx); ok && apiKey != "" {
+		mut = mut.SetChannelAPIKeyMasked(maskChannelAPIKey(apiKey))
+	}
+
 	if reasoningEffort := extractOutboundReasoningEffort(channelRequest, format); reasoningEffort != nil {
 		mut = mut.SetReasoningEffort(*reasoningEffort)
 	}
@@ -421,6 +425,15 @@ func (s *RequestService) CreateRequestExecution(
 	}
 
 	return execution, nil
+}
+
+// maskChannelAPIKey uses the same prefix/suffix format as channel key testing.
+func maskChannelAPIKey(key string) string {
+	if len(key) <= 8 {
+		return "****"
+	}
+
+	return key[:4] + "****" + key[len(key)-4:]
 }
 
 // extractOutboundReasoningEffort returns the reasoning effort from the final
