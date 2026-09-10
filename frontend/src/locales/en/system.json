@@ -370,6 +370,9 @@
   "quota.status.backpressure": "Backpressure",
   "quota.label.resets_in": "Resets in",
   "quota.label.resets_at_time": "Resets at {{time}}",
+  "quota.label.reset_unavailable": "Reset time not provided by provider",
+  "quota.label.period_quota_no_usage": "Estimate available after usage",
+  "quota.label.period_quota_no_cost": "No priced usage for this period",
   "quota.label.resets_in_time": "Resets in {{time}}",
   "quota.label.regenerates_in_time": "Regenerates in {{time}}",
   "quota.label.regenerates_pct_in_time": "Regenerates {{percent}}% in {{time}}",
@@ -494,5 +497,5 @@
   "system.quota.routing.modes.BACKPRESSURE": "Usage-Based Backpressure",
   "system.quota.routing.modes.BACKPRESSURE.description": "Channels burning quota faster than the window elapses keep serving only their existing sticky sessions; new sessions are routed to other available channels.",
   "system.quota.collection.providers.ollama": "Ollama",
-  "system.quota.collection.providers.qianwen_token_plan": "Qianwen Token Plan"
+  "system.quota.collection.providers.qianwen_token_plan": "Qianwen"
 }

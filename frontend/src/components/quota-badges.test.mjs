@@ -126,21 +126,25 @@ test('Qianwen quota popover renders normalized usage and reset, and unavailable 
   const end = source.indexOf('{isOllamaType(channel.type) &&', start);
   assert.ok(start >= 0 && end > start);
   const block = source.slice(start, end);
-  assert.match(block, /quota\.limits\.map/);
-  assert.match(block, /limit\.usageRatio \* 100/);
-  assert.match(block, /formatTimeToReset\(limit\.nextResetAt\)/);
-  assert.match(block, /quota\.limits\.length === 0[\s\S]*quota\.label\.unavailable/);
+  assert.match(block, /<QuotaWindows limits=\{quota\.limits\}/);
+  const windows = read('components/quota-window.tsx');
+  assert.match(windows, /getQuotaWindowUsage\(limit\)/);
+  assert.match(windows, /formatQuotaReset\(limit\.nextResetAt, t\)/);
+  assert.match(windows, /limits\.length === 0[\s\S]*quota\.label\.unavailable/);
+  const zhipuStart = source.indexOf("      {(channel.type === 'zhipu'");
+  const zhipuEnd = source.indexOf("      {isOpenaiType(channel.type) && channel.providerType === 'wafer'", zhipuStart);
+  assert.match(source.slice(zhipuStart, zhipuEnd), /<QuotaWindows limits=\{quota\.limits\}/);
   assert.doesNotMatch(block, /periodQuota|remainingCredits|maxCredits|quotaData/);
 });
 
 test('quota window identifiers resolve to localized labels', () => {
-  const quotaBadges = read('components/quota-badges.tsx');
+  const quotaBadges = read('features/system/data/quota-window-display.ts');
 
   assert.match(quotaBadges, /payg:\s*'quota\.label\.token_usage'/);
   assert.match(quotaBadges, /credits:\s*'quota\.label\.credits_remaining'/);
   assert.match(quotaBadges, /'5h':\s*'quota\.window\.5h'/);
   assert.match(quotaBadges, /'7d':\s*'quota\.window\.7d'/);
-  assert.match(quotaBadges, /limit\.window === 'primary' \|\| limit\.window === 'secondary'/);
+  assert.match(quotaBadges, /window === 'primary' \|\| window === 'secondary'/);
 });
 
 test('Wafer and Apertis duration markers share timestamp validation', () => {

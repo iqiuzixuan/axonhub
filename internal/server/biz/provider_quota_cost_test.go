@@ -3,6 +3,9 @@ package biz
 import (
 	"context"
 	"fmt"
+	"io"
+	"net/http"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -18,6 +21,7 @@ import (
 	"github.com/looplj/axonhub/internal/ent/providerquotastatus"
 	"github.com/looplj/axonhub/internal/objects"
 	"github.com/looplj/axonhub/internal/server/biz/provider_quota"
+	"github.com/looplj/axonhub/llm/httpclient"
 )
 
 func newPeriodQuotaTestChannel(t *testing.T, ctx context.Context, client *ent.Client) *ent.Channel {
@@ -368,4 +372,65 @@ func TestProviderQuotaService_PeriodQuotaSurvivesPersistence(t *testing.T) {
 	require.Len(t, cached.Limits, 1)
 	require.NotNil(t, cached.Limits[0].PeriodQuota)
 	require.InDelta(t, 90.0, *cached.Limits[0].PeriodQuota, 1e-9)
+}
+
+func TestProviderQuotaService_QianwenAndZhipuSharePeriodEstimatePipeline(t *testing.T) {
+	for _, typ := range []channel.Type{channel.TypeQianwenTokenPlan, channel.TypeQianwenTokenPlanAnthropic, channel.TypeZhipuAnthropic} {
+		t.Run(string(typ), func(t *testing.T) {
+			client := enttest.NewEntClient(t, "sqlite3", "file:ent?mode=memory&_fk=0")
+			defer client.Close()
+			ctx := authz.WithTestBypass(ent.NewContext(t.Context(), client))
+			ch, err := client.Channel.Create().
+				SetName(string(typ)).SetType(typ).
+				SetCredentials(objects.ChannelCredentials{APIKey: "fixture-inference-key"}).
+				SetSettings(&objects.ChannelSettings{ProviderQuota: &objects.ChannelProviderQuotaSettings{
+					QianwenTokenPlan: &objects.QianwenTokenPlanQuotaSettings{AuthCookie: "session=fixture"},
+				}}).
+				SetSupportedModels([]string{"test-model"}).SetDefaultTestModel("test-model").Save(ctx)
+			require.NoError(t, err)
+
+			now := time.Now().Truncate(time.Second)
+			reset := now.Add(6 * 24 * time.Hour)
+			createPeriodQuotaUsageLog(t, ctx, client, ch.ID, now.Add(-time.Hour), lo.ToPtr(12.0))
+			createPeriodQuotaUsageLog(t, ctx, client, ch.ID, now.Add(-8*24*time.Hour), lo.ToPtr(100.0))
+			createPeriodQuotaUsageLog(t, ctx, client, ch.ID, now.Add(-time.Minute), nil)
+			// Exercise each provider's actual parser before the common cost and
+			// persistence pipeline used by the table and the global quota popover.
+			hc := httpclient.NewHttpClientWithClient(&http.Client{Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
+				body := fmt.Sprintf(`{"code":"200","data":{"DataV2":{"data":{"per1WeekPercentage":0.25,"per1WeekResetTime":%d}}}}`, reset.UnixMilli())
+				if req.URL.Path == "/tool/user/info.json" {
+					body = `{"code":"200","data":{"secToken":"fixture-csrf"}}`
+				} else if typ == channel.TypeZhipuAnthropic {
+					body = fmt.Sprintf(`{"success":true,"data":{"limits":[{"type":"TOKENS_LIMIT","percentage":50,"nextResetTime":%d},{"type":"TOKENS_LIMIT","percentage":25,"nextResetTime":%d}]}}`, now.Add(time.Hour).UnixMilli(), reset.UnixMilli())
+				}
+				return &http.Response{StatusCode: http.StatusOK, Header: make(http.Header), Body: io.NopCloser(strings.NewReader(body))}, nil
+			})})
+			var checker provider_quota.QuotaChecker = provider_quota.NewQianwenTokenPlanQuotaChecker(hc)
+			if typ == channel.TypeZhipuAnthropic {
+				checker = provider_quota.NewZhipuQuotaChecker(hc)
+			}
+			quota, err := checker.CheckQuota(ctx, ch)
+			require.NoError(t, err)
+			svc := &ProviderQuotaService{AbstractService: &AbstractService{db: client}, checkInterval: time.Minute}
+			svc.fillPeriodQuotas(ctx, ch.ID, &quota, now)
+			svc.saveQuotaStatus(ctx, ch.ID, quota.ProviderType, "", quota, now)
+
+			persisted, err := client.ProviderQuotaStatus.Query().Where(providerquotastatus.ChannelIDEQ(ch.ID)).Only(ctx)
+			require.NoError(t, err)
+			limits := extractLimitsFromQuotaData(persisted.QuotaData)
+			weekly := limits[len(limits)-1]
+			require.InDelta(t, 0.25, weekly.UsageRatio, 1e-9)
+			require.True(t, reset.Equal(*weekly.NextResetAt))
+			require.True(t, reset.Add(-7*24*time.Hour).Equal(*weekly.PeriodStart))
+			require.InDelta(t, 12.0, *weekly.PeriodCost, 1e-9)
+			require.InDelta(t, 48.0, *weekly.PeriodQuota, 1e-9)
+
+			reloaded := &ProviderQuotaService{AbstractService: &AbstractService{db: client}}
+			reloaded.loadQuotaCache(ctx)
+			cachedValue, ok := reloaded.quotaCache.Load(ch.ID)
+			require.True(t, ok)
+			cached := cachedValue.(*QuotaChannelStatus)
+			require.InDelta(t, 48.0, *cached.Limits[len(cached.Limits)-1].PeriodQuota, 1e-9)
+		})
+	}
 }

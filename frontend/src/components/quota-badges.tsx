@@ -1,14 +1,14 @@
-import { useState, type ReactNode } from 'react';
+import { useState } from 'react';
 import { format } from 'date-fns';
 import { useQueryClient } from '@tanstack/react-query';
 import { Loader2, RefreshCw, Zap, Battery, BatteryLow, BatteryMedium, BatteryFull, BatteryWarning } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { PeriodQuotaEstimate, QuotaWindows, UsageTimeBar, QUOTA_WINDOW_LABEL_KEYS as WINDOW_LABEL_KEYS } from '@/components/quota-window';
 import { getChannelQuotaRoutingIndicator } from '@/features/channels/utils/quota-routing-status';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   useProviderQuotaStatuses,
   ProviderQuotaChannel,
@@ -33,7 +33,7 @@ import {
   resetChannelQuotaNow,
   checkProviderQuotas,
 } from '@/features/system/data/quotas';
-import { useGeneralSettings, useQuotaRoutingSettings, type QuotaRoutingMode } from '@/features/system/data/system';
+import { useQuotaRoutingSettings, type QuotaRoutingMode } from '@/features/system/data/system';
 import type { ChannelQuotaRoutingMode } from '@/features/channels/data/schema';
 import { capitalizeZenmuxTier, getZenmuxMonthlyQuotaUSD, getZenmuxUsagePercentage } from '@/features/system/data/zenmux-quota-display';
 
@@ -273,135 +273,10 @@ function getApertisPercentage(qd: ProviderApertisQuotaData | undefined): number 
   return 0;
 }
 
-// UsageTimeBar shows usage on a single progress bar with a small triangle below
-// it marking how far the reset window has elapsed (time progress). Hovering
-// reveals the detailed figures via tooltip, keeping the row compact.
-function UsageTimeBar({ usagePercent, durationPercent, tooltip }: { usagePercent: number; durationPercent?: number; tooltip: ReactNode }) {
-  const clamped = Math.min(Math.max(usagePercent || 0, 0), 100);
-  const markerLeft = durationPercent === undefined ? undefined : Math.min(Math.max(durationPercent, 0), 100);
-  const u = clamped / 100;
-  let severity = u;
-  if (durationPercent !== undefined && durationPercent > 0) {
-    const d = Math.max(durationPercent / 100, 0.01);
-    severity = u * (u / d);
-  }
-  severity = Math.min(1, Math.max(0, severity));
-
-  // Tailwind 500 colors approximation for a modern, theme-friendly gradient:
-  // Green (142, 71%, 45%), Yellow (45, 93%, 47%), Red (0, 84%, 60%)
-  let h: number;
-  let s: number;
-  let l: number;
-  if (severity < 0.5) {
-    const n = severity * 2; // 0 to 1
-    h = 142 - n * (142 - 45);
-    s = 71 + n * (93 - 71);
-    l = 45 + n * (47 - 45);
-  } else {
-    const n = (severity - 0.5) * 2; // 0 to 1
-    h = 45 - n * 45;
-    s = 93 - n * (93 - 84);
-    l = 47 + n * (60 - 47);
-  }
-
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <div className='relative cursor-default pb-1.5' tabIndex={0}>
-          <div className='bg-muted/60 h-1.5 w-full overflow-hidden rounded-full'>
-            <div
-              className='h-full transition-all duration-500'
-              style={{ width: `${clamped}%`, backgroundColor: `hsl(${Math.round(h)}, ${Math.round(s)}%, ${Math.round(l)}%)` }}
-            />
-          </div>
-          {markerLeft !== undefined && (
-            <div className='absolute top-2 -translate-x-1/2' style={{ left: `${markerLeft}%` }} aria-hidden>
-              {/* upward triangle pointing at the bar, marking elapsed time */}
-              <div className='border-b-muted-foreground h-0 w-0 border-x-[3px] border-b-[4px] border-x-transparent' />
-            </div>
-          )}
-        </div>
-      </TooltipTrigger>
-      <TooltipContent side='top'>{tooltip}</TooltipContent>
-    </Tooltip>
-  );
-}
-
 function formatTokenCount(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
   return `${n}`;
-}
-
-const WINDOW_LABEL_KEYS: Record<string, string> = {
-  '5h': 'quota.window.5h',
-  '7d': 'quota.window.7d',
-  '30d': 'quota.window.30d',
-  daily: 'quota.window.daily',
-  weekly: 'quota.window.weekly',
-  monthly: 'quota.window.monthly',
-  payg: 'quota.label.token_usage',
-  credits: 'quota.label.credits_remaining',
-  overage: 'quota.label.overage_window',
-  cycle: 'quota.label.subscription',
-};
-
-// PeriodQuotaEstimate prices each limit window: the backend sums what the
-// channel cost during the window from AxonHub usage logs and divides by the
-// usage ratio the provider reported, which yields what the whole window is
-// worth. Windows the backend could not price are simply absent.
-function PeriodQuotaEstimate({ limits }: { limits: ProviderQuotaLimit[] }) {
-  const { t, i18n } = useTranslation();
-  const { data: generalSettings } = useGeneralSettings();
-
-  const priced = limits.filter((limit) => limit.periodQuota != null);
-  if (priced.length === 0) return null;
-
-  const formatCurrency = (val: number) =>
-    t('currencies.format', {
-      val,
-      currency: generalSettings?.currencyCode || 'USD',
-      locale: i18n.language.startsWith('zh') ? 'zh-CN' : 'en-US',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
-
-  return (
-    <div className='border-border/60 mt-3 space-y-2 border-t border-dashed pt-3'>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span className='text-muted-foreground cursor-default text-xs font-medium'>{t('quota.label.period_quota')}</span>
-        </TooltipTrigger>
-        <TooltipContent side='top' className='max-w-[260px]'>
-          {t('quota.label.period_quota_hint')}
-        </TooltipContent>
-      </Tooltip>
-
-      {priced.map((limit, index) => {
-        const labelKey = limit.window ? WINDOW_LABEL_KEYS[limit.window] : undefined;
-        const label =
-          labelKey
-            ? t(labelKey)
-            : limit.window === 'primary' || limit.window === 'secondary'
-              ? t('quota.label.token_usage')
-              : limit.window || t('quota.label.token_usage');
-
-        return (
-          <div key={`${limit.window ?? limit.type}-${index}`} className='flex items-center justify-between text-xs'>
-            <span className='text-muted-foreground'>{label}</span>
-            <span className='text-foreground font-medium'>
-              {t('quota.label.period_quota_value', {
-                // The backend only estimates a quota once it has a cost, so
-                // both figures are always available here.
-                used: formatCurrency(limit.periodCost ?? 0),
-                total: formatCurrency(limit.periodQuota as number),
-              })}
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
 }
 
 function QuotaRow({ channel, effectiveMode }: { channel: ProviderQuotaChannel; effectiveMode: QuotaRoutingMode | null }) {
@@ -1197,42 +1072,7 @@ function QuotaRow({ channel, effectiveMode }: { channel: ProviderQuotaChannel; e
       )}
 
       {(channel.type === 'qianwen_token_plan' || channel.type === 'qianwen_token_plan_anthropic') && (
-        <div className='mt-3 space-y-3'>
-          {quota.limits.length === 0 && (
-            <div className='bg-muted/40 text-muted-foreground rounded p-2 text-[11px]'>{t('quota.label.unavailable')}</div>
-          )}
-          {quota.limits.map((limit, index) => {
-            const labelKey = limit.window ? WINDOW_LABEL_KEYS[limit.window] : undefined;
-            const label = labelKey ? t(labelKey) : t('quota.label.token_usage');
-            const usedPercent = limit.usageRatio * 100;
-            const durationPercent = getLimitDurationPercent(limit);
-            return (
-              <div
-                key={`${limit.window}-${index}`}
-                className={index > 0 ? 'border-border/60 space-y-1.5 border-t border-dashed pt-3' : 'space-y-1.5'}
-              >
-                <div className='flex items-center justify-between text-xs'>
-                  <span className='text-muted-foreground font-medium'>{label}</span>
-                  <span className='text-foreground font-medium'>{t('quota.label.percent_used', { percent: Math.round(usedPercent) })}</span>
-                </div>
-                <UsageTimeBar
-                  usagePercent={usedPercent}
-                  durationPercent={durationPercent}
-                  tooltip={
-                    <div className='space-y-0.5'>
-                      <div className='font-medium'>{label}</div>
-                      <div>{t('quota.label.percent_used', { percent: Math.round(usedPercent) })}</div>
-                      {durationPercent !== undefined && (
-                        <div>{t('quota.label.time_elapsed')}: {Math.round(durationPercent)}%</div>
-                      )}
-                      {limit.nextResetAt && <div>{formatTimeToReset(limit.nextResetAt)}</div>}
-                    </div>
-                  }
-                />
-              </div>
-            );
-          })}
-        </div>
+        <QuotaWindows limits={quota.limits} />
       )}
 
       {isOllamaType(channel.type) && (
@@ -1611,54 +1451,7 @@ function QuotaRow({ channel, effectiveMode }: { channel: ProviderQuotaChannel; e
       )}
 
       {(channel.type === 'zhipu' || channel.type === 'zhipu_anthropic' || channel.type === 'zai' || channel.type === 'zai_anthropic') && (
-        <div className='mt-3 space-y-3'>
-          {(() => {
-            const qd = channel.quotaStatus.quotaData as ProviderZhipuQuotaData | undefined;
-            if (!qd) return null;
-
-            const rows = qd.rows ?? [];
-            const windowLabels: Record<string, string> = {
-              five_hour: t('quota.window.5h'),
-              weekly_limit: t('quota.window.weekly'),
-            };
-
-            return (
-              <>
-                {rows.map((row, index) => {
-                  const percentage = Math.min(100, row.usedPercent);
-                  return (
-                    <div key={`${row.window}-${index}`} className={index > 0 ? 'border-border/60 space-y-1.5 border-t border-dashed pt-3' : 'space-y-1.5'}>
-                      <div className='flex items-center justify-between text-xs'>
-                        <span className='text-muted-foreground font-medium'>
-                          {windowLabels[row.window] ?? row.window}
-                        </span>
-                        <span className='text-foreground font-medium'>{t('quota.label.percent_used', { percent: Math.round(percentage) })}</span>
-                      </div>
-                      <UsageTimeBar
-                        usagePercent={percentage}
-                        durationPercent={
-                          row.resetAt
-                            ? calcDurationPercent(
-                                row.window === 'five_hour' ? 5 * 3600 : 7 * 24 * 3600,
-                                (new Date(row.resetAt).getTime() - Date.now()) / 1000
-                              )
-                            : undefined
-                        }
-                        tooltip={
-                          <div className='space-y-0.5'>
-                            <div className='font-medium'>{windowLabels[row.window] ?? row.window}</div>
-                            <div>{t('quota.label.percent_used', { percent: Math.round(percentage) })}</div>
-                            {row.resetAt && <div>{formatTimeToReset(row.resetAt)}</div>}
-                          </div>
-                        }
-                      />
-                    </div>
-                  );
-                })}
-              </>
-            );
-          })()}
-        </div>
+        <QuotaWindows limits={quota.limits} />
       )}
 
       {isOpenaiType(channel.type) && channel.providerType === 'wafer' && (
@@ -2233,7 +2026,13 @@ function QuotaRow({ channel, effectiveMode }: { channel: ProviderQuotaChannel; e
         </div>
       )}
 
-      <PeriodQuotaEstimate limits={quota.limits} />
+      <PeriodQuotaEstimate
+        limits={quota.limits}
+        showUnavailable={
+          channel.type === 'qianwen_token_plan' || channel.type === 'qianwen_token_plan_anthropic' ||
+          channel.type === 'zhipu' || channel.type === 'zhipu_anthropic' || channel.type === 'zai' || channel.type === 'zai_anthropic'
+        }
+      />
     </div>
   );
 }

@@ -54,14 +54,18 @@
 
 ### 千问 Token Plan 个人版
 
-选择独立的“千问 Token Plan”提供商，填写套餐专属 API Key，并选择套餐支持的模型。按所选协议使用默认地址：
+选择独立的“千问”提供商，填写套餐专属 API Key，并选择套餐支持的模型。页面名称统一为“千问”，目前接入范围为个人版 Token Plan。按所选协议使用默认地址：
 
 - OpenAI Chat Completions：`https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1`
 - Anthropic Messages：`https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic`
 
+**与百炼的区别：** 本项目的“千问”渠道接入千问工作台个人套餐，使用上述套餐专用地址，并查询该套餐的每周用量；“百炼”渠道默认接入 `dashscope.aliyuncs.com`。应按实际开通的服务选择渠道，并配套使用对应的 API Key、地址和模型，不能因为都支持千问模型就混用配置。“千问”不是“百炼”的改名，现有百炼渠道配置不受影响。
+
 套餐用量查询还需要填写“用量查询 Cookie（可选）”。登录与套餐 Key 相同账户的千问工作台，在浏览器开发者工具的网络面板中打开个人套餐用量页，复制请求头中的完整 `Cookie` 到渠道配置。后端使用该 Cookie 查询个人套餐七天窗口，渠道列表显示剩余百分比，悬停可查看重置时间。仅填写 API Key 可以调用模型，但不能查询工作台套餐用量。
 
 用量属于 Cookie 登录账户，无法通过此查询核对它与渠道 Key 的归属。Cookie 过期后需重新登录并更新；清空 Cookie 会停止采集。该查询接入工作台接口，尚非稳定公开 API，不包含团队版、加油包余额或总 Credits；不要把它当作整个账户所有可用额度。缺失用量不会显示为剩余 100%。
+
+顶部配额弹窗与智谱等渠道一样显示**已使用比例**，渠道列表显示**剩余比例**。“预计周期额度”共用系统估算逻辑：本周期 AxonHub 记录的渠道消耗金额除以上游已用比例。需要有效的周期起止时间、非零用量以及已计价的调用记录；条件不足时显示原因，不填写猜测金额。上游未返回重置时间时会明确提示，套餐到期时间不会代替额度重置时间。
 
 接口与模型说明见[官方个人版快速开始](https://platform.qianwenai.com/docs/token-plan/personal/token-plan-personal-quickstart)。
 

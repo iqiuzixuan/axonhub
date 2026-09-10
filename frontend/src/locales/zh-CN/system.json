@@ -368,6 +368,9 @@
   "quota.status.remove_on_exhausted": "已摘除",
   "quota.status.backpressure": "限流调度",
   "quota.label.resets_in": "重置于",
+  "quota.label.reset_unavailable": "上游未提供重置时间",
+  "quota.label.period_quota_no_usage": "产生用量后可估算",
+  "quota.label.period_quota_no_cost": "暂无可计价的周期用量",
   "quota.label.resets_in_time": "重置于 {{time}}",
   "quota.label.regenerates_in_time": "再生于 {{time}}",
   "quota.label.regenerates_pct_in_time": "再生 {{percent}}% 于 {{time}}",
@@ -492,6 +495,6 @@
   "quota.label.monthly_spend": "本月消费",
   "quota.provider.apertis": "Apertis",
   "system.quota.collection.providers.ollama": "Ollama",
-  "system.quota.collection.providers.qianwen_token_plan": "千问 Token Plan",
+  "system.quota.collection.providers.qianwen_token_plan": "千问",
   "quota.label.resets_at_time": "重置时间：{{time}}"
 }

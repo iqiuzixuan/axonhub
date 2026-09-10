@@ -94,6 +94,20 @@ func TestQianwenQuotaParser_ReportedUsage(t *testing.T) {
 	require.Nil(t, quota.Limits[0].PeriodStart)
 }
 
+func TestQianwenQuotaParser_MissingWeeklyResetIsNotInvented(t *testing.T) {
+	// The live personal console can return only the usage field.
+	// Subscription endTime is not a quota reset and cannot fill it.
+	body := []byte(`{"code":"200","data":{"success":true,"DataV2":{"data":{"data":{"per1WeekPercentage":0.0}}}}}`)
+	quota, err := parseQianwenTokenPlanQuotaResponse(body)
+	require.NoError(t, err)
+	require.Len(t, quota.Limits, 1)
+	require.Zero(t, quota.Limits[0].UsageRatio)
+	require.Nil(t, quota.NextResetAt)
+	require.Nil(t, quota.Limits[0].NextResetAt)
+	require.Nil(t, quota.Limits[0].PeriodStart)
+	require.Nil(t, quota.Limits[0].PeriodQuota)
+}
+
 func TestQianwenQuotaParser_RejectsUnknownUsageAndErrors(t *testing.T) {
 	for _, body := range []string{
 		`{}`, `<html>sign in</html>`,
