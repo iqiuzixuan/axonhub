@@ -132,10 +132,10 @@ test('quota selection follows quota column visibility and preserves normalized f
   assert.match(channelIndex, /parseChannelColumnVisibility\(JSON\.parse\(stored\)\)/, 'persisted column state must be parsed as boolean visibility');
   assert.match(channelColumns, /quotaWindowLabel\(limit\.window,\s*t\)/, 'window labels should use the active locale');
   assert.equal(enSystem['quota.window.5h'], '5h window');
-  assert.equal(enSystem['quota.window.7d'], '7d window');
+  assert.equal(enSystem['quota.window.7d'], enSystem['quota.window.weekly']);
   assert.equal(enSystem['quota.window.cycle'], 'Cycle window');
   assert.equal(zhSystem['quota.window.5h'], '5小时窗口');
-  assert.equal(zhSystem['quota.window.7d'], '7天窗口');
+  assert.equal(zhSystem['quota.window.7d'], zhSystem['quota.window.weekly']);
   assert.equal(zhSystem['quota.window.cycle'], '周期窗口');
 });
 

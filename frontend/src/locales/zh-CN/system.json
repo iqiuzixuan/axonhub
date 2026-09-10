@@ -349,7 +349,7 @@
   "quota.label.commandcode.top_up": "充值额度",
   "quota.label.commandcode.no_windows": "未报告配额窗口",
   "quota.window.5h": "5小时窗口",
-  "quota.window.7d": "7天窗口",
+  "quota.window.7d": "每周窗口",
   "quota.window.30d": "30天窗口",
   "quota.window.daily": "每日窗口",
   "quota.window.weekly": "每周窗口",
