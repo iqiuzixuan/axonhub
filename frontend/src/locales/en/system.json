@@ -497,5 +497,5 @@
   "system.quota.routing.modes.BACKPRESSURE": "Usage-Based Backpressure",
   "system.quota.routing.modes.BACKPRESSURE.description": "Channels burning quota faster than the window elapses keep serving only their existing sticky sessions; new sessions are routed to other available channels.",
   "system.quota.collection.providers.ollama": "Ollama",
-  "system.quota.collection.providers.qianwen_token_plan": "Qianwen Token Plan"
+  "system.quota.collection.providers.qianwen_token_plan": "Qianwen"
 }

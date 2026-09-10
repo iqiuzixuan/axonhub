@@ -54,10 +54,12 @@
 
 ### 千问 Token Plan 个人版
 
-选择独立的“千问 Token Plan”提供商，填写套餐专属 API Key，并选择套餐支持的模型。按所选协议使用默认地址：
+选择独立的“千问”提供商，填写套餐专属 API Key，并选择套餐支持的模型。页面名称统一为“千问”，目前接入范围为个人版 Token Plan。按所选协议使用默认地址：
 
 - OpenAI Chat Completions：`https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1`
 - Anthropic Messages：`https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic`
+
+**与百炼的区别：** 本项目的“千问”渠道接入千问工作台个人套餐，使用上述套餐专用地址，并查询该套餐的每周用量；“百炼”渠道默认接入 `dashscope.aliyuncs.com`。应按实际开通的服务选择渠道，并配套使用对应的 API Key、地址和模型，不能因为都支持千问模型就混用配置。“千问”不是“百炼”的改名，现有百炼渠道配置不受影响。
 
 套餐用量查询还需要填写“用量查询 Cookie（可选）”。登录与套餐 Key 相同账户的千问工作台，在浏览器开发者工具的网络面板中打开个人套餐用量页，复制请求头中的完整 `Cookie` 到渠道配置。后端使用该 Cookie 查询个人套餐七天窗口，渠道列表显示剩余百分比，悬停可查看重置时间。仅填写 API Key 可以调用模型，但不能查询工作台套餐用量。
 

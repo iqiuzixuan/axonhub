@@ -54,10 +54,12 @@ In short: **API Key Profile renames → Model Association selects channel → Ch
 
 ### Qianwen Token Plan Personal
 
-Select the separate **Qianwen Token Plan** provider, enter its plan-specific API key, and choose models available in your plan. The default URLs depend on the selected protocol:
+Select the separate **Qianwen** provider, enter its plan-specific API key, and choose models available in your plan. The UI uses the name **Qianwen**; this integration currently supports the personal Token Plan. The default URLs depend on the selected protocol:
 
 - OpenAI Chat Completions: `https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1`
 - Anthropic Messages: `https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic`
+
+**How this differs from Bailian:** In this project, the Qianwen channel connects to the Qianwen workspace personal plan through the plan-specific URLs above and collects its weekly usage. The Bailian channel defaults to `dashscope.aliyuncs.com`. Choose the channel for the service you have enabled, with its matching API key, endpoint, and models; support for Qianwen models does not make their configurations interchangeable. Qianwen is a separate channel, not a rename of Bailian, and existing Bailian configurations are unaffected.
 
 Quota collection additionally requires the optional **Qianwen console Cookie**. Sign in to the console with the same account as the plan key, open the personal plan usage page with the browser's Network panel, and copy the complete request `Cookie` header into the channel settings. The backend reads the personal plan's seven-day window. The channel list displays its remaining percentage and shows the reset time on hover. The API key alone enables inference but cannot query console quota.
 
