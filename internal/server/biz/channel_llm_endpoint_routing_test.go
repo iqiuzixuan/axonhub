@@ -14,6 +14,7 @@ import (
 	"github.com/looplj/axonhub/internal/ent/enttest"
 	"github.com/looplj/axonhub/internal/objects"
 	"github.com/looplj/axonhub/llm"
+	"github.com/looplj/axonhub/llm/httpclient"
 	"github.com/looplj/axonhub/llm/pipeline"
 	"github.com/looplj/axonhub/llm/transformer"
 	"github.com/looplj/axonhub/llm/transformer/opencode"
@@ -124,6 +125,53 @@ func TestBuildChannelWithOutbounds_FamilyRoutingOnCustomChatEndpoints(t *testing
 		// Generic openai normalization appends /v1, which is correct for v1 APIs.
 		require.Equal(t, "https://api.example.com/v1/chat/completions", url)
 	})
+}
+
+func TestBuildChannelWithOutbounds_QianwenTokenPlan(t *testing.T) {
+	client := enttest.NewEntClient(t, "sqlite3", "file:ent?mode=memory&_fk=0")
+	t.Cleanup(func() { client.Close() })
+	svc := NewChannelServiceForTest(client)
+
+	for _, tt := range []struct {
+		typ     channel.Type
+		format  string
+		baseURL string
+		path    string
+	}{
+		{channel.TypeQianwenTokenPlan, llm.APIFormatOpenAIChatCompletion.String(), "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1", "/chat/completions"},
+		{channel.TypeQianwenTokenPlanAnthropic, llm.APIFormatAnthropicMessage.String(), "https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic", "/v1/messages"},
+	} {
+		t.Run(string(tt.typ), func(t *testing.T) {
+			for _, baseURL := range []string{"", tt.baseURL, "https://proxy.example.com/custom/v1"} {
+				c := &ent.Channel{
+					ID: 1, Name: "Qianwen Token Plan", Type: tt.typ, BaseURL: baseURL,
+					Credentials: objects.ChannelCredentials{APIKey: "sk-sp-test-key"},
+				}
+				ch, err := svc.buildChannelWithOutbounds(c)
+				require.NoError(t, err)
+				outbound := ch.Outbounds[tt.format]
+				require.NotNil(t, outbound)
+				req, err := outbound.TransformRequest(context.Background(), &llm.Request{
+					Model: "qwen3.8-max", MaxTokens: lo.ToPtr(int64(128)),
+					Messages: []llm.Message{{Role: "user", Content: llm.MessageContent{Content: lo.ToPtr("Hello")}}},
+				})
+				require.NoError(t, err)
+				if baseURL == "" || baseURL == tt.baseURL {
+					require.Equal(t, tt.baseURL+tt.path, req.URL)
+				} else {
+					require.Contains(t, req.URL, "https://proxy.example.com/custom/v1/")
+				}
+				require.NotNil(t, req.Auth)
+				require.Equal(t, "sk-sp-test-key", req.Auth.APIKey)
+				if tt.typ == channel.TypeQianwenTokenPlan {
+					require.Equal(t, httpclient.AuthTypeBearer, req.Auth.Type)
+				} else {
+					require.Equal(t, httpclient.AuthTypeAPIKey, req.Auth.Type)
+					require.Equal(t, "X-API-Key", req.Auth.HeaderKey)
+				}
+			}
+		})
+	}
 }
 
 func TestBuildChannelWithOutbounds_OpenCodeCustomEndpointsCarrySessionHeader(t *testing.T) {

@@ -120,6 +120,19 @@ test('Ollama badge renders both the 5h and weekly windows with a reset countdown
   assert.doesNotMatch(ollamaBlock, /durationPercent/);
 });
 
+test('Qianwen quota popover renders normalized usage and reset, and unavailable data has no zero credit total', () => {
+  const source = read('components/quota-badges.tsx');
+  const start = source.indexOf("{(channel.type === 'qianwen_token_plan' || channel.type === 'qianwen_token_plan_anthropic') &&");
+  const end = source.indexOf('{isOllamaType(channel.type) &&', start);
+  assert.ok(start >= 0 && end > start);
+  const block = source.slice(start, end);
+  assert.match(block, /quota\.limits\.map/);
+  assert.match(block, /limit\.usageRatio \* 100/);
+  assert.match(block, /formatTimeToReset\(limit\.nextResetAt\)/);
+  assert.match(block, /quota\.limits\.length === 0[\s\S]*quota\.label\.unavailable/);
+  assert.doesNotMatch(block, /periodQuota|remainingCredits|maxCredits|quotaData/);
+});
+
 test('quota window identifiers resolve to localized labels', () => {
   const quotaBadges = read('components/quota-badges.tsx');
 

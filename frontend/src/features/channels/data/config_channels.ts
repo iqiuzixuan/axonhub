@@ -597,6 +597,22 @@ export const CHANNEL_CONFIGS: Record<ChannelType, ChannelConfig> = {
     color: 'bg-blue-100 text-blue-800 border-blue-200',
     icon: Bailian,
   },
+  qianwen_token_plan: {
+    channelType: 'qianwen_token_plan',
+    baseURL: 'https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1',
+    defaultModels: ['qwen3.8-max', 'qwen3.8-flash', 'qwen3.7-plus', 'glm-5.2', 'deepseek-v4-pro'],
+    apiFormat: OPENAI_CHAT_COMPLETIONS,
+    color: 'bg-purple-100 text-purple-800 border-purple-200',
+    icon: Bailian,
+  },
+  qianwen_token_plan_anthropic: {
+    channelType: 'qianwen_token_plan_anthropic',
+    baseURL: 'https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic',
+    defaultModels: ['qwen3.8-max', 'qwen3.8-flash', 'qwen3.7-plus', 'glm-5.2', 'deepseek-v4-pro'],
+    apiFormat: ANTHROPIC_MESSAGES,
+    color: 'bg-purple-100 text-purple-800 border-purple-200',
+    icon: Bailian,
+  },
   moonshot_coding: {
     channelType: 'moonshot_coding',
     baseURL: 'https://api.kimi.com/coding',
@@ -908,6 +924,7 @@ export type Provider =
   | 'burncloud'
   | 'modelscope'
   | 'bailian'
+  | 'qianwen_token_plan'
   | 'jina'
   | 'github'
   | 'github_copilot'
@@ -974,6 +991,8 @@ export const CHANNEL_TYPE_TO_PROVIDER: Record<ChannelType, Provider> = {
   modelscope: 'modelscope',
   bailian: 'bailian',
   bailian_anthropic: 'bailian',
+  qianwen_token_plan: 'qianwen_token_plan',
+  qianwen_token_plan_anthropic: 'qianwen_token_plan',
   moonshot_coding: 'moonshot',
   jina: 'jina',
   github: 'github',

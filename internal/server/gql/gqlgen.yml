@@ -178,6 +178,12 @@ models:
   OllamaQuotaSettingsInput:
     model:
       - github.com/looplj/axonhub/internal/objects.OllamaQuotaSettings
+  QianwenTokenPlanQuotaSettings:
+    model:
+      - github.com/looplj/axonhub/internal/objects.QianwenTokenPlanQuotaSettings
+  QianwenTokenPlanQuotaSettingsInput:
+    model:
+      - github.com/looplj/axonhub/internal/objects.QianwenTokenPlanQuotaSettings
   ChannelRateLimit:
     model:
       - github.com/looplj/axonhub/internal/objects.ChannelRateLimit

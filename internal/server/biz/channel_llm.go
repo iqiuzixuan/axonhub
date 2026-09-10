@@ -653,13 +653,17 @@ func (svc *ChannelService) buildChannelWithTransformer(c *ent.Channel, apiKeyOve
 	}
 
 	if c.BaseURL == "" {
-		switch c.Type { //nolint:exhaustive // Only ZenMux types have defaults applied here.
+		switch c.Type { //nolint:exhaustive // Only providers with server-side defaults are handled here.
 		case channel.TypeZenmux, channel.TypeZenmuxResponses, channel.TypeZenmuxVideo:
 			c.BaseURL = zenmuxOpenAIBaseURL
 		case channel.TypeZenmuxAnthropic:
 			c.BaseURL = zenmuxAnthropicBaseURL
 		case channel.TypeZenmuxGemini:
 			c.BaseURL = zenmuxGeminiBaseURL
+		case channel.TypeQianwenTokenPlan:
+			c.BaseURL = "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"
+		case channel.TypeQianwenTokenPlanAnthropic:
+			c.BaseURL = "https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic"
 		default:
 		}
 	}
@@ -1089,7 +1093,7 @@ func (svc *ChannelService) buildChannelWithTransformer(c *ent.Channel, apiKeyOve
 		ch.Outbound = transformer
 
 		return ch, nil
-	case channel.TypeBailian:
+	case channel.TypeBailian, channel.TypeQianwenTokenPlan:
 		transformer, err := bailian.NewOutboundTransformerWithConfig(&bailian.Config{
 			BaseURL:        c.BaseURL,
 			APIKeyProvider: getAPIKeyProvider(ch),
@@ -1101,7 +1105,7 @@ func (svc *ChannelService) buildChannelWithTransformer(c *ent.Channel, apiKeyOve
 		ch.Outbound = transformer
 
 		return ch, nil
-	case channel.TypeBailianAnthropic, channel.TypeMoonshotCoding:
+	case channel.TypeBailianAnthropic, channel.TypeQianwenTokenPlanAnthropic, channel.TypeMoonshotCoding:
 		transformer, err := anthropic.NewOutboundTransformerWithConfig(&anthropic.Config{
 			Type:           anthropic.PlatformDirect,
 			BaseURL:        c.BaseURL,

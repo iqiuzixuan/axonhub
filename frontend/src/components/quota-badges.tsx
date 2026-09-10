@@ -201,7 +201,12 @@ function getChannelPercentage(channel: ProviderQuotaChannel): number {
     if (qd.windows?.dailyInputTokens) maxPercent = Math.max(maxPercent, (qd.windows.dailyInputTokens.percentUsed ?? 0) * 100);
     if (qd.windows?.dailyImages) maxPercent = Math.max(maxPercent, (qd.windows.dailyImages.percentUsed ?? 0) * 100);
     percentage = maxPercent;
-  } else if (channel.type === 'opencode_go' || channel.type === 'opencode_go_anthropic') {
+  } else if (
+    channel.type === 'opencode_go' ||
+    channel.type === 'opencode_go_anthropic' ||
+    channel.type === 'qianwen_token_plan' ||
+    channel.type === 'qianwen_token_plan_anthropic'
+  ) {
     percentage = Math.max(0, ...channel.quotaStatus.limits.map((limit) => limit.usageRatio * 100));
   } else if (isOllamaType(channel.type)) {
     const qd = channel.quotaStatus.quotaData as ProviderOllamaQuotaData | undefined;
@@ -1188,6 +1193,45 @@ function QuotaRow({ channel, effectiveMode }: { channel: ProviderQuotaChannel; e
 
             return items;
           })()}
+        </div>
+      )}
+
+      {(channel.type === 'qianwen_token_plan' || channel.type === 'qianwen_token_plan_anthropic') && (
+        <div className='mt-3 space-y-3'>
+          {quota.limits.length === 0 && (
+            <div className='bg-muted/40 text-muted-foreground rounded p-2 text-[11px]'>{t('quota.label.unavailable')}</div>
+          )}
+          {quota.limits.map((limit, index) => {
+            const labelKey = limit.window ? WINDOW_LABEL_KEYS[limit.window] : undefined;
+            const label = labelKey ? t(labelKey) : t('quota.label.token_usage');
+            const usedPercent = limit.usageRatio * 100;
+            const durationPercent = getLimitDurationPercent(limit);
+            return (
+              <div
+                key={`${limit.window}-${index}`}
+                className={index > 0 ? 'border-border/60 space-y-1.5 border-t border-dashed pt-3' : 'space-y-1.5'}
+              >
+                <div className='flex items-center justify-between text-xs'>
+                  <span className='text-muted-foreground font-medium'>{label}</span>
+                  <span className='text-foreground font-medium'>{t('quota.label.percent_used', { percent: Math.round(usedPercent) })}</span>
+                </div>
+                <UsageTimeBar
+                  usagePercent={usedPercent}
+                  durationPercent={durationPercent}
+                  tooltip={
+                    <div className='space-y-0.5'>
+                      <div className='font-medium'>{label}</div>
+                      <div>{t('quota.label.percent_used', { percent: Math.round(usedPercent) })}</div>
+                      {durationPercent !== undefined && (
+                        <div>{t('quota.label.time_elapsed')}: {Math.round(durationPercent)}%</div>
+                      )}
+                      {limit.nextResetAt && <div>{formatTimeToReset(limit.nextResetAt)}</div>}
+                    </div>
+                  }
+                />
+              </div>
+            );
+          })}
         </div>
       )}
 

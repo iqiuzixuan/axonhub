@@ -182,6 +182,16 @@ func TestDefaultEndpointsForChannelType_UseLLMAPIFormatValues(t *testing.T) {
 			expected: []string{llm.APIFormatOpenAIChatCompletion.String()},
 		},
 		{
+			name:     "qianwen token plan defaults to chat completions only",
+			typ:      channel.TypeQianwenTokenPlan,
+			expected: []string{llm.APIFormatOpenAIChatCompletion.String()},
+		},
+		{
+			name:     "qianwen token plan anthropic defaults to messages only",
+			typ:      channel.TypeQianwenTokenPlanAnthropic,
+			expected: []string{llm.APIFormatAnthropicMessage.String()},
+		},
+		{
 			name:     "commandcode anthropic defaults to anthropic messages",
 			typ:      channel.TypeCommandcodeAnthropic,
 			expected: []string{llm.APIFormatAnthropicMessage.String()},

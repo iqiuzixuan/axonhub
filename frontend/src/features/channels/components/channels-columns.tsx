@@ -532,7 +532,10 @@ const QuotaCell = memo(({ row }: { row: Row<Channel> }) => {
           const remaining = Math.round(Math.max(0, Math.min(100, 100 - usageRatio * 100)));
           return (
             <div key={`${limit.window}-${index}`} className='text-xs'>
-              {quotaWindowLabel(limit.window, t) || t('quota.label.quota')}: {remaining}%
+              <div>{quotaWindowLabel(limit.window, t) || t('quota.label.quota')}: {remaining}%</div>
+              {limit.nextResetAt && (
+                <div>{t('quota.label.resets_at_time', { time: format(new Date(limit.nextResetAt), 'yyyy-MM-dd HH:mm:ss') })}</div>
+              )}
             </div>
           );
         })}

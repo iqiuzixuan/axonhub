@@ -257,6 +257,18 @@ type ChannelProviderQuotaSettings struct {
 
 	// Ollama holds the quota collection settings for Ollama Cloud channels.
 	Ollama *OllamaQuotaSettings `json:"ollama,omitempty"`
+
+	QianwenTokenPlan *QianwenTokenPlanQuotaSettings `json:"qianwenTokenPlan,omitempty"`
+}
+
+// QianwenTokenPlanQuotaSettings authenticates personal-plan quota reads against
+// the Qianwen console. Inference continues to use the channel API key.
+type QianwenTokenPlanQuotaSettings struct {
+	AuthCookie string `json:"authCookie,omitempty"`
+}
+
+func (s QianwenTokenPlanQuotaSettings) String() string {
+	return "QianwenTokenPlanQuotaSettings{AuthCookie: <redacted>}"
 }
 
 // CommandCodeQuotaSettings holds the credentials used to query the Command Code

@@ -9,9 +9,9 @@ const dialogPath = new URL('./channels-action-dialog.tsx', import.meta.url);
 const source = readFileSync(dialogPath, 'utf8');
 const ast = ts.createSourceFile('channels-action-dialog.tsx', source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 
-const helperNames = ['recallQuotaRoutingMode', 'quotaRoutingModeSettingsPatch'];
+const helperNames = ['recallQuotaRoutingMode', 'quotaRoutingModeSettingsPatch', 'providerQuotaSettingsForSubmit'];
 const helperNodes = ast.statements.filter((node) => ts.isFunctionDeclaration(node) && helperNames.includes(node.name?.text));
-assert.equal(helperNodes.length, 2, 'mapping helpers must stay in channels-action-dialog.tsx');
+assert.equal(helperNodes.length, 3, 'mapping helpers must stay in channels-action-dialog.tsx');
 const helpers = helperNodes.map((node) => `export ${node.getText(ast).replace(/^export\s+/, '')}`).join('\n');
 
 function loadTsModule(sourceText) {
@@ -21,7 +21,7 @@ function loadTsModule(sourceText) {
   return import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`);
 }
 
-const { recallQuotaRoutingMode, quotaRoutingModeSettingsPatch } = await loadTsModule(helpers);
+const { recallQuotaRoutingMode, quotaRoutingModeSettingsPatch, providerQuotaSettingsForSubmit } = await loadTsModule(helpers);
 
 // Type-only imports are erased, so utils/merge.ts loads standalone.
 const mergeSource = readFileSync(new URL('../utils/merge.ts', import.meta.url), 'utf8');
@@ -86,4 +86,44 @@ test('mapping helpers stay wired into the dialog payload boundaries', () => {
 test('inherit option includes the current global mode when available', () => {
   assert.match(source, /quotaRoutingMode\.options\.INHERIT_WITH_MODE/);
   assert.match(source, /quotaRoutingSettings\.defaultMode/);
+});
+
+test('Qianwen edit and duplicate preserve only their own quota cookie, independently of inference credentials', () => {
+  const existing = {
+    providerQuota: {
+      qianwenTokenPlan: { authCookie: ' session=fixture ' },
+      ollama: { authCookie: 'ollama=fixture' },
+    },
+  };
+  for (const type of ['qianwen_token_plan', 'qianwen_token_plan_anthropic']) {
+    const patch = { providerQuota: providerQuotaSettingsForSubmit(type, existing) };
+    for (const previous of [existing, undefined]) {
+      assert.deepEqual(wire(mergeChannelSettingsForUpdate(previous, patch)).providerQuota, {
+        qianwenTokenPlan: { authCookie: 'session=fixture' },
+      });
+    }
+  }
+});
+
+test('clearing a Qianwen cookie or switching provider removes the stored quota credentials', () => {
+  const existing = { providerQuota: { qianwenTokenPlan: { authCookie: 'session=fixture' } } };
+  for (const settings of [undefined, {}, { providerQuota: { qianwenTokenPlan: { authCookie: '  ' } } }]) {
+    const patch = { providerQuota: providerQuotaSettingsForSubmit('qianwen_token_plan', settings) };
+    assert.equal(wire(mergeChannelSettingsForUpdate(existing, patch)).providerQuota, null);
+  }
+  for (const type of ['openai', 'bailian', 'ollama', 'commandcode']) {
+    assert.equal(providerQuotaSettingsForSubmit(type, existing), null);
+  }
+});
+
+test('other browser-session quota providers retain their own credentials after a type switch', () => {
+  const settings = {
+    providerQuota: {
+      qianwenTokenPlan: { authCookie: 'session=fixture' },
+      ollama: { authCookie: 'ollama=fixture' },
+      commandCode: { authCookie: 'command=fixture' },
+    },
+  };
+  assert.deepEqual(providerQuotaSettingsForSubmit('ollama_anthropic', settings), { ollama: { authCookie: 'ollama=fixture' } });
+  assert.deepEqual(providerQuotaSettingsForSubmit('commandcode', settings), { commandCode: { authCookie: 'command=fixture' } });
 });

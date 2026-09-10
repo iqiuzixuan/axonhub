@@ -165,14 +165,24 @@ input OllamaQuotaSettingsInput {
   authCookie: String
 }
 
+type QianwenTokenPlanQuotaSettings {
+  authCookie: String
+}
+
+input QianwenTokenPlanQuotaSettingsInput {
+  authCookie: String
+}
+
 type ChannelProviderQuotaSettings {
   commandCode: CommandCodeQuotaSettings
   ollama: OllamaQuotaSettings
+  qianwenTokenPlan: QianwenTokenPlanQuotaSettings
 }
 
 input ChannelProviderQuotaSettingsInput {
   commandCode: CommandCodeQuotaSettingsInput
   ollama: OllamaQuotaSettingsInput
+  qianwenTokenPlan: QianwenTokenPlanQuotaSettingsInput
 }
 
 type ChannelSettings {
