@@ -63,6 +63,8 @@ Quota collection additionally requires the optional **Qianwen console Cookie**. 
 
 Quota belongs to the account authenticated by the cookie; this query cannot verify ownership against the channel key. Update the cookie after its session expires. Clearing it disables collection. This integration uses a console endpoint rather than a stable public API. It does not include team plans, add-on balances, or total Credits, so it is not a measure of all capacity available to the account. Missing usage is never displayed as 100% remaining.
 
+Like Zhipu and other providers, the global quota popover shows the **used percentage**, while the channel list shows the **remaining percentage**. **Estimated period quota** uses the shared calculation: the channel cost recorded by AxonHub during the period divided by the provider's used ratio. It requires valid period boundaries, nonzero usage, and priced usage records. Missing prerequisites are explained instead of filling in a guessed amount. Missing provider reset times are indicated explicitly; subscription expiry is never substituted for a quota reset.
+
 See the [official personal plan quickstart](https://platform.qianwenai.com/docs/token-plan/personal/token-plan-personal-quickstart) for endpoint and model details.
 
 ## Multiple API Keys
