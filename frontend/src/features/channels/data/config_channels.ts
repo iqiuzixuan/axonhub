@@ -39,6 +39,7 @@ import { CommandCodeIcon } from '../components/commandcode-icon';
 import { EvolinkIcon } from '../components/evolink-icon';
 import { FennoIcon } from '../components/fenno-icon';
 import { NanoGPTIcon } from '../components/nanogpt-icon';
+import { QianwenIcon } from '../components/qianwen-icon';
 import { BURNCLOUD_DEFAULT_MODELS } from './burncloud-models';
 import { ApiFormat, ChannelType } from './schema';
 
@@ -602,16 +603,16 @@ export const CHANNEL_CONFIGS: Record<ChannelType, ChannelConfig> = {
     baseURL: 'https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1',
     defaultModels: ['qwen3.8-max', 'qwen3.8-flash', 'qwen3.7-plus', 'glm-5.2', 'deepseek-v4-pro'],
     apiFormat: OPENAI_CHAT_COMPLETIONS,
-    color: 'bg-purple-100 text-purple-800 border-purple-200',
-    icon: Bailian,
+    color: 'bg-blue-100 text-blue-800 border-blue-200',
+    icon: QianwenIcon,
   },
   qianwen_token_plan_anthropic: {
     channelType: 'qianwen_token_plan_anthropic',
     baseURL: 'https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic',
     defaultModels: ['qwen3.8-max', 'qwen3.8-flash', 'qwen3.7-plus', 'glm-5.2', 'deepseek-v4-pro'],
     apiFormat: ANTHROPIC_MESSAGES,
-    color: 'bg-purple-100 text-purple-800 border-purple-200',
-    icon: Bailian,
+    color: 'bg-blue-100 text-blue-800 border-blue-200',
+    icon: QianwenIcon,
   },
   moonshot_coding: {
     channelType: 'moonshot_coding',
