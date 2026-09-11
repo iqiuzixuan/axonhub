@@ -458,11 +458,11 @@ export interface ClearCachePayload {
 // Hooks
 export function useBrandSettings(options?: { enabled?: boolean }) {
   const { handleError } = useErrorHandler();
-  const { hasSystemScope } = usePermissions();
+  const accessToken = useAuthStore((state) => state.auth.accessToken);
 
   return useQuery({
-    queryKey: ['brandSettings'],
-    enabled: options?.enabled !== false && hasSystemScope('read_settings'),
+    queryKey: ['brandSettings', accessToken],
+    enabled: options?.enabled !== false && !!accessToken,
     queryFn: async () => {
       try {
         const data = await graphqlRequest<{ brandSettings: BrandSettings }>(BRAND_SETTINGS_QUERY);
