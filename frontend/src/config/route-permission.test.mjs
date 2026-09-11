@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { filterNavGroups } from '../lib/navigation-permissions.ts';
-import { getRouteConfig, hasGroupAccess, hasRouteAccess, routeConfigs } from './route-permission.ts';
+import { getDefaultRoute, getRouteConfig, hasGroupAccess, hasRouteAccess, routeConfigs } from './route-permission.ts';
 
 const noPermissions = {
   systemScopes: [],
@@ -9,6 +9,20 @@ const noPermissions = {
   isOwner: false,
   isProjectOwner: false,
 };
+
+test('login chooses an accessible page instead of sending every member to the playground', () => {
+  assert.equal(getDefaultRoute({ ...noPermissions, projectScopes: ['read_api_keys', 'read_requests'] }, true), '/project/api-keys');
+  assert.equal(getDefaultRoute({ ...noPermissions, projectScopes: ['read_requests'] }, true), '/project/requests');
+  assert.equal(getDefaultRoute({ ...noPermissions, projectScopes: ['write_requests'] }, true), '/project/playground');
+  assert.equal(getDefaultRoute({ ...noPermissions, systemScopes: ['read_channels'] }, true), '/channels');
+  assert.equal(getDefaultRoute({ ...noPermissions, isOwner: true }, false), '/');
+});
+
+test('login falls back to the profile when no business page is accessible', () => {
+  assert.equal(getDefaultRoute(noPermissions, true), '/settings/profile');
+  assert.equal(getDefaultRoute({ ...noPermissions, projectScopes: ['read_users'] }, true), '/settings/profile');
+  assert.equal(getDefaultRoute({ ...noPermissions, projectScopes: ['read_requests'] }, false), '/settings/profile');
+});
 
 function canAccess(permissions, path) {
   const route = getRouteConfig(path);
