@@ -1,6 +1,5 @@
-import { DropdownMenuTrigger } from '@radix-ui/react-dropdown-menu';
 import { MixerHorizontalIcon } from '@radix-ui/react-icons';
-import { Table } from '@tanstack/react-table';
+import type { Table } from '@tanstack/react-table';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import {
@@ -9,41 +8,35 @@ import {
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { API_KEY_COLUMN_LABELS } from '../data/column-visibility';
 
-interface DataTableViewOptionsProps<TData> {
-  table: Table<TData>;
-}
-
-export function DataTableViewOptions<TData>({ table }: DataTableViewOptionsProps<TData>) {
+export function DataTableViewOptions<TData>({ table }: { table: Table<TData> }) {
   const { t } = useTranslation();
-
   return (
-    <DropdownMenu>
+    <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant='outline' size='sm' className='ml-auto hidden h-8 lg:flex'>
+        <Button variant='outline' size='sm' className='h-8 shrink-0'>
           <MixerHorizontalIcon className='mr-2 h-4 w-4' />
           {t('common.view')}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align='end' className='w-[150px]'>
+      <DropdownMenuContent align='end' className='w-[160px]'>
         <DropdownMenuLabel>{t('common.toggleColumns')}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {table
-          .getAllColumns()
-          .filter((column) => typeof column.accessorFn !== 'undefined' && column.getCanHide())
-          .map((column) => {
-            return (
-              <DropdownMenuCheckboxItem
-                key={column.id}
-                className='capitalize'
-                checked={column.getIsVisible()}
-                onCheckedChange={(value) => column.toggleVisibility(!!value)}
-              >
-                {t(`apikeys.columns.${column.id}`, { defaultValue: column.id })}
-              </DropdownMenuCheckboxItem>
-            );
-          })}
+          .getAllLeafColumns()
+          .filter((column) => column.getCanHide() && Object.hasOwn(API_KEY_COLUMN_LABELS, column.id))
+          .map((column) => (
+            <DropdownMenuCheckboxItem
+              key={column.id}
+              checked={column.getIsVisible()}
+              onCheckedChange={(visible) => column.toggleVisibility(!!visible)}
+            >
+              {t(API_KEY_COLUMN_LABELS[column.id])}
+            </DropdownMenuCheckboxItem>
+          ))}
       </DropdownMenuContent>
     </DropdownMenu>
   );
