@@ -21,8 +21,7 @@ function buildRequestsQuery(permissions: { canViewApiKeys: boolean; canViewChann
             id
             name${permissions.canViewCallerUser ? `
             user {
-              firstName
-              lastName
+              name
             }` : ''}
           }`
     : '';
@@ -117,8 +116,7 @@ function buildRequestDetailQuery(permissions: { canViewApiKeys: boolean; canView
             id
             name${permissions.canViewCallerUser ? `
             user {
-              firstName
-              lastName
+              name
             }` : ''}
         }`
     : '';
@@ -189,8 +187,7 @@ function buildRequestDetailPollingQuery(permissions: { canViewApiKeys: boolean; 
             id
             name${permissions.canViewCallerUser ? `
             user {
-              firstName
-              lastName
+              name
             }` : ''}
         }`
     : '';

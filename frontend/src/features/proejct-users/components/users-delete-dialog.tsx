@@ -23,7 +23,7 @@ export function UsersDeleteDialog({ open, onOpenChange, currentRow }: Props) {
   const [confirmText, setConfirmText] = useState('');
   const removeUser = useRemoveUserFromProject();
 
-  const fullName = formatUserName(currentRow.firstName, currentRow.lastName);
+  const fullName = formatUserName(currentRow.name, currentRow.email);
 
   const handleRemove = async () => {
     if (confirmText.trim() !== fullName) return;

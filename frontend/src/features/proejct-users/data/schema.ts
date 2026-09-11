@@ -19,8 +19,7 @@ export const projectUserSchema = z.object({
     email: z.string(),
     status: userStatusSchema,
     preferLanguage: z.string().optional(),
-    firstName: z.string().optional(),
-    lastName: z.string().optional(),
+    name: z.string(),
     roles: z
       .object({
         edges: z.array(
@@ -46,8 +45,7 @@ export const userSchema = z.object({
   email: z.string(),
   status: userStatusSchema,
   preferLanguage: z.string().optional(),
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
+  name: z.string(),
   isOwner: z.boolean().optional(),
   scopes: z.array(z.string()).optional().nullable(),
   projectUserId: z.string().optional(), // ID of the project_user relationship
@@ -82,8 +80,7 @@ export const createUserFormSchema = z
     createdAt: z.string().optional(),
     updatedAt: z.string().optional(),
     email: z.email('Invalid email address'),
-    firstName: z.string().optional(),
-    lastName: z.string().optional(),
+    name: z.string(),
     password: z.string().min(6, 'Password must be at least 6 characters'),
     confirmPassword: z.string(),
     isOwner: z.boolean().optional(),
@@ -100,8 +97,7 @@ export const createUserInputSchema = z.object({
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
   email: z.string().email('Invalid email address'),
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
+  name: z.string(),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   isOwner: z.boolean().optional(),
   scopes: z.array(z.string()).optional(),
@@ -128,8 +124,7 @@ export const changePasswordInputSchema = z.object({
 export const updateUserInputSchema = z.object({
   updatedAt: z.string().optional(),
   email: z.string().email('Invalid email address').optional(),
-  firstName: z.string().optional(),
-  lastName: z.string().optional(),
+  name: z.string().optional(),
   isOwner: z.boolean().optional(),
   scopes: z.array(z.string()).optional(),
   appendScopes: z.array(z.string()).optional(),

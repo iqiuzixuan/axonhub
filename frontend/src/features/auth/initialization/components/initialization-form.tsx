@@ -1,5 +1,6 @@
 import { HTMLAttributes } from 'react';
 import { z } from 'zod';
+import { userNameSchema } from '@/lib/validation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslation } from 'react-i18next';
@@ -28,8 +29,7 @@ const createFormSchema = (t: (key: string) => string) =>
       .min(8, {
         message: t('initialization.form.validation.ownerPasswordMinLength'),
       }),
-    ownerFirstName: z.string().min(1, { message: t('initialization.form.validation.ownerFirstNameRequired') }),
-    ownerLastName: z.string().min(1, { message: t('initialization.form.validation.ownerLastNameRequired') }),
+    ownerName: userNameSchema(t),
     brandName: z.string().min(1, { message: t('initialization.form.validation.brandNameRequired') }),
   });
 
@@ -45,8 +45,7 @@ export function InitializationForm({ className, ...props }: InitializationFormPr
     defaultValues: {
       ownerEmail: '',
       ownerPassword: '',
-      ownerFirstName: '',
-      ownerLastName: '',
+      ownerName: '',
       brandName: '',
     },
   });
@@ -55,8 +54,7 @@ export function InitializationForm({ className, ...props }: InitializationFormPr
     const input = {
       ownerEmail: data.ownerEmail,
       ownerPassword: data.ownerPassword,
-      ownerFirstName: data.ownerFirstName,
-      ownerLastName: data.ownerLastName,
+      ownerName: data.ownerName,
       brandName: data.brandName,
       preferLanguage: i18n.language,
     };
@@ -68,25 +66,12 @@ export function InitializationForm({ className, ...props }: InitializationFormPr
       <form onSubmit={form.handleSubmit(onSubmit)} className={cn('grid gap-4', className)} {...props}>
         <FormField
           control={form.control}
-          name='ownerFirstName'
+          name='ownerName'
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{t('initialization.form.ownerFirstName')}</FormLabel>
+              <FormLabel>{t('initialization.form.ownerName')}</FormLabel>
               <FormControl>
-                <Input placeholder={t('initialization.form.placeholders.ownerFirstName')} className='border-slate-300 !bg-white text-slate-800 transition-all duration-300 placeholder:text-slate-400 focus:border-slate-500 focus:!bg-white' {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name='ownerLastName'
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>{t('initialization.form.ownerLastName')}</FormLabel>
-              <FormControl>
-                <Input placeholder={t('initialization.form.placeholders.ownerLastName')} className='border-slate-300 !bg-white text-slate-800 transition-all duration-300 placeholder:text-slate-400 focus:border-slate-500 focus:!bg-white' {...field} />
+                <Input data-testid='user-name-input' autoComplete='name' placeholder={t('initialization.form.placeholders.ownerName')} className='border-slate-300 !bg-white text-slate-800 transition-all duration-300 placeholder:text-slate-400 focus:border-slate-500 focus:!bg-white' {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

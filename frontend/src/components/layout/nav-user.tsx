@@ -1,6 +1,7 @@
 import { Link } from '@tanstack/react-router';
 import { BadgeCheck, ChevronsUpDown, LogOut } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { userNameInitials } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
@@ -29,7 +30,7 @@ export function NavUser({
 
   // Check if avatar is a URL or initials
   const isAvatarUrl = user.avatar.startsWith('http') || user.avatar.startsWith('/') || user.avatar.startsWith('data:');
-  const avatarFallback = isAvatarUrl ? user.name.charAt(0).toUpperCase() : user.avatar;
+  const avatarFallback = isAvatarUrl ? userNameInitials(user.name, user.email) : user.avatar;
 
   return (
     <SidebarMenu>

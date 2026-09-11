@@ -944,6 +944,7 @@ var (
 		{Name: "status", Type: field.TypeEnum, Enums: []string{"activated", "deactivated"}, Default: "activated"},
 		{Name: "prefer_language", Type: field.TypeString, Default: "en"},
 		{Name: "password", Type: field.TypeString},
+		{Name: "name", Type: field.TypeString, Default: "", SchemaType: map[string]string{"mysql": "varchar(512)"}},
 		{Name: "first_name", Type: field.TypeString, Default: ""},
 		{Name: "last_name", Type: field.TypeString, Default: ""},
 		{Name: "avatar", Type: field.TypeString, Nullable: true, SchemaType: map[string]string{"mysql": "mediumtext"}},

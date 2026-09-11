@@ -1819,8 +1819,7 @@ func (r *queryResolver) UsageStatsByUser(ctx context.Context, timeWindow *string
 
 	type userUsageStats struct {
 		UserID      int     `json:"user_id"`
-		FirstName   string  `json:"first_name"`
-		LastName    string  `json:"last_name"`
+		Name        string  `json:"name"`
 		Email       string  `json:"email"`
 		Count       int     `json:"request_count"`
 		TotalTokens int64   `json:"total_tokens"`
@@ -1857,8 +1856,7 @@ func (r *queryResolver) UsageStatsByUser(ctx context.Context, timeWindow *string
 
 		s.Select(
 			sql.As(userTable.C("id"), "user_id"),
-			sql.As(userTable.C("first_name"), "first_name"),
-			sql.As(userTable.C("last_name"), "last_name"),
+			sql.As(userTable.C("name"), "name"),
 			sql.As(userTable.C("email"), "email"),
 			sql.As(sql.Count(s.C(usagelog.FieldID)), "request_count"),
 			sql.As(fmt.Sprintf("COALESCE(SUM(%s), 0)", s.C(usagelog.FieldTotalTokens)), "total_tokens"),
@@ -1866,8 +1864,7 @@ func (r *queryResolver) UsageStatsByUser(ctx context.Context, timeWindow *string
 		).
 			GroupBy(
 				userTable.C("id"),
-				userTable.C("first_name"),
-				userTable.C("last_name"),
+				userTable.C("name"),
 				userTable.C("email"),
 			).
 			OrderBy(sql.Desc("request_count"))
@@ -1877,8 +1874,7 @@ func (r *queryResolver) UsageStatsByUser(ctx context.Context, timeWindow *string
 	}
 
 	return lo.Map(results, func(item userUsageStats, _ int) *UsageStatsByUser {
-		userName := fmt.Sprintf("%s %s", item.FirstName, item.LastName)
-		userName = strings.TrimSpace(userName)
+		userName := strings.TrimSpace(item.Name)
 		if userName == "" {
 			userName = item.Email
 		}

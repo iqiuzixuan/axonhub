@@ -1,5 +1,7 @@
 import { useRef } from 'react';
 import { z } from 'zod';
+import { userNameSchema } from '@/lib/validation';
+import { userNameUpdate } from '@/lib/utils';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -17,8 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useMe } from '@/features/auth/data/auth';
 
 type ProfileFormValues = {
-  firstName: string;
-  lastName: string;
+  name: string;
   email: string;
   preferLanguage: string;
   avatar?: string;
@@ -30,23 +31,10 @@ export default function ProfileForm() {
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const { data: currentUser, isLoading } = useMe();
+
   const profileFormSchema = z.object({
-    firstName: z
-      .string()
-      .min(1, {
-        message: t('profile.form.validation.firstNameRequired'),
-      })
-      .max(50, {
-        message: t('profile.form.validation.firstNameTooLong'),
-      }),
-    lastName: z
-      .string()
-      .min(1, {
-        message: t('profile.form.validation.lastNameRequired'),
-      })
-      .max(50, {
-        message: t('profile.form.validation.lastNameTooLong'),
-      }),
+    name: userNameSchema(t, currentUser?.name),
     email: z.email(t('profile.form.validation.emailInvalid')),
     preferLanguage: z.string().min(1, {
       message: t('profile.form.validation.languageRequired'),
@@ -54,14 +42,10 @@ export default function ProfileForm() {
     avatar: z.string().optional(),
   });
 
-  // Get current user data
-  const { data: currentUser, isLoading } = useMe();
-
   const form = useForm<ProfileFormValues>({
     resolver: zodResolver(profileFormSchema),
     values: {
-      firstName: currentUser?.firstName || '',
-      lastName: currentUser?.lastName || '',
+      name: currentUser?.name || '',
       email: currentUser?.email || '',
       preferLanguage: currentUser?.preferLanguage || 'en',
       avatar: currentUser?.avatar || '',
@@ -74,8 +58,7 @@ export default function ProfileForm() {
     mutationFn: async (data: ProfileFormValues) => {
       const response = (await graphqlRequest(UPDATE_ME_MUTATION, {
         input: {
-          firstName: data.firstName,
-          lastName: data.lastName,
+          ...userNameUpdate(data.name, currentUser?.name),
           preferLanguage: data.preferLanguage,
           avatar: data.avatar,
         },
@@ -86,14 +69,17 @@ export default function ProfileForm() {
       // Update the auth store with new user data
       auth.setUser({
         ...auth.user!,
-        firstName: updatedUser.firstName,
-        lastName: updatedUser.lastName,
+        name: updatedUser.name,
         preferLanguage: updatedUser.preferLanguage,
         avatar: updatedUser.avatar,
       });
 
       // Invalidate and refetch user data
       queryClient.invalidateQueries({ queryKey: ['me'] });
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['user', auth.user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['project-users'] });
+      queryClient.invalidateQueries({ queryKey: ['all-users'] });
 
       toast.success(t('profile.form.messages.updateSuccess'));
     },
@@ -157,37 +143,20 @@ export default function ProfileForm() {
           )}
         />
 
-        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
-          <FormField
-            control={form.control}
-            name='firstName'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('profile.form.fields.firstName.label')}</FormLabel>
-                <FormControl>
-                  <Input placeholder={t('profile.form.fields.firstName.placeholder')} {...field} />
-                </FormControl>
-                <FormDescription>{t('profile.form.fields.firstName.description')}</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
-          <FormField
-            control={form.control}
-            name='lastName'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('profile.form.fields.lastName.label')}</FormLabel>
-                <FormControl>
-                  <Input placeholder={t('profile.form.fields.lastName.placeholder')} {...field} />
-                </FormControl>
-                <FormDescription>{t('profile.form.fields.lastName.description')}</FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name='name'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('profile.form.fields.name.label')}</FormLabel>
+              <FormControl>
+                <Input data-testid='user-name-input' autoComplete='name' placeholder={t('profile.form.fields.name.placeholder')} {...field} />
+              </FormControl>
+              <FormDescription>{t('profile.form.fields.name.description')}</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}

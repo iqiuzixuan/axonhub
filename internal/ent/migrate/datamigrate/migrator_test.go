@@ -63,11 +63,10 @@ func TestMigrator_Run_WithInitializedSystem(t *testing.T) {
 	// Initialize system
 	systemService := biz.NewSystemService(biz.SystemServiceParams{})
 	err := systemService.Initialize(ctx, &biz.InitializeSystemParams{
-		OwnerEmail:     "owner@example.com",
-		OwnerPassword:  "password123",
-		OwnerFirstName: "System",
-		OwnerLastName:  "Owner",
-		BrandName:      "Test Brand",
+		OwnerEmail:    "owner@example.com",
+		OwnerPassword: "password123",
+		OwnerName:     "System Owner",
+		BrandName:     "Test Brand",
 	})
 	require.NoError(t, err)
 
@@ -138,11 +137,10 @@ func TestMigrator_Run_SkipNewerVersion(t *testing.T) {
 	// Initialize system
 	systemService := biz.NewSystemService(biz.SystemServiceParams{})
 	err := systemService.Initialize(ctx, &biz.InitializeSystemParams{
-		OwnerEmail:     "owner@example.com",
-		OwnerPassword:  "password123",
-		OwnerFirstName: "System",
-		OwnerLastName:  "Owner",
-		BrandName:      "Test Brand",
+		OwnerEmail:    "owner@example.com",
+		OwnerPassword: "password123",
+		OwnerName:     "System Owner",
+		BrandName:     "Test Brand",
 	})
 	require.NoError(t, err)
 
@@ -174,11 +172,10 @@ func TestMigrator_Run_SkipEqualVersion(t *testing.T) {
 	// Initialize system
 	systemService := biz.NewSystemService(biz.SystemServiceParams{})
 	err := systemService.Initialize(ctx, &biz.InitializeSystemParams{
-		OwnerEmail:     "owner@example.com",
-		OwnerPassword:  "password123",
-		OwnerFirstName: "System",
-		OwnerLastName:  "Owner",
-		BrandName:      "Test Brand",
+		OwnerEmail:    "owner@example.com",
+		OwnerPassword: "password123",
+		OwnerName:     "System Owner",
+		BrandName:     "Test Brand",
 	})
 	require.NoError(t, err)
 
@@ -210,11 +207,10 @@ func TestMigrator_Run_MultipleMigrations(t *testing.T) {
 	// Initialize system
 	systemService := biz.NewSystemService(biz.SystemServiceParams{})
 	err := systemService.Initialize(ctx, &biz.InitializeSystemParams{
-		OwnerEmail:     "owner@example.com",
-		OwnerPassword:  "password123",
-		OwnerFirstName: "System",
-		OwnerLastName:  "Owner",
-		BrandName:      "Test Brand",
+		OwnerEmail:    "owner@example.com",
+		OwnerPassword: "password123",
+		OwnerName:     "System Owner",
+		BrandName:     "Test Brand",
 	})
 	require.NoError(t, err)
 
@@ -250,11 +246,10 @@ func TestMigrator_Run_PartialMigrations(t *testing.T) {
 	// Initialize system
 	systemService := biz.NewSystemService(biz.SystemServiceParams{})
 	err := systemService.Initialize(ctx, &biz.InitializeSystemParams{
-		OwnerEmail:     "owner@example.com",
-		OwnerPassword:  "password123",
-		OwnerFirstName: "System",
-		OwnerLastName:  "Owner",
-		BrandName:      "Test Brand",
+		OwnerEmail:    "owner@example.com",
+		OwnerPassword: "password123",
+		OwnerName:     "System Owner",
+		BrandName:     "Test Brand",
 	})
 	require.NoError(t, err)
 
@@ -288,11 +283,10 @@ func TestMigrator_Run_BetaMigration(t *testing.T) {
 
 	systemService := biz.NewSystemService(biz.SystemServiceParams{})
 	err := systemService.Initialize(ctx, &biz.InitializeSystemParams{
-		OwnerEmail:     "owner@example.com",
-		OwnerPassword:  "password123",
-		OwnerFirstName: "System",
-		OwnerLastName:  "Owner",
-		BrandName:      "Test Brand",
+		OwnerEmail:    "owner@example.com",
+		OwnerPassword: "password123",
+		OwnerName:     "System Owner",
+		BrandName:     "Test Brand",
 	})
 	require.NoError(t, err)
 	require.NoError(t, systemService.SetVersion(ctx, "v1.0.0-beta5"))
@@ -322,11 +316,10 @@ func TestMigrator_Run_BetaMigrationAcrossTenBoundary(t *testing.T) {
 
 	systemService := biz.NewSystemService(biz.SystemServiceParams{})
 	err := systemService.Initialize(ctx, &biz.InitializeSystemParams{
-		OwnerEmail:     "owner@example.com",
-		OwnerPassword:  "password123",
-		OwnerFirstName: "System",
-		OwnerLastName:  "Owner",
-		BrandName:      "Test Brand",
+		OwnerEmail:    "owner@example.com",
+		OwnerPassword: "password123",
+		OwnerName:     "System Owner",
+		BrandName:     "Test Brand",
 	})
 	require.NoError(t, err)
 	require.NoError(t, systemService.SetVersion(ctx, "v1.0.0-beta9"))
@@ -424,11 +417,10 @@ func TestMigrator_IntegrationTest(t *testing.T) {
 	// Initialize system
 	systemService := biz.NewSystemService(biz.SystemServiceParams{})
 	err := systemService.Initialize(ctx, &biz.InitializeSystemParams{
-		OwnerEmail:     "owner@example.com",
-		OwnerPassword:  "password123",
-		OwnerFirstName: "System",
-		OwnerLastName:  "Owner",
-		BrandName:      "Test Brand",
+		OwnerEmail:    "owner@example.com",
+		OwnerPassword: "password123",
+		OwnerName:     "System Owner",
+		BrandName:     "Test Brand",
 	})
 	require.NoError(t, err)
 

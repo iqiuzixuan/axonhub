@@ -221,8 +221,7 @@ export function UsersAddToProjectDialog({ currentRow, open, onOpenChange }: Prop
           <DialogDescription>
             {currentRow &&
               t('users.dialogs.addToProject.description', {
-                firstName: currentRow.firstName,
-                lastName: currentRow.lastName,
+                name: currentRow.name,
               })}
           </DialogDescription>
         </DialogHeader>

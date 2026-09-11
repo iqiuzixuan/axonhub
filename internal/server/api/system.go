@@ -15,6 +15,7 @@ import (
 
 	"github.com/looplj/axonhub/internal/build"
 	"github.com/looplj/axonhub/internal/log"
+	"github.com/looplj/axonhub/internal/pkg/xname"
 	"github.com/looplj/axonhub/internal/server/assets"
 	"github.com/looplj/axonhub/internal/server/biz"
 )
@@ -53,8 +54,7 @@ type HealthResponse struct {
 type InitializeSystemRequest struct {
 	OwnerEmail     string `json:"ownerEmail"     binding:"required,email"`
 	OwnerPassword  string `json:"ownerPassword"  binding:"required,min=6"`
-	OwnerFirstName string `json:"ownerFirstName" binding:"required"`
-	OwnerLastName  string `json:"ownerLastName"  binding:"required"`
+	OwnerName      string `json:"ownerName"      binding:"required"`
 	BrandName      string `json:"brandName"      binding:"required"`
 	PreferLanguage string `json:"preferLanguage,omitempty"`
 }
@@ -143,6 +143,12 @@ func (h *SystemHandlers) InitializeSystem(c *gin.Context) {
 		return
 	}
 
+	ownerName, err := xname.Normalize(req.OwnerName)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, InitializeSystemResponse{Success: false, Message: err.Error()})
+		return
+	}
+
 	// Check if system is already initialized
 	isInitialized, err := h.SystemService.IsInitialized(c.Request.Context())
 	if err != nil {
@@ -163,8 +169,7 @@ func (h *SystemHandlers) InitializeSystem(c *gin.Context) {
 	err = h.SystemService.Initialize(c.Request.Context(), &biz.InitializeSystemParams{
 		OwnerEmail:     req.OwnerEmail,
 		OwnerPassword:  req.OwnerPassword,
-		OwnerFirstName: req.OwnerFirstName,
-		OwnerLastName:  req.OwnerLastName,
+		OwnerName:      ownerName,
 		BrandName:      req.BrandName,
 		PreferLanguage: req.PreferLanguage,
 	})

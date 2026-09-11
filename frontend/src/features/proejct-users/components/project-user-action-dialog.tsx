@@ -236,7 +236,7 @@ export function ProjectUserActionDialog({ currentRow, open, onOpenChange }: Prop
                           ) : (
                             availableUsers.map((user) => (
                               <SelectItem key={user.id} value={user.id}>
-                                {formatUserName(user.firstName, user.lastName)} ({user.email})
+                                {formatUserName(user.name, user.email)} ({user.email})
                               </SelectItem>
                             ))
                           )}

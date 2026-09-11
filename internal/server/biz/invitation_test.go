@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"encoding/base64"
+	"strings"
 	"testing"
 	"time"
 
@@ -56,11 +57,20 @@ func TestInvitationService_SingleUseInvitation(t *testing.T) {
 	created, err := service.CreateInvitation(contexts.WithUser(ctx, owner), project.ID, projectRole.ID, nil, 1)
 	require.NoError(t, err)
 
-	registered, err := service.RegisterInvitation(ctx, created.Token, "first@example.com", "password", "First", "Member")
+	for _, name := range []string{"", " \t　", strings.Repeat("张", 101)} {
+		_, err := service.RegisterInvitation(ctx, created.Token, "first@example.com", "password", name)
+		require.Error(t, err)
+	}
+	info, err := service.GetInvitation(ctx, created.Token)
+	require.NoError(t, err)
+	require.Zero(t, info.UsedCount, "invalid names must not consume the invitation")
+
+	registered, err := service.RegisterInvitation(ctx, created.Token, "first@example.com", "password", "  张三  ")
 	require.NoError(t, err)
 	require.Equal(t, "first@example.com", registered.Email)
+	require.Equal(t, "张三", registered.Name)
 
-	_, err = service.RegisterInvitation(ctx, created.Token, "second@example.com", "password", "Second", "Member")
+	_, err = service.RegisterInvitation(ctx, created.Token, "second@example.com", "password", "Second Member")
 	require.Error(t, err)
 
 	exists, err := client.UserProject.Query().Where(
@@ -91,9 +101,9 @@ func TestInvitationService_UnlimitedInvitation(t *testing.T) {
 	created, err := service.CreateInvitation(contexts.WithUser(ctx, owner), project.ID, projectRole.ID, &neverExpires, 0)
 	require.NoError(t, err)
 
-	first, err := service.RegisterInvitation(ctx, created.Token, "first@example.com", "password", "First", "Member")
+	first, err := service.RegisterInvitation(ctx, created.Token, "first@example.com", "password", "First Member")
 	require.NoError(t, err)
-	second, err := service.RegisterInvitation(ctx, created.Token, "second@example.com", "password", "Second", "Member")
+	second, err := service.RegisterInvitation(ctx, created.Token, "second@example.com", "password", "Second Member")
 	require.NoError(t, err)
 
 	info, err := service.GetInvitation(ctx, created.Token)
@@ -116,7 +126,7 @@ func TestInvitationService_RejectsUnmigratedLegacyInvitation(t *testing.T) {
 		Save(ctx)
 	require.NoError(t, err)
 
-	_, err = service.RegisterInvitation(ctx, token, "legacy@example.com", "password", "Legacy", "Member")
+	_, err = service.RegisterInvitation(ctx, token, "legacy@example.com", "password", "Legacy Member")
 	require.ErrorContains(t, err, "invitation role is required")
 }
 
@@ -151,7 +161,7 @@ func TestInvitationService_RejectsDeletedInvitationRole(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, client.Role.DeleteOneID(projectRole.ID).Exec(ctx))
 
-	_, err = service.RegisterInvitation(ctx, created.Token, "member@example.com", "password", "Member", "User")
+	_, err = service.RegisterInvitation(ctx, created.Token, "member@example.com", "password", "Member User")
 	require.ErrorContains(t, err, "invitation role is no longer available")
 }
 
@@ -174,7 +184,7 @@ func TestInvitationService_ExpiredInvitation(t *testing.T) {
 
 	_, err = service.GetInvitation(ctx, created.Token)
 	require.Error(t, err)
-	_, err = service.RegisterInvitation(ctx, created.Token, "member@example.com", "password", "Member", "User")
+	_, err = service.RegisterInvitation(ctx, created.Token, "member@example.com", "password", "Member User")
 	require.Error(t, err)
 }
 

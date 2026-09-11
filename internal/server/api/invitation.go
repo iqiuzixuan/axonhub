@@ -54,10 +54,9 @@ type InvitationResponse struct {
 
 // RegisterInvitationRequest contains the credentials and profile data for registration.
 type RegisterInvitationRequest struct {
-	Email     string `json:"email" binding:"required,email"`
-	Password  string `json:"password" binding:"required,min=7"`
-	FirstName string `json:"firstName"`
-	LastName  string `json:"lastName"`
+	Email    string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required,min=7"`
+	Name     string `json:"name" binding:"required"`
 }
 
 // RegisterInvitationResponse contains the registered user and session token.
@@ -108,7 +107,7 @@ func (h *InvitationHandlers) Register(c *gin.Context) {
 		return
 	}
 
-	registeredUser, err := h.InvitationService.RegisterInvitation(c.Request.Context(), c.Param("token"), req.Email, req.Password, req.FirstName, req.LastName)
+	registeredUser, err := h.InvitationService.RegisterInvitation(c.Request.Context(), c.Param("token"), req.Email, req.Password, req.Name)
 	if err != nil {
 		JSONError(c, http.StatusBadRequest, err)
 		return

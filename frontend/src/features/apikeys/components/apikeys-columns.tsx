@@ -151,7 +151,7 @@ export const createColumns = (
           header: ({ column }) => <DataTableColumnHeader column={column} title={t('apikeys.columns.creator')} />,
           cell: ({ row }) => {
             const creator = row.original.user;
-            const displayName = creator ? formatUserName(creator.firstName, creator.lastName) : t('apikeys.user.deleted');
+            const displayName = creator ? formatUserName(creator.name, creator.email) : t('apikeys.user.deleted');
             return <LongText className='text-muted-foreground max-w-24'>{displayName}</LongText>;
           },
           filterFn: (row, _id, value) => {

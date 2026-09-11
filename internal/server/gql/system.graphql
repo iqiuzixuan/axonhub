@@ -2,8 +2,7 @@
 input InitializeSystemInput {
   ownerEmail: String!
   ownerPassword: String!
-  ownerFirstName: String!
-  ownerLastName: String!
+  ownerName: String!
   brandName: String!
 }
 

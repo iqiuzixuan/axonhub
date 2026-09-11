@@ -3,8 +3,7 @@ export const ME_QUERY = `
     me {
       id
       email
-      firstName
-      lastName
+      name
       isOwner
       scopes
       preferLanguage
@@ -45,8 +44,7 @@ export const USERS_QUERY = `
           updatedAt
           email
           status
-          firstName
-          lastName
+          name
           isOwner
           preferLanguage
           scopes
@@ -78,8 +76,7 @@ export const USER_QUERY = `
       updatedAt
       email
       status
-      firstName
-      lastName
+      name
       isOwner
       preferLanguage
       scopes
@@ -103,8 +100,7 @@ export const CREATE_USER_MUTATION = `
       updatedAt
       email
       status
-      firstName
-      lastName
+      name
       isOwner
       preferLanguage
       scopes
@@ -128,8 +124,7 @@ export const UPDATE_USER_MUTATION = `
       updatedAt
       email
       status
-      firstName
-      lastName
+      name
       isOwner
       preferLanguage
       scopes
@@ -153,8 +148,7 @@ export const UPDATE_USER_STATUS_MUTATION = `
       updatedAt
       email
       status
-      firstName
-      lastName
+      name
       isOwner
       preferLanguage
       scopes
@@ -182,8 +176,7 @@ export const SIGN_IN_MUTATION = `
       user {
         id
         email
-        firstName
-        lastName
+        name
         isOwner
         preferLanguage
         scopes
@@ -213,8 +206,7 @@ export const UPDATE_ME_MUTATION = `
   mutation UpdateMe($input: UpdateMeInput!) {
     updateMe(input: $input) {
       email
-      firstName
-      lastName
+      name
       isOwner
       preferLanguage
       avatar

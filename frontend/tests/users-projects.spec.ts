@@ -43,8 +43,7 @@ test.describe('Users - Add to Project', () => {
     
     const userDialog = page.getByRole('dialog')
     await userDialog.getByLabel(/邮箱|Email/i).fill(testUserEmail)
-    await userDialog.getByLabel(/名|First Name/i).fill('pw-test-ProjectTest')
-    await userDialog.getByLabel(/姓|Last Name/i).fill(uniqueSuffix)
+    await userDialog.getByTestId('user-name-input').fill('pw-test-ProjectTest ' + uniqueSuffix)
     
     const passwordField = userDialog.locator('input[type="password"]').first()
     await passwordField.fill('TestPass123!')
@@ -121,8 +120,7 @@ test.describe('Users - Add to Project', () => {
     
     const userDialog = page.getByRole('dialog')
     await userDialog.getByLabel(/邮箱|Email/i).fill(newUserEmail)
-    await userDialog.getByLabel(/名|First Name/i).fill('pw-test-RolesTest')
-    await userDialog.getByLabel(/姓|Last Name/i).fill(uniqueSuffix)
+    await userDialog.getByTestId('user-name-input').fill('pw-test-RolesTest ' + uniqueSuffix)
     
     const passwordField = userDialog.locator('input[type="password"]').first()
     await passwordField.fill('TestPass123!')
@@ -197,8 +195,7 @@ test.describe('Users - Add to Project', () => {
     
     const userDialog = page.getByRole('dialog')
     await userDialog.getByLabel(/邮箱|Email/i).fill(newUserEmail)
-    await userDialog.getByLabel(/名|First Name/i).fill('pw-test-ScopesTest')
-    await userDialog.getByLabel(/姓|Last Name/i).fill(uniqueSuffix)
+    await userDialog.getByTestId('user-name-input').fill('pw-test-ScopesTest ' + uniqueSuffix)
     
     const passwordField = userDialog.locator('input[type="password"]').first()
     await passwordField.fill('TestPass123!')
@@ -308,8 +305,7 @@ test.describe('Users - Add to Project', () => {
     
     const userDialog = page.getByRole('dialog')
     await userDialog.getByLabel(/邮箱|Email/i).fill(newUserEmail)
-    await userDialog.getByLabel(/名|First Name/i).fill('ValidationTest')
-    await userDialog.getByLabel(/姓|Last Name/i).fill(uniqueSuffix)
+    await userDialog.getByTestId('user-name-input').fill('ValidationTest ' + uniqueSuffix)
     
     const passwordField = userDialog.locator('input[type="password"]').first()
     await passwordField.fill('TestPass123!')
@@ -361,8 +357,7 @@ test.describe('Users - Add to Project', () => {
     
     const userDialog = page.getByRole('dialog')
     await userDialog.getByLabel(/邮箱|Email/i).fill(newUserEmail)
-    await userDialog.getByLabel(/名|First Name/i).fill('CancelTest')
-    await userDialog.getByLabel(/姓|Last Name/i).fill(uniqueSuffix)
+    await userDialog.getByTestId('user-name-input').fill('CancelTest ' + uniqueSuffix)
     
     const passwordField = userDialog.locator('input[type="password"]').first()
     await passwordField.fill('TestPass123!')

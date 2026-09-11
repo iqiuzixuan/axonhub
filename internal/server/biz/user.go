@@ -18,6 +18,7 @@ import (
 	"github.com/looplj/axonhub/internal/log"
 	"github.com/looplj/axonhub/internal/objects"
 	"github.com/looplj/axonhub/internal/pkg/xcache"
+	"github.com/looplj/axonhub/internal/pkg/xname"
 )
 
 type UserServiceParams struct {
@@ -49,6 +50,11 @@ func NewUserService(params UserServiceParams) *UserService {
 
 // CreateUser creates a new user with hashed password.
 func (s *UserService) CreateUser(ctx context.Context, input ent.CreateUserInput) (*ent.User, error) {
+	name, err := xname.Normalize(lo.FromPtr(input.Name))
+	if err != nil {
+		return nil, err
+	}
+
 	client := s.entFromContext(ctx)
 
 	// Hash the password
@@ -65,8 +71,7 @@ func (s *UserService) CreateUser(ctx context.Context, input ent.CreateUserInput)
 	}
 
 	mut := client.User.Create().
-		SetNillableFirstName(input.FirstName).
-		SetNillableLastName(input.LastName).
+		SetName(name).
 		SetEmail(input.Email).
 		SetPassword(hashedPassword).
 		SetScopes(input.Scopes)
@@ -85,6 +90,14 @@ func (s *UserService) CreateUser(ctx context.Context, input ent.CreateUserInput)
 
 // UpdateUser updates an existing user.
 func (s *UserService) UpdateUser(ctx context.Context, id int, input ent.UpdateUserInput) (*ent.User, error) {
+	if input.Name != nil {
+		name, err := xname.Normalize(*input.Name)
+		if err != nil {
+			return nil, err
+		}
+		input.Name = &name
+	}
+
 	// Validate permissions before updating
 	if err := s.permissionValidator.CanEditUserPermissions(ctx, id, nil); err != nil {
 		return nil, fmt.Errorf("permission denied: %w", err)
@@ -110,8 +123,7 @@ func (s *UserService) UpdateUser(ctx context.Context, id int, input ent.UpdateUs
 
 	mut := client.User.UpdateOneID(id).
 		SetNillableEmail(input.Email).
-		SetNillableFirstName(input.FirstName).
-		SetNillableLastName(input.LastName).
+		SetNillableName(input.Name).
 		SetNillableIsOwner(input.IsOwner).
 		SetNillablePreferLanguage(input.PreferLanguage)
 
@@ -173,13 +185,19 @@ func (s *UserService) UpdateOwnProfile(ctx context.Context, input ent.UpdateUser
 	}
 
 	id := currentUser.ID
+	if input.Name != nil {
+		name, err := xname.Normalize(*input.Name)
+		if err != nil {
+			return nil, err
+		}
+		input.Name = &name
+	}
 
 	return authz.RunWithSystemBypass(ctx, "update-own-profile", func(ctx context.Context) (*ent.User, error) {
 		client := s.entFromContext(ctx)
 
 		mut := client.User.UpdateOneID(id).
-			SetNillableFirstName(input.FirstName).
-			SetNillableLastName(input.LastName).
+			SetNillableName(input.Name).
 			SetNillablePreferLanguage(input.PreferLanguage)
 
 		if input.ClearAvatar {
@@ -279,7 +297,7 @@ func (s *UserService) GetUserByID(ctx context.Context, id int) (*ent.User, error
 }
 
 func buildUserCacheKey(id int) string {
-	return fmt.Sprintf("user:%d", id)
+	return fmt.Sprintf("user:v2:%d", id)
 }
 
 // invalidateUserCache removes a user from cache.
@@ -378,8 +396,7 @@ func ConvertUserToUserInfo(ctx context.Context, u *ent.User) *objects.UserInfo {
 	return &objects.UserInfo{
 		ID:             objects.GUID{Type: ent.TypeUser, ID: u.ID},
 		Email:          u.Email,
-		FirstName:      u.FirstName,
-		LastName:       u.LastName,
+		Name:           u.Name,
 		IsOwner:        u.IsOwner,
 		PreferLanguage: u.PreferLanguage,
 		Avatar:         &u.Avatar,

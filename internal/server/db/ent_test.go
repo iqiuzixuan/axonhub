@@ -1,6 +1,45 @@
 package db
 
-import "testing"
+import (
+	"context"
+	"database/sql"
+	"path/filepath"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+
+	"github.com/looplj/axonhub/internal/authz"
+	"github.com/looplj/axonhub/internal/ent/enttest"
+)
+
+func TestNewEntClientUpgradesSplitUserNames(t *testing.T) {
+	dsn := "file:" + filepath.Join(t.TempDir(), "legacy-users.db")
+	ctx := authz.WithTestBypass(context.Background())
+	legacy := enttest.NewEntClient(t, "sqlite3", dsn)
+	u := legacy.User.Create().SetEmail("legacy@example.com").SetPassword("migration-test-placeholder").
+		SetFirstName("三").SetLastName("张").SaveX(ctx)
+	require.NoError(t, legacy.Close())
+
+	// Reproduce the deployed schema, which has no name column at all.
+	raw, err := sql.Open("sqlite3", dsn)
+	require.NoError(t, err)
+	_, err = raw.ExecContext(ctx, "ALTER TABLE users DROP COLUMN name")
+	require.NoError(t, err)
+	require.NoError(t, raw.Close())
+
+	upgraded := NewEntClient(Config{Dialect: "sqlite3", DSN: dsn, MaxOpenConns: 1, MaxIdleConns: 1})
+	got := upgraded.User.GetX(ctx, u.ID)
+	require.Equal(t, "张三", got.Name)
+	require.Equal(t, "三", got.FirstName)
+	require.Equal(t, "张", got.LastName)
+	upgraded.User.UpdateOne(got).SetName("自己的昵称").SaveX(ctx)
+	require.NoError(t, upgraded.Close())
+
+	// A second startup must not replace an explicitly edited name with old columns.
+	reopened := NewEntClient(Config{Dialect: "sqlite3", DSN: dsn, MaxOpenConns: 1, MaxIdleConns: 1})
+	defer reopened.Close()
+	require.Equal(t, "自己的昵称", reopened.User.GetX(ctx, u.ID).Name)
+}
 
 func TestEnsureSQLiteDSN(t *testing.T) {
 	t.Parallel()

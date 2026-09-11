@@ -70,7 +70,7 @@ export function UsersTable({
   React.useEffect(() => {
     const newFilters: ColumnFiltersState = [];
     if (nameFilter) {
-      newFilters.push({ id: 'firstName', value: nameFilter });
+      newFilters.push({ id: 'name', value: nameFilter });
     }
     if (statusFilter.length > 0) {
       newFilters.push({ id: 'status', value: statusFilter });
@@ -86,7 +86,7 @@ export function UsersTable({
     setColumnFilters(newFilters);
 
     // Extract filter values
-    const nameFilterValue = newFilters.find((f) => f.id === 'firstName')?.value;
+    const nameFilterValue = newFilters.find((f) => f.id === 'name')?.value;
     const statusFilterValue = newFilters.find((f) => f.id === 'status')?.value;
     const roleFilterValue = newFilters.find((f) => f.id === 'role')?.value;
 

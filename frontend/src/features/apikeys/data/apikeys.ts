@@ -35,8 +35,7 @@ function buildApiKeysQuery(permissions: { canViewUsers: boolean }) {
     ? `
           user {
             id
-            firstName
-            lastName
+            name
           }`
     : '';
 
@@ -82,8 +81,7 @@ function buildApiKeyQuery(permissions: { canViewUsers: boolean }) {
     ? `
       user {
         id
-        firstName
-        lastName
+        name
       }`
     : '';
 
@@ -136,8 +134,7 @@ function buildCreateApiKeyMutation(permissions: { canViewUsers: boolean }) {
     ? `
       user {
         id
-        firstName
-        lastName
+        name
       }`
     : '';
 
@@ -163,8 +160,7 @@ function buildUpdateApiKeyMutation(permissions: { canViewUsers: boolean }) {
     ? `
       user {
         id
-        firstName
-        lastName
+        name
       }`
     : '';
 

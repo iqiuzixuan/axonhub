@@ -37,14 +37,9 @@ export const createColumns = (
   // Add other columns
   columns.push(
     {
-      accessorKey: 'firstName',
-      header: t('users.columns.firstName'),
-      cell: ({ row }) => <LongText>{row.getValue('firstName')}</LongText>,
-    },
-    {
-      accessorKey: 'lastName',
-      header: t('users.columns.lastName'),
-      cell: ({ row }) => <LongText>{row.getValue('lastName')}</LongText>,
+      accessorKey: 'name',
+      header: t('users.columns.name'),
+      cell: ({ row }) => <LongText>{row.getValue('name')}</LongText>,
     },
     {
       accessorKey: 'email',

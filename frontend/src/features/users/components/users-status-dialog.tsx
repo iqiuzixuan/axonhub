@@ -55,7 +55,7 @@ export function UsersStatusDialog({ open, onOpenChange, currentRow }: Props) {
           <p>
             {t('users.dialogs.statusChange.confirmMessage', {
               action: actionText,
-              name: formatUserName(currentRow.firstName, currentRow.lastName),
+              name: formatUserName(currentRow.name, currentRow.email),
             })}
           </p>
           <p className='text-muted-foreground text-sm'>

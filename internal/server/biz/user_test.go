@@ -2,8 +2,11 @@ package biz
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"testing"
 
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 
 	"github.com/looplj/axonhub/internal/authz"
@@ -79,8 +82,7 @@ func TestConvertUserToUserInfo_BasicUser(t *testing.T) {
 	testUser, err := client.User.Create().
 		SetEmail("test@example.com").
 		SetPassword("hashed-password").
-		SetFirstName("John").
-		SetLastName("Doe").
+		SetName("张三").
 		SetPreferLanguage("en").
 		SetAvatar("https://example.com/avatar.jpg").
 		SetIsOwner(false).
@@ -103,8 +105,7 @@ func TestConvertUserToUserInfo_BasicUser(t *testing.T) {
 
 	// Verify basic fields
 	require.Equal(t, "test@example.com", userInfo.Email)
-	require.Equal(t, "John", userInfo.FirstName)
-	require.Equal(t, "Doe", userInfo.LastName)
+	require.Equal(t, "张三", userInfo.Name)
 	require.Equal(t, "en", userInfo.PreferLanguage)
 	require.Equal(t, false, userInfo.IsOwner)
 	require.NotNil(t, userInfo.Avatar)
@@ -116,6 +117,66 @@ func TestConvertUserToUserInfo_BasicUser(t *testing.T) {
 	// Verify empty roles and projects
 	require.Empty(t, userInfo.Roles)
 	require.Empty(t, userInfo.Projects)
+}
+
+func TestUserService_NameValidationAndUpdates(t *testing.T) {
+	service, client := setupTestUserService(t)
+	defer client.Close()
+	ctx := authz.WithTestBypass(ent.NewContext(t.Context(), client))
+	owner := createOwnerUser(t, ctx, client)
+	ctx = contexts.WithUser(ctx, owner)
+
+	for _, name := range []*string{nil, lo.ToPtr(""), lo.ToPtr(" \t\n　"), lo.ToPtr(strings.Repeat("张", 101))} {
+		_, err := service.CreateUser(ctx, ent.CreateUserInput{
+			Email: "invalid@example.com", Password: "password", Name: name,
+		})
+		require.Error(t, err)
+	}
+
+	created, err := service.CreateUser(ctx, ent.CreateUserInput{
+		Email: "name@example.com", Password: "password", Name: lo.ToPtr("  张三  "),
+	})
+	require.NoError(t, err)
+	require.Equal(t, "张三", created.Name)
+
+	updated, err := service.UpdateUser(ctx, created.ID, ent.UpdateUserInput{Name: lo.ToPtr("  张三 的昵称  ")})
+	require.NoError(t, err)
+	require.Equal(t, "张三 的昵称", updated.Name)
+
+	selfCtx := contexts.WithUser(ctx, updated)
+	for _, name := range []string{"", " \t　", strings.Repeat("张", 101)} {
+		_, err := service.UpdateUser(ctx, created.ID, ent.UpdateUserInput{Name: &name})
+		require.Error(t, err)
+		_, err = service.UpdateOwnProfile(selfCtx, ent.UpdateUserInput{Name: &name})
+		require.Error(t, err)
+	}
+
+	updated, err = service.UpdateOwnProfile(selfCtx, ent.UpdateUserInput{Name: lo.ToPtr(" 王小明 ")})
+	require.NoError(t, err)
+	require.Equal(t, "王小明", updated.Name)
+
+	updated, err = service.UpdateOwnProfile(selfCtx, ent.UpdateUserInput{PreferLanguage: lo.ToPtr("zh")})
+	require.NoError(t, err)
+	require.Equal(t, "王小明", updated.Name, "changing other profile fields must preserve the name")
+
+	updated, err = service.UpdateUser(ctx, created.ID, ent.UpdateUserInput{Name: lo.ToPtr(strings.Repeat("张", 100))})
+	require.NoError(t, err)
+	require.Equal(t, strings.Repeat("张", 100), updated.Name)
+}
+
+func TestGetUserByID_IgnoresLegacyNameCache(t *testing.T) {
+	service, client := setupTestUserService(t)
+	defer client.Close()
+	ctx := authz.WithTestBypass(ent.NewContext(t.Context(), client))
+	created, err := client.User.Create().SetEmail("cache@example.com").SetPassword("password").SetName("张三").Save(ctx)
+	require.NoError(t, err)
+
+	legacy := *created
+	legacy.Name = ""
+	require.NoError(t, service.UserCache.Set(ctx, fmt.Sprintf("user:%d", created.ID), legacy))
+	loaded, err := service.GetUserByID(ctx, created.ID)
+	require.NoError(t, err)
+	require.Equal(t, "张三", loaded.Name)
 }
 
 func TestConvertUserToUserInfo_WithGlobalRoles(t *testing.T) {

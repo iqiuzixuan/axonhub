@@ -45,6 +45,7 @@ INIT_OWNER_EMAIL="${AXONHUB_INIT_OWNER_EMAIL:-owner@example.com}"
 INIT_OWNER_PASSWORD="${AXONHUB_INIT_OWNER_PASSWORD:-InitPassword123!}"
 INIT_OWNER_FIRST_NAME="${AXONHUB_INIT_OWNER_FIRST_NAME:-System}"
 INIT_OWNER_LAST_NAME="${AXONHUB_INIT_OWNER_LAST_NAME:-Owner}"
+INIT_OWNER_NAME="${AXONHUB_INIT_OWNER_NAME:-${INIT_OWNER_FIRST_NAME} ${INIT_OWNER_LAST_NAME}}"
 INIT_BRAND_NAME="${AXONHUB_INIT_BRAND_NAME:-AxonHub Migration Test}"
 
 # GitHub repository
@@ -608,6 +609,7 @@ initialize_system_via_api() {
 {
   "ownerEmail": "${INIT_OWNER_EMAIL}",
   "ownerPassword": "${INIT_OWNER_PASSWORD}",
+  "ownerName": "${INIT_OWNER_NAME}",
   "ownerFirstName": "${INIT_OWNER_FIRST_NAME}",
   "ownerLastName": "${INIT_OWNER_LAST_NAME}",
   "brandName": "${INIT_BRAND_NAME}"

@@ -20,6 +20,7 @@ import (
 	"github.com/looplj/axonhub/internal/ent/project"
 	"github.com/looplj/axonhub/internal/ent/role"
 	"github.com/looplj/axonhub/internal/ent/user"
+	"github.com/looplj/axonhub/internal/pkg/xname"
 	"github.com/looplj/axonhub/internal/scopes"
 )
 
@@ -144,7 +145,7 @@ func (s *InvitationService) GetInvitation(ctx context.Context, token string) (*I
 }
 
 // RegisterInvitation creates a user and assigns the invitation's project role.
-func (s *InvitationService) RegisterInvitation(ctx context.Context, token, email, password, firstName, lastName string) (*ent.User, error) {
+func (s *InvitationService) RegisterInvitation(ctx context.Context, token, email, password, name string) (*ent.User, error) {
 	email = strings.TrimSpace(email)
 	if email == "" || password == "" {
 		return nil, fmt.Errorf("email and password are required")
@@ -152,9 +153,13 @@ func (s *InvitationService) RegisterInvitation(ctx context.Context, token, email
 	if len(password) < 7 {
 		return nil, fmt.Errorf("password must be at least 7 characters")
 	}
+	name, err := xname.Normalize(name)
+	if err != nil {
+		return nil, err
+	}
 
 	var createdUser *ent.User
-	err := authz.RunWithSystemBypassVoid(ctx, "invitation-register", func(ctx context.Context) error {
+	err = authz.RunWithSystemBypassVoid(ctx, "invitation-register", func(ctx context.Context) error {
 		return s.RunInTransaction(ctx, func(ctx context.Context) error {
 			client := s.entFromContext(ctx)
 			invitationRow, err := client.Invitation.Query().
@@ -228,8 +233,7 @@ func (s *InvitationService) RegisterInvitation(ctx context.Context, token, email
 			createdUser, err = client.User.Create().
 				SetEmail(email).
 				SetPassword(hashedPassword).
-				SetFirstName(strings.TrimSpace(firstName)).
-				SetLastName(strings.TrimSpace(lastName)).
+				SetName(name).
 				Save(ctx)
 			if err != nil {
 				return fmt.Errorf("failed to create user: %w", err)

@@ -586,7 +586,7 @@ export function useRequestsColumns(options?: UseRequestsColumnsOptions): ColumnD
           return <Badge variant='secondary'>{t(`requests.source.${request.source}`)}</Badge>;
         }
 
-        const callerName = formatUserName(request.apiKey?.user?.firstName, request.apiKey?.user?.lastName);
+        const callerName = formatUserName(request.apiKey?.user?.name, request.apiKey?.user?.email);
 
         return (
           <div className='flex min-w-[120px] flex-col gap-0.5'>
