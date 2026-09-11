@@ -45,7 +45,7 @@ export function DataTableToolbar<TData>({
 
     return usersData.edges.map((edge) => ({
       value: edge.node.id,
-      label: `${formatUserName(edge.node.firstName, edge.node.lastName)} (${edge.node.email})`,
+      label: `${formatUserName(edge.node.name, edge.node.email)} (${edge.node.email})`,
     }));
   }, [canViewCreators, usersData]);
 

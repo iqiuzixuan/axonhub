@@ -18,21 +18,16 @@ export const buildGUID = (type: string, id: string) => {
   return `gid://axonhub/${type}/${id}`;
 };
 
-const cjkCharacterPattern = /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u;
-
-// isCJKName reports whether any name contains a CJK script character.
-export function isCJKName(...names: Array<string | null | undefined>) {
-  return names.some((name) => !!name && cjkCharacterPattern.test(name));
+// Display the saved name in the user's chosen order, including internal spaces.
+export function formatUserName(name?: string | null, email?: string | null) {
+  return name?.trim() || email || '';
 }
 
-// formatUserName returns CJK names as surname followed by given name and other names in Western order.
-export function formatUserName(firstName?: string | null, lastName?: string | null) {
-  const first = firstName?.trim() ?? '';
-  const last = lastName?.trim() ?? '';
+export function userNameInitials(name?: string | null, email?: string | null) {
+  return Array.from(formatUserName(name, email)).slice(0, 2).join('').toUpperCase() || 'U';
+}
 
-  if (first && last) {
-    return isCJKName(first, last) ? `${last}${first}` : `${first} ${last}`;
-  }
-
-  return first || last;
+// Omit unchanged names so unrelated edits also work for migrated, longer names.
+export function userNameUpdate(name: string, originalName?: string): { name?: string } {
+  return name === originalName ? {} : { name };
 }

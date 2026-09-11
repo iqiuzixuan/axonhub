@@ -34,7 +34,7 @@ function UsersContent() {
   const whereClause = (() => {
     const where: Record<string, string | string[]> = {};
     if (debouncedNameFilter) {
-      where.firstNameContainsFold = debouncedNameFilter;
+      where.nameContainsFold = debouncedNameFilter;
     }
     if (statusFilter.length > 0) {
       where.statusIn = statusFilter;

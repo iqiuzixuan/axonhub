@@ -1613,8 +1613,7 @@ type CreateUserInput struct {
 	Status         *user.Status
 	PreferLanguage *string
 	Password       string
-	FirstName      *string
-	LastName       *string
+	Name           *string
 	Avatar         *string
 	IsOwner        *bool
 	Scopes         []string
@@ -1632,11 +1631,8 @@ func (i *CreateUserInput) Mutate(m *UserMutation) {
 		m.SetPreferLanguage(*v)
 	}
 	m.SetPassword(i.Password)
-	if v := i.FirstName; v != nil {
-		m.SetFirstName(*v)
-	}
-	if v := i.LastName; v != nil {
-		m.SetLastName(*v)
+	if v := i.Name; v != nil {
+		m.SetName(*v)
 	}
 	if v := i.Avatar; v != nil {
 		m.SetAvatar(*v)
@@ -1667,8 +1663,7 @@ type UpdateUserInput struct {
 	Status           *user.Status
 	PreferLanguage   *string
 	Password         *string
-	FirstName        *string
-	LastName         *string
+	Name             *string
 	ClearAvatar      bool
 	Avatar           *string
 	IsOwner          *bool
@@ -1697,11 +1692,8 @@ func (i *UpdateUserInput) Mutate(m *UserMutation) {
 	if v := i.Password; v != nil {
 		m.SetPassword(*v)
 	}
-	if v := i.FirstName; v != nil {
-		m.SetFirstName(*v)
-	}
-	if v := i.LastName; v != nil {
-		m.SetLastName(*v)
+	if v := i.Name; v != nil {
+		m.SetName(*v)
 	}
 	if i.ClearAvatar {
 		m.ClearAvatar()

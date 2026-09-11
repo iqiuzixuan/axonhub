@@ -98,8 +98,12 @@ export function useUpdateUser() {
       const data = await graphqlRequest<{ updateUser: User }>(UPDATE_USER_MUTATION, { id, input });
       return userSchema.parse(data.updateUser);
     },
-    onSuccess: () => {
+    onSuccess: (_user, variables) => {
       queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['user', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['me'] });
+      queryClient.invalidateQueries({ queryKey: ['project-users'] });
+      queryClient.invalidateQueries({ queryKey: ['all-users'] });
       toast.success(t('users.messages.updateSuccess'));
     },
     onError: () => {

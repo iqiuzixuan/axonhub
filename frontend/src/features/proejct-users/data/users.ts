@@ -43,8 +43,7 @@ function buildProjectUsersQuery(permissions: { canViewRoles: boolean }) {
               updatedAt
               email
               status
-              firstName
-              lastName
+              name
               preferLanguage${rolesFields}
             }
           }
@@ -95,8 +94,7 @@ export const ALL_USERS_QUERY = `
         node {
           id
           email
-          firstName
-          lastName
+          name
           status
         }
       }
@@ -155,8 +153,7 @@ export function useUsers(
             updatedAt: parsedPU.user.updatedAt,
             email: parsedPU.user.email,
             status: parsedPU.user.status,
-            firstName: parsedPU.user.firstName,
-            lastName: parsedPU.user.lastName,
+            name: parsedPU.user.name,
             preferLanguage: parsedPU.user.preferLanguage,
             isOwner: parsedPU.isOwner,
             scopes: parsedPU.scopes,

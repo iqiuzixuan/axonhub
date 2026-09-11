@@ -1,5 +1,6 @@
 import { HTMLAttributes, useEffect, useState } from 'react';
 import { z } from 'zod';
+import { userNameSchema } from '@/lib/validation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from '@tanstack/react-router';
@@ -16,11 +17,10 @@ import { PasswordInput } from '@/components/password-input';
 
 type SignUpFormProps = HTMLAttributes<HTMLFormElement>;
 
-const formSchema = z
+const createFormSchema = (t: (key: string) => string) => z
   .object({
     email: z.string().email(),
-    firstName: z.string().min(1),
-    lastName: z.string().min(1),
+    name: userNameSchema(t),
     password: z.string().min(7),
     confirmPassword: z.string(),
   })
@@ -32,6 +32,7 @@ const formSchema = z
 export function SignUpForm({ className, ...props }: SignUpFormProps) {
   const { t } = useTranslation();
   const router = useRouter();
+  const formSchema = createFormSchema(t);
   const { setUser, setAccessToken } = useAuthStore((state) => state.auth);
   const { setSelectedProjectId } = useProjectStore();
   const invitationToken = new URLSearchParams(window.location.search).get('invite');
@@ -41,7 +42,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { email: '', firstName: '', lastName: '', password: '', confirmPassword: '' },
+    defaultValues: { email: '', name: '', password: '', confirmPassword: '' },
   });
 
   useEffect(() => {
@@ -102,34 +103,19 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
             </FormItem>
           )}
         />
-        <div className='grid gap-4 sm:grid-cols-2'>
-          <FormField
-            control={form.control}
-            name='firstName'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('users.form.firstName')}</FormLabel>
-                <FormControl>
-                  <Input className='border-slate-300 !bg-white text-slate-800 placeholder:text-slate-400 focus:border-slate-500 focus:!bg-white focus:ring-2 focus:ring-slate-200' {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name='lastName'
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('users.form.lastName')}</FormLabel>
-                <FormControl>
-                  <Input className='border-slate-300 !bg-white text-slate-800 placeholder:text-slate-400 focus:border-slate-500 focus:!bg-white focus:ring-2 focus:ring-slate-200' {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name='name'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{t('users.form.name')}</FormLabel>
+              <FormControl>
+                <Input data-testid='user-name-input' autoComplete='name' placeholder={t('users.form.namePlaceholder')} className='border-slate-300 !bg-white text-slate-800 placeholder:text-slate-400 focus:border-slate-500 focus:!bg-white focus:ring-2 focus:ring-slate-200' {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name='password'

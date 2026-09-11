@@ -5961,15 +5961,10 @@ func (_q *UserQuery) collectField(ctx context.Context, oneNode bool, opCtx *grap
 				selectedFields = append(selectedFields, user.FieldPreferLanguage)
 				fieldSeen[user.FieldPreferLanguage] = struct{}{}
 			}
-		case "firstName":
-			if _, ok := fieldSeen[user.FieldFirstName]; !ok {
-				selectedFields = append(selectedFields, user.FieldFirstName)
-				fieldSeen[user.FieldFirstName] = struct{}{}
-			}
-		case "lastName":
-			if _, ok := fieldSeen[user.FieldLastName]; !ok {
-				selectedFields = append(selectedFields, user.FieldLastName)
-				fieldSeen[user.FieldLastName] = struct{}{}
+		case "name":
+			if _, ok := fieldSeen[user.FieldName]; !ok {
+				selectedFields = append(selectedFields, user.FieldName)
+				fieldSeen[user.FieldName] = struct{}{}
 			}
 		case "avatar":
 			if _, ok := fieldSeen[user.FieldAvatar]; !ok {

@@ -962,20 +962,24 @@ func init() {
 	userDescPreferLanguage := userFields[2].Descriptor()
 	// user.DefaultPreferLanguage holds the default value on creation for the prefer_language field.
 	user.DefaultPreferLanguage = userDescPreferLanguage.Default.(string)
+	// userDescName is the schema descriptor for name field.
+	userDescName := userFields[4].Descriptor()
+	// user.DefaultName holds the default value on creation for the name field.
+	user.DefaultName = userDescName.Default.(string)
 	// userDescFirstName is the schema descriptor for first_name field.
-	userDescFirstName := userFields[4].Descriptor()
+	userDescFirstName := userFields[5].Descriptor()
 	// user.DefaultFirstName holds the default value on creation for the first_name field.
 	user.DefaultFirstName = userDescFirstName.Default.(string)
 	// userDescLastName is the schema descriptor for last_name field.
-	userDescLastName := userFields[5].Descriptor()
+	userDescLastName := userFields[6].Descriptor()
 	// user.DefaultLastName holds the default value on creation for the last_name field.
 	user.DefaultLastName = userDescLastName.Default.(string)
 	// userDescIsOwner is the schema descriptor for is_owner field.
-	userDescIsOwner := userFields[7].Descriptor()
+	userDescIsOwner := userFields[8].Descriptor()
 	// user.DefaultIsOwner holds the default value on creation for the is_owner field.
 	user.DefaultIsOwner = userDescIsOwner.Default.(bool)
 	// userDescScopes is the schema descriptor for scopes field.
-	userDescScopes := userFields[8].Descriptor()
+	userDescScopes := userFields[9].Descriptor()
 	// user.DefaultScopes holds the default value on creation for the scopes field.
 	user.DefaultScopes = userDescScopes.Default.([]string)
 	userprojectMixin := schema.UserProject{}.Mixin()

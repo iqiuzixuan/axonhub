@@ -1,5 +1,15 @@
 import { z } from 'zod';
 
+// An unchanged migrated name may exceed the new limit; edits still use 100 code points.
+export const userNameSchema = (t: (key: string) => string, originalName?: string) =>
+  z
+    .string()
+    .trim()
+    .min(1, { message: t('users.validation.nameRequired') })
+    .refine((name) => name === originalName || Array.from(name).length <= 100, {
+      message: t('users.validation.nameTooLong'),
+    });
+
 /**
  * Shared password validation rules
  * Ensures consistent password requirements across authentication flows

@@ -120,8 +120,7 @@ export const systemApi = {
   initialize: (data: {
     ownerEmail: string;
     ownerPassword: string;
-    ownerFirstName: string;
-    ownerLastName: string;
+    ownerName: string;
     brandName: string;
     preferLanguage?: string;
   }): Promise<{ success: boolean; message: string }> =>
@@ -154,7 +153,7 @@ export const authApi = {
 
   registerInvitation: (
     token: string,
-    data: { email: string; password: string; firstName: string; lastName: string }
+    data: { email: string; password: string; name: string }
   ): Promise<{ user: AuthUser; token: string }> =>
     apiRequest(`/auth/invitations/${encodeURIComponent(token)}/register`, {
       method: 'POST',

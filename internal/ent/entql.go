@@ -591,6 +591,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			user.FieldStatus:         {Type: field.TypeEnum, Column: user.FieldStatus},
 			user.FieldPreferLanguage: {Type: field.TypeString, Column: user.FieldPreferLanguage},
 			user.FieldPassword:       {Type: field.TypeString, Column: user.FieldPassword},
+			user.FieldName:           {Type: field.TypeString, Column: user.FieldName},
 			user.FieldFirstName:      {Type: field.TypeString, Column: user.FieldFirstName},
 			user.FieldLastName:       {Type: field.TypeString, Column: user.FieldLastName},
 			user.FieldAvatar:         {Type: field.TypeString, Column: user.FieldAvatar},
@@ -4346,6 +4347,11 @@ func (f *UserFilter) WherePreferLanguage(p entql.StringP) {
 // WherePassword applies the entql string predicate on the password field.
 func (f *UserFilter) WherePassword(p entql.StringP) {
 	f.Where(p.Field(user.FieldPassword))
+}
+
+// WhereName applies the entql string predicate on the name field.
+func (f *UserFilter) WhereName(p entql.StringP) {
+	f.Where(p.Field(user.FieldName))
 }
 
 // WhereFirstName applies the entql string predicate on the first_name field.

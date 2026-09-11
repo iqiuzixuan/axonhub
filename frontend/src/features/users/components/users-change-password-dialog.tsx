@@ -66,9 +66,7 @@ export function UsersChangePasswordDialog({ currentRow, open, onOpenChange }: Pr
           <DialogTitle>{t('users.dialogs.changePassword.title')}</DialogTitle>
           <DialogDescription>
             {t('users.dialogs.changePassword.description', {
-              firstName: currentRow?.firstName || '',
-              lastName: currentRow?.lastName || '',
-              name: formatUserName(currentRow?.firstName, currentRow?.lastName),
+              name: formatUserName(currentRow?.name, currentRow?.email),
               email: currentRow?.email || '',
             })}
           </DialogDescription>

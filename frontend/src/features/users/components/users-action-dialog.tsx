@@ -10,7 +10,8 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/authStore';
 import { filterGrantableRoles, canEditUserPermissions } from '@/lib/permission-utils';
-import { passwordConfirmationSchema } from '@/lib/validation';
+import { passwordConfirmationSchema, userNameSchema } from '@/lib/validation';
+import { userNameUpdate } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -21,11 +22,10 @@ import { User, CreateUserInput, UpdateUserInput } from '../data/schema';
 import { useCreateUser, useUpdateUser } from '../data/users';
 
 // 创建表单验证模式的工厂函数
-const createFormSchema = (t: (key: string) => string) =>
+const createFormSchema = (t: (key: string) => string, originalName?: string) =>
   z
     .object({
-      firstName: z.string().min(1, t('users.validation.firstNameRequired')),
-      lastName: z.string().min(1, t('users.validation.lastNameRequired')),
+      name: userNameSchema(t, originalName),
       email: z.email().min(1, t('users.validation.emailRequired')),
       password: z.string().optional(),
       confirmPassword: z.string().optional(),
@@ -80,7 +80,7 @@ export function UsersActionDialog({ currentRow, open, onOpenChange }: Props) {
   const updateUser = useUpdateUser();
 
   // 创建表单验证模式
-  const formSchema = createFormSchema(t);
+  const formSchema = createFormSchema(t, currentRow?.name);
   type UserForm = z.infer<typeof formSchema>;
 
   // 根据是否为编辑模式使用不同的表单配置
@@ -88,8 +88,7 @@ export function UsersActionDialog({ currentRow, open, onOpenChange }: Props) {
     resolver: zodResolver(formSchema),
     defaultValues: isEdit
       ? {
-          firstName: currentRow.firstName,
-          lastName: currentRow.lastName,
+          name: currentRow.name,
           email: currentRow.email,
           password: '',
           confirmPassword: '',
@@ -98,8 +97,7 @@ export function UsersActionDialog({ currentRow, open, onOpenChange }: Props) {
           scopes: currentRow.scopes || [],
         }
       : {
-          firstName: '',
-          lastName: '',
+          name: '',
           email: '',
           password: '',
           confirmPassword: '',
@@ -162,8 +160,7 @@ export function UsersActionDialog({ currentRow, open, onOpenChange }: Props) {
         const removeRoleIDs = currentRoleIDs.filter((id) => !newRoleIDs.includes(id));
 
         const updateInput: UpdateUserInput = {
-          firstName: values.firstName,
-          lastName: values.lastName,
+          ...userNameUpdate(values.name, currentRow.name),
           email: values.email,
           isOwner: values.isOwner,
           scopes: values.scopes,
@@ -184,8 +181,7 @@ export function UsersActionDialog({ currentRow, open, onOpenChange }: Props) {
       } else {
         // 创建用户时，移除 confirmPassword 字段
         const createInput: CreateUserInput = {
-          firstName: values.firstName,
-          lastName: values.lastName,
+          name: values.name,
           email: values.email,
           password: values.password || '',
           // 注意：不包含 confirmPassword
@@ -229,38 +225,21 @@ export function UsersActionDialog({ currentRow, open, onOpenChange }: Props) {
         <div className='max-h-[60vh] overflow-y-auto px-1'>
           <Form {...form}>
             <form id='user-form' onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
-              <div className='grid grid-cols-2 gap-4'>
-                <FormField
-                  control={form.control}
-                  name='firstName'
-                  render={({ field, fieldState }) => (
-                    <FormItem>
-                      <FormLabel>{t('users.form.firstName')}</FormLabel>
-                      <FormControl>
-                        <Input placeholder='John' aria-invalid={!!fieldState.error} {...field} />
-                      </FormControl>
-                      <div className='min-h-[1.25rem]'>
-                        <FormMessage />
-                      </div>
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name='lastName'
-                  render={({ field, fieldState }) => (
-                    <FormItem>
-                      <FormLabel>{t('users.form.lastName')}</FormLabel>
-                      <FormControl>
-                        <Input placeholder='Doe' aria-invalid={!!fieldState.error} {...field} />
-                      </FormControl>
-                      <div className='min-h-[1.25rem]'>
-                        <FormMessage />
-                      </div>
-                    </FormItem>
-                  )}
-                />
-              </div>
+              <FormField
+                control={form.control}
+                name='name'
+                render={({ field, fieldState }) => (
+                  <FormItem>
+                    <FormLabel>{t('users.form.name')}</FormLabel>
+                    <FormControl>
+                      <Input data-testid='user-name-input' autoComplete='name' placeholder={t('users.form.namePlaceholder')} aria-invalid={!!fieldState.error} {...field} />
+                    </FormControl>
+                    <div className='min-h-[1.25rem]'>
+                      <FormMessage />
+                    </div>
+                  </FormItem>
+                )}
+              />
 
               <FormField
                 control={form.control}

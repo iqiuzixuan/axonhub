@@ -18,8 +18,8 @@ test.describe('Admin Users Management', () => {
     await expect(dialog).toBeVisible()
 
     await dialog.getByLabel(/邮箱|Email/i).fill(email)
-    await dialog.getByLabel(/名|First Name/i).fill('pw-test')
-    await dialog.getByLabel(/姓|Last Name/i).fill(uniqueSuffix)
+    const originalName = '张三 ' + uniqueSuffix
+    await dialog.getByTestId('user-name-input').fill('  ' + originalName + '  ')
     
     // Fill password fields with more flexible selectors
     const passwordField = dialog.locator('input[type="password"]').first()
@@ -36,6 +36,7 @@ test.describe('Admin Users Management', () => {
     const usersTable = page.locator('[data-testid="users-table"], table:has(th), table').first()
     const row = usersTable.locator('tbody tr').filter({ hasText: email })
     await expect(row).toBeVisible()
+    await expect(row).toContainText(originalName)
 
     const actionsTrigger = row.locator('[data-testid="row-actions"], button:has(svg), .dropdown-trigger, .action-button, button:has-text("Open menu")').first()
 
@@ -112,8 +113,10 @@ test.describe('Admin Users Management', () => {
     const editDialog = page.getByRole('dialog').or(page.getByRole('alertdialog'))
     await expect(editDialog).toBeVisible()
     await expect(editDialog).toContainText(/编辑用户|Edit/i)
-    const firstNameInput = editDialog.getByLabel(/名|First Name/i)
-    await firstNameInput.fill('pw-test-Updated')
+    const nameInput = editDialog.getByTestId('user-name-input')
+    await expect(nameInput).toHaveValue(originalName)
+    const updatedName = '测试昵称 ' + uniqueSuffix
+    await nameInput.fill(updatedName)
 
     // Wait for the save button to be stable before clicking
     const saveButton = editDialog.getByRole('button', { name: /保存|Save|更新|Update/i })
@@ -128,6 +131,13 @@ test.describe('Admin Users Management', () => {
     // Wait for edit dialog to close before proceeding
     await expect(editDialog).not.toBeVisible()
     
-    await expect(row).toContainText('pw-test-Updated')
+    await expect(row).toContainText(updatedName)
+
+    // Search must match the complete saved name, not only a given-name field.
+    const nameSearch = page.getByTestId('user-name-filter')
+    await nameSearch.fill(updatedName)
+    await expect(row).toBeVisible()
+    await nameSearch.fill('name-that-does-not-exist-' + uniqueSuffix)
+    await expect(row).not.toBeVisible()
   })
 })

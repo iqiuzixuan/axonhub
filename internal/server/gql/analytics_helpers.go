@@ -320,8 +320,7 @@ func (r *queryResolver) queryAPIKeyStats(ctx context.Context, filter *AnalyticsF
 func (r *queryResolver) queryUserStats(ctx context.Context, filter *AnalyticsFilter, apiKeyIDs []int, hasUserFilter bool, loc *time.Location) ([]dimStats, error) {
 	type userStatsRaw struct {
 		UserID       int     `json:"user_id"`
-		FirstName    string  `json:"first_name"`
-		LastName     string  `json:"last_name"`
+		Name         string  `json:"name"`
 		Email        string  `json:"email"`
 		RequestCount int     `json:"request_count"`
 		InputTokens  int64   `json:"input_tokens"`
@@ -353,8 +352,7 @@ func (r *queryResolver) queryUserStats(ctx context.Context, filter *AnalyticsFil
 
 			s.Select(
 				sql.As(userTable.C("id"), "user_id"),
-				sql.As(userTable.C("first_name"), "first_name"),
-				sql.As(userTable.C("last_name"), "last_name"),
+				sql.As(userTable.C("name"), "name"),
 				sql.As(userTable.C("email"), "email"),
 				sql.As(sql.Count(s.C(usagelog.FieldID)), "request_count"),
 				sql.As(fmt.Sprintf("COALESCE(SUM(%s), 0)", s.C(usagelog.FieldPromptTokens)), "input_tokens"),
@@ -365,8 +363,7 @@ func (r *queryResolver) queryUserStats(ctx context.Context, filter *AnalyticsFil
 			).
 				GroupBy(
 					userTable.C("id"),
-					userTable.C("first_name"),
-					userTable.C("last_name"),
+					userTable.C("name"),
 					userTable.C("email"),
 				).
 				OrderBy(sql.Desc("total_tokens"))
@@ -379,8 +376,7 @@ func (r *queryResolver) queryUserStats(ctx context.Context, filter *AnalyticsFil
 	results := make([]dimStats, 0, len(rawResults))
 
 	for _, raw := range rawResults {
-		userName := fmt.Sprintf("%s %s", raw.FirstName, raw.LastName)
-		userName = trimSpace(userName)
+		userName := trimSpace(raw.Name)
 		if userName == "" {
 			userName = raw.Email
 		}

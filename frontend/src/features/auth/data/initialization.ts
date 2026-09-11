@@ -11,8 +11,7 @@ export interface SystemStatus {
 export interface InitializeSystemInput {
   ownerEmail: string;
   ownerPassword: string;
-  ownerFirstName: string;
-  ownerLastName: string;
+  ownerName: string;
   brandName: string;
   preferLanguage?: string;
 }

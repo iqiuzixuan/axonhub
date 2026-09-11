@@ -40,8 +40,13 @@ func (User) Fields() []ent.Field {
 		field.Enum("status").Values("activated", "deactivated").Default("activated"),
 		field.String("prefer_language").Default("en").Comment("用户偏好语言"),
 		field.String("password").Sensitive(),
-		field.String("first_name").Default(""),
-		field.String("last_name").Default(""),
+		field.String("name").Default("").Comment("用户显示名称，保留用户输入的顺序").SchemaType(
+			// Legacy MySQL first/last columns can each contain 255 characters.
+			map[string]string{dialect.MySQL: "varchar(512)"},
+		),
+		// Retain legacy columns until all supported upgrade paths have copied their data.
+		field.String("first_name").Default("").Annotations(entgql.Skip(entgql.SkipAll)),
+		field.String("last_name").Default("").Annotations(entgql.Skip(entgql.SkipAll)),
 		field.String("avatar").Optional().Comment("用户头像URL").SchemaType(
 			map[string]string{
 				// The avatar is stored as base64 image, it is too long to store in varchar, so we use mediumtext to store it.

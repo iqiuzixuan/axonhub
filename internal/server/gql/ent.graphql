@@ -2008,8 +2008,10 @@ input CreateUserInput {
   """
   preferLanguage: String
   password: String!
-  firstName: String
-  lastName: String
+  """
+  用户显示名称，保留用户输入的顺序
+  """
+  name: String
   """
   用户头像URL
   """
@@ -6556,8 +6558,10 @@ input UpdateUserInput {
   """
   preferLanguage: String
   password: String
-  firstName: String
-  lastName: String
+  """
+  用户显示名称，保留用户输入的顺序
+  """
+  name: String
   """
   用户头像URL
   """
@@ -7051,8 +7055,10 @@ type User implements Node {
   用户偏好语言
   """
   preferLanguage: String!
-  firstName: String!
-  lastName: String!
+  """
+  用户显示名称，保留用户输入的顺序
+  """
+  name: String!
   """
   用户头像URL
   """
@@ -7517,37 +7523,21 @@ input UserWhereInput {
   preferLanguageEqualFold: String
   preferLanguageContainsFold: String
   """
-  first_name field predicates
+  name field predicates
   """
-  firstName: String
-  firstNameNEQ: String
-  firstNameIn: [String!]
-  firstNameNotIn: [String!]
-  firstNameGT: String
-  firstNameGTE: String
-  firstNameLT: String
-  firstNameLTE: String
-  firstNameContains: String
-  firstNameHasPrefix: String
-  firstNameHasSuffix: String
-  firstNameEqualFold: String
-  firstNameContainsFold: String
-  """
-  last_name field predicates
-  """
-  lastName: String
-  lastNameNEQ: String
-  lastNameIn: [String!]
-  lastNameNotIn: [String!]
-  lastNameGT: String
-  lastNameGTE: String
-  lastNameLT: String
-  lastNameLTE: String
-  lastNameContains: String
-  lastNameHasPrefix: String
-  lastNameHasSuffix: String
-  lastNameEqualFold: String
-  lastNameContainsFold: String
+  name: String
+  nameNEQ: String
+  nameIn: [String!]
+  nameNotIn: [String!]
+  nameGT: String
+  nameGTE: String
+  nameLT: String
+  nameLTE: String
+  nameContains: String
+  nameHasPrefix: String
+  nameHasSuffix: String
+  nameEqualFold: String
+  nameContainsFold: String
   """
   avatar field predicates
   """

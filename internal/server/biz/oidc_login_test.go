@@ -56,6 +56,7 @@ func TestResolveUser_AccountFirstAndMultipleOIDC(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, u1)
 	require.Equal(t, email, u1.Email)
+	require.Equal(t, "New User", u1.Name)
 
 	// Verify identity created
 	id1, err := client.OIDCIdentity.Query().Where(oidcidentity.Subject(subject)).WithUser().Only(ctx)
@@ -94,6 +95,49 @@ func TestResolveUser_AccountFirstAndMultipleOIDC(t *testing.T) {
 	_, err = svc.resolveUser(ctx, p3, "sub-3", "unknown@example.com", true, "", "", "", "", nil)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), "account not found")
+}
+
+func TestResolveUser_UnifiedName(t *testing.T) {
+	for _, tt := range []struct {
+		label, name, given, family, want string
+	}{
+		{"full name takes precedence", "  张三 的昵称  ", "三", "张", "张三 的昵称"},
+		{"full name preserves order", "Wang Xiaoming", "Xiaoming", "Wang", "Wang Xiaoming"},
+		{"Chinese legacy claims", "", "三", "张", "张三"},
+		{"English legacy claims", "", "John", "Smith", "John Smith"},
+		{"email fallback", "  ", "", "", "new@example.com"},
+	} {
+		t.Run(tt.label, func(t *testing.T) {
+			svc, client := setupTestOIDCService(t)
+			defer client.Close()
+			ctx := authz.WithTestBypass(ent.NewContext(t.Context(), client))
+			p := &oidcProvider{config: OIDCProvider{
+				ID: "test", Name: "test", IssuerURL: "https://example.com", JITEnabled: true,
+			}}
+			created, err := svc.resolveUser(ctx, p, "subject", "new@example.com", true, tt.name, tt.given, tt.family, "", nil)
+			require.NoError(t, err)
+			require.Equal(t, tt.want, created.Name)
+		})
+	}
+}
+
+func TestOIDC_SyncUnifiedName(t *testing.T) {
+	svc, client := setupTestOIDCService(t)
+	defer client.Close()
+	ctx := authz.WithTestBypass(ent.NewContext(t.Context(), client))
+	u, err := client.User.Create().SetEmail("sync@example.com").SetPassword("password").SetName("我的昵称").Save(ctx)
+	require.NoError(t, err)
+	cfg := OIDCProvider{SyncRoleStrategy: "create_only"}
+
+	u, err = svc.syncUserInfo(ctx, u, "  张三 的昵称  ", "三", "张", "", nil, cfg)
+	require.NoError(t, err)
+	require.Equal(t, "张三 的昵称", u.Name)
+	u, err = svc.syncUserInfo(ctx, u, "", "小明", "王", "", nil, cfg)
+	require.NoError(t, err)
+	require.Equal(t, "王小明", u.Name)
+	u, err = svc.syncUserInfo(ctx, u, "  ", "", "", "", nil, cfg)
+	require.NoError(t, err)
+	require.Equal(t, "王小明", u.Name, "providers without a name must not overwrite the local name")
 }
 
 func TestResolveUser_CascadeDelete(t *testing.T) {

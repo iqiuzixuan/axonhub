@@ -32,6 +32,8 @@ const (
 	FieldPreferLanguage = "prefer_language"
 	// FieldPassword holds the string denoting the password field in the database.
 	FieldPassword = "password"
+	// FieldName holds the string denoting the name field in the database.
+	FieldName = "name"
 	// FieldFirstName holds the string denoting the first_name field in the database.
 	FieldFirstName = "first_name"
 	// FieldLastName holds the string denoting the last_name field in the database.
@@ -115,6 +117,7 @@ var Columns = []string{
 	FieldStatus,
 	FieldPreferLanguage,
 	FieldPassword,
+	FieldName,
 	FieldFirstName,
 	FieldLastName,
 	FieldAvatar,
@@ -160,6 +163,8 @@ var (
 	DefaultDeletedAt int
 	// DefaultPreferLanguage holds the default value on creation for the "prefer_language" field.
 	DefaultPreferLanguage string
+	// DefaultName holds the default value on creation for the "name" field.
+	DefaultName string
 	// DefaultFirstName holds the default value on creation for the "first_name" field.
 	DefaultFirstName string
 	// DefaultLastName holds the default value on creation for the "last_name" field.
@@ -237,6 +242,11 @@ func ByPreferLanguage(opts ...sql.OrderTermOption) OrderOption {
 // ByPassword orders the results by the password field.
 func ByPassword(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldPassword, opts...).ToFunc()
+}
+
+// ByName orders the results by the name field.
+func ByName(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldName, opts...).ToFunc()
 }
 
 // ByFirstName orders the results by the first_name field.

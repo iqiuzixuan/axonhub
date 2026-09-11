@@ -33,6 +33,7 @@ import (
 	"github.com/looplj/axonhub/internal/ent/user"
 	"github.com/looplj/axonhub/internal/log"
 	"github.com/looplj/axonhub/internal/pkg/xcache"
+	"github.com/looplj/axonhub/internal/pkg/xname"
 )
 
 type ProviderInfo struct {
@@ -1002,16 +1003,12 @@ func (s *OIDCService) resolveUser(ctx context.Context, p *oidcProvider, subject,
 		email = fmt.Sprintf("%s@%s.oidc", subject, p.config.Name)
 	}
 
-	firstName := givenName
-	lastName := familyName
-
-	if firstName == "" && lastName == "" && name != "" {
-		parts := strings.SplitN(name, " ", 2)
-		firstName = parts[0]
-
-		if len(parts) > 1 {
-			lastName = parts[1]
-		}
+	name = strings.TrimSpace(name)
+	if name == "" {
+		name = xname.FromLegacy(givenName, familyName)
+	}
+	if name == "" {
+		name = email
 	}
 
 	// Set a magic password indicating this user must login via OIDC only.
@@ -1024,8 +1021,7 @@ func (s *OIDCService) resolveUser(ctx context.Context, p *oidcProvider, subject,
 		client := s.entFromContext(ctx)
 		userCreate := client.User.Create().
 			SetEmail(email).
-			SetFirstName(firstName).
-			SetLastName(lastName).
+			SetName(name).
 			SetPassword(password)
 
 		if picture != "" {
@@ -1065,22 +1061,15 @@ func (s *OIDCService) resolveUser(ctx context.Context, p *oidcProvider, subject,
 }
 
 func (s *OIDCService) syncUserInfo(ctx context.Context, u *ent.User, name, givenName, familyName, picture string, groups []string, cfg OIDCProvider) (*ent.User, error) {
-	firstName := givenName
-	lastName := familyName
-
-	if firstName == "" && lastName == "" && name != "" {
-		parts := strings.SplitN(name, " ", 2)
-
-		firstName = parts[0]
-		if len(parts) > 1 {
-			lastName = parts[1]
-		}
+	name = strings.TrimSpace(name)
+	if name == "" {
+		name = xname.FromLegacy(givenName, familyName)
 	}
 
 	update := u.Update()
 
-	if firstName != "" || lastName != "" {
-		update.SetFirstName(firstName).SetLastName(lastName)
+	if name != "" {
+		update.SetName(name)
 	}
 
 	if picture != "" {

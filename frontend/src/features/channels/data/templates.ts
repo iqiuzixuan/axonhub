@@ -15,8 +15,7 @@ export const channelOverrideTemplateSchema = z.object({
   userID: z.string(),
   user: z.object({
     id: z.string(),
-    firstName: z.string(),
-    lastName: z.string(),
+    name: z.string(),
   }).nullable().optional(),
   name: z.string(),
   description: z.string().optional().nullable(),
@@ -89,8 +88,7 @@ const TEMPLATE_FRAGMENT = `
     userID
     user {
       id
-      firstName
-      lastName
+      name
     }
     name
     description

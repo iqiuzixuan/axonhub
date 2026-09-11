@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -651,11 +652,10 @@ func TestSystemService_Initialize_WithCache(t *testing.T) {
 
 	// Test system initialization with cache
 	params := &InitializeSystemParams{
-		OwnerEmail:     "owner@example.com",
-		OwnerPassword:  "securepassword123",
-		OwnerFirstName: "System",
-		OwnerLastName:  "Owner",
-		BrandName:      "Test Brand",
+		OwnerEmail:    "owner@example.com",
+		OwnerPassword: "securepassword123",
+		OwnerName:     "System Owner",
+		BrandName:     "Test Brand",
 	}
 
 	err := service.Initialize(ctx, params)
@@ -1005,11 +1005,10 @@ func TestSystemService_Initialize_DataMigrationIdempotency(t *testing.T) {
 
 	// First initialization
 	err := service.Initialize(ctx, &InitializeSystemParams{
-		OwnerEmail:     "owner@example.com",
-		OwnerPassword:  "password123",
-		OwnerFirstName: "System",
-		OwnerLastName:  "Owner",
-		BrandName:      "Test Brand",
+		OwnerEmail:    "owner@example.com",
+		OwnerPassword: "password123",
+		OwnerName:     "System Owner",
+		BrandName:     "Test Brand",
 	})
 	require.NoError(t, err)
 
@@ -1021,11 +1020,10 @@ func TestSystemService_Initialize_DataMigrationIdempotency(t *testing.T) {
 
 	// Second initialization (should be idempotent)
 	err = service.Initialize(ctx, &InitializeSystemParams{
-		OwnerEmail:     "owner@example.com",
-		OwnerPassword:  "password123",
-		OwnerFirstName: "System",
-		OwnerLastName:  "Owner",
-		BrandName:      "Test Brand",
+		OwnerEmail:    "owner@example.com",
+		OwnerPassword: "password123",
+		OwnerName:     "System Owner",
+		BrandName:     "Test Brand",
 	})
 	require.NoError(t, err)
 
@@ -1040,6 +1038,32 @@ func TestSystemService_Initialize_DataMigrationIdempotency(t *testing.T) {
 	require.Equal(t, 1, count)
 }
 
+func TestSystemService_Initialize_ValidatesOwnerName(t *testing.T) {
+	client := enttest.NewEntClient(t, "sqlite3", "file:ent?mode=memory&_fk=0")
+	defer client.Close()
+	service := NewSystemService(SystemServiceParams{})
+	ctx := authz.WithTestBypass(ent.NewContext(t.Context(), client))
+	params := &InitializeSystemParams{
+		OwnerEmail: "owner@example.com", OwnerPassword: "password123", BrandName: "Test Brand",
+	}
+	for _, name := range []string{"", " \t　", strings.Repeat("张", 101)} {
+		params.OwnerName = name
+		require.Error(t, service.Initialize(ctx, params))
+	}
+	count, err := client.User.Query().Count(ctx)
+	require.NoError(t, err)
+	require.Zero(t, count)
+	initialized, err := service.IsInitialized(ctx)
+	require.NoError(t, err)
+	require.False(t, initialized)
+
+	params.OwnerName = "  张三  "
+	require.NoError(t, service.Initialize(ctx, params))
+	owner, err := client.User.Query().Only(ctx)
+	require.NoError(t, err)
+	require.Equal(t, "张三", owner.Name)
+}
+
 func TestSystemService_Initialize_CreatesDefaultProject(t *testing.T) {
 	client := enttest.NewEntClient(t, "sqlite3", "file:ent?mode=memory&_fk=1")
 	defer client.Close()
@@ -1050,11 +1074,10 @@ func TestSystemService_Initialize_CreatesDefaultProject(t *testing.T) {
 
 	// Initialize system
 	err := service.Initialize(ctx, &InitializeSystemParams{
-		OwnerEmail:     "owner@example.com",
-		OwnerPassword:  "password123",
-		OwnerFirstName: "System",
-		OwnerLastName:  "Owner",
-		BrandName:      "Test Brand",
+		OwnerEmail:    "owner@example.com",
+		OwnerPassword: "password123",
+		OwnerName:     "System Owner",
+		BrandName:     "Test Brand",
 	})
 	require.NoError(t, err)
 
@@ -1086,11 +1109,10 @@ func TestSystemService_Initialize_SetsAllSystemKeys(t *testing.T) {
 
 	// Initialize system
 	err := service.Initialize(ctx, &InitializeSystemParams{
-		OwnerEmail:     "owner@example.com",
-		OwnerPassword:  "password123",
-		OwnerFirstName: "System",
-		OwnerLastName:  "Owner",
-		BrandName:      "Test Brand",
+		OwnerEmail:    "owner@example.com",
+		OwnerPassword: "password123",
+		OwnerName:     "System Owner",
+		BrandName:     "Test Brand",
 	})
 	require.NoError(t, err)
 
@@ -1179,11 +1201,10 @@ func TestSystemService_Initialize_TransactionRollback(t *testing.T) {
 
 	// Try to initialize with duplicate email (should fail due to unique constraint)
 	err = service.Initialize(ctx, &InitializeSystemParams{
-		OwnerEmail:     "owner@example.com", // Duplicate email
-		OwnerPassword:  "password123",
-		OwnerFirstName: "System",
-		OwnerLastName:  "Owner",
-		BrandName:      "Test Brand",
+		OwnerEmail:    "owner@example.com", // Duplicate email
+		OwnerPassword: "password123",
+		OwnerName:     "System Owner",
+		BrandName:     "Test Brand",
 	})
 	require.Error(t, err)
 

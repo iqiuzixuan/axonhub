@@ -19,8 +19,7 @@ interface Project {
 export interface AuthUser {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
+  name: string;
   isOwner: boolean;
   preferLanguage: string;
   avatar?: string;
@@ -68,7 +67,13 @@ export const removeTokenFromStorage = (): void => {
 const getUserFromStorage = (): AuthUser | null => {
   try {
     const userStr = localStorage.getItem(USER_INFO);
-    return userStr ? JSON.parse(userStr) : null;
+    const user = userStr ? JSON.parse(userStr) : null;
+    // Discard the pre-name cache. The retained token lets useMe refresh it.
+    if (user && typeof user.name !== 'string') {
+      localStorage.removeItem(USER_INFO);
+      return null;
+    }
+    return user;
   } catch (error) {
     return null;
   }

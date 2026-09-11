@@ -24,6 +24,7 @@ import (
 	"github.com/looplj/axonhub/internal/log"
 	"github.com/looplj/axonhub/internal/objects"
 	"github.com/looplj/axonhub/internal/pkg/xcache"
+	"github.com/looplj/axonhub/internal/pkg/xname"
 	"github.com/looplj/axonhub/internal/pkg/xregexp"
 	"github.com/looplj/axonhub/internal/pkg/xtime"
 	"github.com/looplj/axonhub/llm/httpclient"
@@ -707,8 +708,7 @@ func (s *SystemService) IsInitialized(ctx context.Context) (bool, error) {
 type InitializeSystemParams struct {
 	OwnerEmail     string
 	OwnerPassword  string
-	OwnerFirstName string
-	OwnerLastName  string
+	OwnerName      string
 	BrandName      string
 	PreferLanguage string
 }
@@ -725,6 +725,11 @@ func (s *SystemService) Initialize(ctx context.Context, params *InitializeSystem
 	if isInitialized {
 		// System is already initialized, nothing to do
 		return nil
+	}
+
+	ownerName, err := xname.Normalize(params.OwnerName)
+	if err != nil {
+		return fmt.Errorf("invalid owner name: %w", err)
 	}
 
 	secretKey, err := GenerateSecretKey()
@@ -760,8 +765,7 @@ func (s *SystemService) Initialize(ctx context.Context, params *InitializeSystem
 	user, err := tx.User.Create().
 		SetEmail(params.OwnerEmail).
 		SetPassword(hashedPassword).
-		SetFirstName(params.OwnerFirstName).
-		SetLastName(params.OwnerLastName).
+		SetName(ownerName).
 		SetPreferLanguage(preferLanguage).
 		SetIsOwner(true).
 		SetScopes([]string{"*"}). // Give owner all scopes

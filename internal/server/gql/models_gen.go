@@ -326,11 +326,10 @@ type HourlyRequestStats struct {
 }
 
 type InitializeSystemInput struct {
-	OwnerEmail     string `json:"ownerEmail"`
-	OwnerPassword  string `json:"ownerPassword"`
-	OwnerFirstName string `json:"ownerFirstName"`
-	OwnerLastName  string `json:"ownerLastName"`
-	BrandName      string `json:"brandName"`
+	OwnerEmail    string `json:"ownerEmail"`
+	OwnerPassword string `json:"ownerPassword"`
+	OwnerName     string `json:"ownerName"`
+	BrandName     string `json:"brandName"`
 }
 
 type InitializeSystemPayload struct {
@@ -597,8 +596,7 @@ type UpdateDefaultDataStorageInput struct {
 }
 
 type UpdateMeInput struct {
-	FirstName      *string `json:"firstName,omitempty"`
-	LastName       *string `json:"lastName,omitempty"`
+	Name           *string `json:"name,omitempty"`
 	PreferLanguage *string `json:"preferLanguage,omitempty"`
 	Avatar         *string `json:"avatar,omitempty"`
 }

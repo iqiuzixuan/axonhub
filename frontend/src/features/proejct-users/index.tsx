@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePaginationSearch } from '@/hooks/use-pagination-search';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -14,6 +14,7 @@ import { useUsers } from './data/users';
 function UsersContent() {
   const { t } = useTranslation();
   const { userPermissions, rolePermissions } = usePermissions();
+  const [nameFilter, setNameFilter] = useState('');
   const { pageSize, setCursors, setPageSize, paginationArgs } = usePaginationSearch({
     defaultPageSize: 20,
     pageSizeStorageKey: 'project-users-table-page-size',
@@ -33,7 +34,10 @@ function UsersContent() {
     ...paginationArgs,
   });
 
-  const projectUsers = data?.edges?.map((edge) => edge.node) || [];
+  // This endpoint returns all project members and has no filter arguments.
+  const projectUsers = (data?.edges?.map((edge) => edge.node) || []).filter((user) =>
+    user.name.toLocaleLowerCase().includes(nameFilter.trim().toLocaleLowerCase())
+  );
   const pageInfo = data?.pageInfo;
 
   const handleNextPage = () => {
@@ -63,10 +67,10 @@ function UsersContent() {
         onNextPage={handleNextPage}
         onPreviousPage={handlePreviousPage}
         onPageSizeChange={handlePageSizeChange}
-        nameFilter={''}
+        nameFilter={nameFilter}
         statusFilter={[]}
         roleFilter={[]}
-        onNameFilterChange={() => {}}
+        onNameFilterChange={setNameFilter}
         onStatusFilterChange={() => {}}
         onRoleFilterChange={() => {}}
       />

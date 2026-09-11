@@ -1,10 +1,17 @@
 package gql
 
 import (
+	"fmt"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/looplj/axonhub/internal/authz"
+	"github.com/looplj/axonhub/internal/contexts"
+	"github.com/looplj/axonhub/internal/ent"
+	"github.com/looplj/axonhub/internal/ent/enttest"
 )
 
 // testStats is a test struct that implements the statsItem constraint
@@ -13,6 +20,57 @@ type testStats struct {
 	Name         string
 	RequestCount int64
 	Throughput   float64
+}
+
+func TestUserStatistics_UsesUnifiedName(t *testing.T) {
+	client := enttest.NewEntClient(t, "sqlite3", "file:ent?mode=memory&_fk=0")
+	defer client.Close()
+	ctx := authz.WithTestBypass(ent.NewContext(t.Context(), client))
+	project, err := client.Project.Create().SetName("name-stats").Save(ctx)
+	require.NoError(t, err)
+	ctx = contexts.WithProjectID(ctx, project.ID)
+	owner, err := client.User.Create().SetEmail("owner@example.com").SetPassword("password").SetIsOwner(true).Save(ctx)
+	require.NoError(t, err)
+	ctx = contexts.WithUser(ctx, owner)
+	want := map[int]string{}
+	for i, name := range []string{"张三 的昵称", ""} {
+		email := fmt.Sprintf("member%d@example.com", i)
+		u, err := client.User.Create().SetEmail(email).SetPassword("password").SetName(name).
+			SetFirstName("Old").SetLastName("Name").Save(ctx)
+		require.NoError(t, err)
+		if name == "" {
+			name = email
+		}
+		want[u.ID] = name
+		key, err := client.APIKey.Create().SetName("test").SetKey(fmt.Sprintf("key-%d", i)).
+			SetProjectID(project.ID).SetUserID(u.ID).Save(ctx)
+		require.NoError(t, err)
+		for j := range 2 {
+			_, err = client.UsageLog.Create().SetRequestID(i*2 + j + 1).SetModelID("test-model").
+				SetProjectID(project.ID).SetAPIKeyID(key.ID).SetTotalTokens(10).Save(ctx)
+			require.NoError(t, err)
+		}
+	}
+	resolver := &queryResolver{&Resolver{client: client}}
+	stats, err := resolver.UsageStatsByUser(ctx, nil)
+	require.NoError(t, err)
+	require.Len(t, stats, 2)
+	for _, stat := range stats {
+		require.Equal(t, want[stat.UserID.ID], stat.UserName)
+		require.Equal(t, 2, stat.RequestCount)
+		require.Equal(t, 20, stat.TotalTokens)
+	}
+	analytics, err := resolver.queryUserStats(ctx, nil, nil, false, time.UTC)
+	require.NoError(t, err)
+	require.Len(t, analytics, 2)
+	for _, stat := range analytics {
+		var id int
+		_, err := fmt.Sscan(stat.ID, &id)
+		require.NoError(t, err)
+		require.Equal(t, want[id], stat.Name)
+		require.Equal(t, 2, stat.RequestCount)
+		require.Equal(t, int64(20), stat.TotalTokens)
+	}
 }
 
 // TestCalculateConfidenceAndSort_EmptyResults tests behavior with empty input.

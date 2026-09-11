@@ -180,7 +180,7 @@ export function AnalyticsFilterBar({ earliestDate }: AnalyticsFilterBarProps) {
   const userOptions = useMemo(
     () =>
       (usersData?.edges || []).map((edge) => ({
-        label: formatUserName(edge.node.firstName, edge.node.lastName) || edge.node.email,
+        label: formatUserName(edge.node.name, edge.node.email) || edge.node.email,
         value: String(edge.node.id),
       })),
     [usersData]

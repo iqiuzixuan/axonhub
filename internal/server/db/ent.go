@@ -78,6 +78,9 @@ func NewEntClient(cfg Config) *ent.Client {
 		}
 
 		migrator := datamigrate.NewMigrator(client)
+		if err := datamigrate.BackfillUserNames(context.Background(), client); err != nil {
+			panic(err)
+		}
 		if err := migrator.Run(context.Background()); err != nil {
 			panic(err)
 		}

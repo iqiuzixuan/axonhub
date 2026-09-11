@@ -29,8 +29,7 @@ test.describe('Project Users Management', () => {
     await expect(createDialog).toBeVisible()
 
     await createDialog.getByLabel(/邮箱|Email/i).fill(email)
-    await createDialog.getByLabel(/名|First Name/i).fill('pw-project-test')
-    await createDialog.getByLabel(/姓|Last Name/i).fill(uniqueSuffix)
+    await createDialog.getByTestId('user-name-input').fill('pw-project-test ' + uniqueSuffix)
     
     const passwordField = createDialog.locator('input[type="password"]').first()
     await passwordField.fill('Admin123!')
@@ -92,6 +91,13 @@ test.describe('Project Users Management', () => {
     // Verify the user was added to the project
     await page.waitForTimeout(1000)
     const userRow = usersTable.locator('tbody tr').filter({ hasText: email })
+    await expect(userRow).toBeVisible()
+    const nameSearch = page.getByTestId('user-name-filter')
+    await nameSearch.fill('pw-project-test ' + uniqueSuffix)
+    await expect(userRow).toBeVisible()
+    await nameSearch.fill('name-that-does-not-exist-' + uniqueSuffix)
+    await expect(userRow).not.toBeVisible()
+    await nameSearch.clear()
     await expect(userRow).toBeVisible()
   })
 
