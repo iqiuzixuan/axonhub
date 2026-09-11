@@ -1,14 +1,14 @@
+import { useMemo } from 'react';
 import { Cross2Icon } from '@radix-ui/react-icons';
 import { Table } from '@tanstack/react-table';
-import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { formatUserName } from '@/lib/utils';
+import type { DateTimeRangeValue } from '@/utils/date-range';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { DateRangePicker } from '@/components/date-range-picker';
-import type { DateTimeRangeValue } from '@/utils/date-range';
-import { formatUserName } from '@/lib/utils';
 import { DataTableFacetedFilter } from '@/components/data-table-faceted-filter';
-import { useUsers } from '@/features/users/data/users';
+import { DateRangePicker } from '@/components/date-range-picker';
+import { useApiKeyCreatorOptions } from '../data/creator-options';
 import { ApiKeyStatus } from '../data/schema';
 
 interface DataTableToolbarProps<TData> {
@@ -30,22 +30,14 @@ export function DataTableToolbar<TData>({
   const hasDateRange = !!dateRange?.from || !!dateRange?.to;
   const isFiltered = table.getState().columnFilters.length > 0 || hasDateRange;
 
-  const { data: usersData } = useUsers(
-    {
-      first: 100,
-      orderBy: { field: 'CREATED_AT', direction: 'DESC' },
-    },
-    {
-      disableAutoFetch: !canViewCreators,
-    }
-  );
+  const { data: usersData } = useApiKeyCreatorOptions({ enabled: canViewCreators });
 
   const userOptions = useMemo(() => {
-    if (!canViewCreators || !usersData?.edges) return [];
+    if (!canViewCreators || !usersData) return [];
 
-    return usersData.edges.map((edge) => ({
-      value: edge.node.id,
-      label: `${formatUserName(edge.node.name, edge.node.email)} (${edge.node.email})`,
+    return usersData.map((user) => ({
+      value: user.id,
+      label: `${formatUserName(user.name, user.email)} (${user.email})`,
     }));
   }, [canViewCreators, usersData]);
 
@@ -76,7 +68,7 @@ export function DataTableToolbar<TData>({
         {table.getColumn('status') && (
           <DataTableFacetedFilter column={table.getColumn('status')} title={t('apikeys.filters.status')} options={statusOptions} />
         )}
-        {canViewCreators && table.getColumn('creator') && userOptions.length > 0 && usersData?.edges && (
+        {canViewCreators && table.getColumn('creator') && userOptions.length > 0 && (
           <DataTableFacetedFilter column={table.getColumn('creator')} title={t('apikeys.filters.creator')} options={userOptions} />
         )}
         <DateRangePicker value={dateRange} onChange={onDateRangeChange} />
