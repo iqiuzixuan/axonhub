@@ -70,7 +70,7 @@ export function SignUpForm({ className, ...props }: SignUpFormProps) {
       setUser(response.user);
       setSelectedProjectId(response.user.projects[0]?.projectID ?? null);
       toast.success(t('users.messages.invitationRegistrationSuccess'));
-      router.navigate({ to: '/project/playground' });
+      router.navigate({ to: '/', replace: true });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : t('common.errors.internalServerError'));
     }

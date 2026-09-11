@@ -211,3 +211,20 @@ export function hasRouteAccess(permissions: RoutePermissions, routeConfig: Route
 export function hasGroupAccess(permissions: RoutePermissions, group: RouteGroup): boolean {
   return group.routes.some((route) => hasRouteAccess(permissions, { ...route, scopeLevel: route.scopeLevel ?? group.scopeLevel }));
 }
+
+export function getDefaultRoute(permissions: RoutePermissions, hasSelectedProject: boolean): string {
+  for (const group of routeConfigs) {
+    for (const route of group.routes) {
+      // Exclude demo/settings routes and project pages without a selected project.
+      if (route.mode !== 'hidden' || (route.path.startsWith('/project/') && !hasSelectedProject)) {
+        continue;
+      }
+      if (hasRouteAccess(permissions, { ...route, scopeLevel: route.scopeLevel ?? group.scopeLevel })) {
+        return route.path;
+      }
+    }
+  }
+
+  // Every signed-in user can access their own profile, even without business scopes.
+  return '/settings/profile';
+}

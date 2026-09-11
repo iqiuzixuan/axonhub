@@ -20,26 +20,28 @@ export function RouteGuard({
   children,
   requiredScopes = [],
   scopeLevel,
-  fallbackPath = '/',
+  fallbackPath,
   showForbidden = true,
   requireProjectOwner = false,
 }: RouteGuardProps) {
   const router = useRouter();
   const pathname = useLocation({ select: (location) => location.pathname });
-  const { checkRouteAccess, hasRouteAccess } = useRoutePermissions();
+  const { checkRouteAccess, hasRouteAccess, defaultPath } = useRoutePermissions();
+  const accessibleFallback = fallbackPath && checkRouteAccess(fallbackPath).hasAccess ? fallbackPath : defaultPath;
+  const returnPath = accessibleFallback === pathname ? '/settings/profile' : accessibleFallback;
   const hasAccess =
     checkRouteAccess(pathname).hasAccess && hasRouteAccess({ path: pathname, requiredScopes, scopeLevel, requireProjectOwner });
 
   useEffect(() => {
     if (!hasAccess && !showForbidden) {
       // 如果没有权限且不显示禁止页面，则重定向
-      router.navigate({ to: fallbackPath });
+      router.navigate({ to: returnPath, replace: true });
     }
-  }, [hasAccess, showForbidden, fallbackPath, router]);
+  }, [hasAccess, showForbidden, returnPath, router]);
 
   if (!hasAccess) {
     if (showForbidden) {
-      return <ForbiddenPage onGoBack={() => router.navigate({ to: fallbackPath })} />;
+      return <ForbiddenPage onGoBack={() => router.navigate({ to: returnPath, replace: true })} />;
     }
     return null; // 重定向中，不显示任何内容
   }

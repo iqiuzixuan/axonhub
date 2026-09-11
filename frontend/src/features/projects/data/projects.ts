@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import i18n from '@/lib/i18n';
 import { useErrorHandler } from '@/hooks/use-error-handler';
 import { useSelectedProjectId, useProjectStore } from '@/stores/projectStore';
+import { useAuthStore } from '@/stores/authStore';
 import { Project, ProjectConnection, CreateProjectInput, UpdateProjectInput, projectConnectionSchema, projectSchema, type UpdateProjectProfilesInput } from './schema';
 
 // GraphQL queries and mutations
@@ -157,9 +158,11 @@ export function useProject(id: string) {
 export function useMyProjects() {
   const { handleError } = useErrorHandler();
   const { t } = useTranslation();
+  const accessToken = useAuthStore((state) => state.auth.accessToken);
 
   return useQuery({
-    queryKey: ['myProjects'],
+    // Login landing must not select a project cached for a previous account.
+    queryKey: ['myProjects', accessToken],
     queryFn: async () => {
       try {
         const data = await graphqlRequest<{ myProjects: Project[] }>(MY_PROJECTS_QUERY);

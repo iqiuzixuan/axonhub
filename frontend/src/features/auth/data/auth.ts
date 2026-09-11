@@ -93,10 +93,8 @@ export function useSignIn() {
 
       toast.success(i18n.t('common.success.signedIn'));
 
-      // Redirect based on user role
-      // Owner users go to dashboard, non-owner users go to requests page
-      const redirectPath = data.user.isOwner ? '/' : '/project/playground';
-      router.navigate({ to: redirectPath });
+      // The home route waits for current permissions and selects an accessible page.
+      router.navigate({ to: '/', replace: true });
     },
     onError: (error: any) => {
       const errorMessage = error.message || 'Failed to sign in';
@@ -190,9 +188,8 @@ export function useOIDCExchange() {
 
       toast.success(i18n.t('common.success.signedIn'));
 
-      // Redirect based on user role
-      const redirectPath = data.user.isOwner ? '/' : '/project/playground';
-      router.navigate({ to: redirectPath });
+      // Use the same permission-aware landing route as password sign-in.
+      router.navigate({ to: '/', replace: true });
     },
     onError: (error: unknown) => {
       const errorMessage = error instanceof Error ? error.message : 'SSO login failed';

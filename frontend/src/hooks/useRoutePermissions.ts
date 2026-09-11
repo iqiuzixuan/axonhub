@@ -1,5 +1,12 @@
 import { useCallback, useMemo } from 'react';
-import { getRouteConfig, hasRouteAccess, hasGroupAccess, type RouteConfig, type RouteGroup } from '@/config/route-permission';
+import {
+  getDefaultRoute,
+  getRouteConfig,
+  hasRouteAccess,
+  hasGroupAccess,
+  type RouteConfig,
+  type RouteGroup,
+} from '@/config/route-permission';
 import { useAuthStore } from '@/stores/authStore';
 import { useSelectedProjectId } from '@/stores/projectStore';
 import { filterNavItems as filterItems, filterNavGroups as filterGroups } from '@/lib/navigation-permissions';
@@ -62,6 +69,7 @@ export function useRoutePermissions() {
     projectScopes,
     isOwner,
     isProjectOwner,
+    defaultPath: getDefaultRoute(permissions, !!selectedProjectId),
     hasRouteAccess: checkAccess,
     checkRouteAccess,
     checkGroupAccess,
