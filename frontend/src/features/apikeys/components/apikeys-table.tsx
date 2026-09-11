@@ -5,7 +5,6 @@ import {
   RowData,
   RowSelectionState,
   SortingState,
-  VisibilityState,
   flexRender,
   getCoreRowModel,
   getFacetedRowModel,
@@ -14,13 +13,15 @@ import {
 } from '@tanstack/react-table';
 import { IconX, IconUserOff, IconArchive, IconCheck } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
+import type { DateTimeRangeValue } from '@/utils/date-range';
+import { usePermissions } from '@/hooks/usePermissions';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TableSkeleton } from '@/components/ui/table-skeleton';
 import { ServerSidePagination } from '@/components/server-side-pagination';
-import type { DateTimeRangeValue } from '@/utils/date-range';
 import { useApiKeysContext } from '../context/apikeys-context';
 import { ApiKey, ApiKeyConnection } from '../data/schema';
+import { useApiKeyColumnVisibility } from '../hooks/use-column-visibility';
 import { DataTableToolbar } from './data-table-toolbar';
 
 declare module '@tanstack/react-table' {
@@ -80,9 +81,13 @@ export function ApiKeysTable({
   canViewCreators = false,
 }: DataTableProps) {
   const { t } = useTranslation();
+  const { user, isProjectOwner, hasSystemScope } = usePermissions();
   const { setResetRowSelection, setSelectedApiKeys, openDialog } = useApiKeysContext();
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+  const { columnVisibility, onColumnVisibilityChange } = useApiKeyColumnVisibility(
+    user?.id,
+    isProjectOwner || hasSystemScope('write_api_keys')
+  );
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   useEffect(() => {
@@ -145,7 +150,7 @@ export function ApiKeysTable({
     onRowSelectionChange: setRowSelection,
     onSortingChange,
     onColumnFiltersChange: handleColumnFiltersChange,
-    onColumnVisibilityChange: setColumnVisibility,
+    onColumnVisibilityChange,
     getCoreRowModel: getCoreRowModel(),
     manualPagination: true,
     manualFiltering: true,
@@ -214,7 +219,7 @@ export function ApiKeysTable({
           </TableHeader>
           <TableBody className='space-y-1 !bg-[var(--table-background)] p-2'>
             {loading ? (
-              <TableSkeleton rows={pageSize} columns={columns.length} />
+              <TableSkeleton rows={pageSize} columns={table.getVisibleLeafColumns().length} />
             ) : table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
@@ -231,7 +236,7 @@ export function ApiKeysTable({
               ))
             ) : (
               <TableRow className='!bg-[var(--table-background)]'>
-                <TableCell colSpan={columns.length} className='h-24 !bg-[var(--table-background)] text-center'>
+                <TableCell colSpan={table.getVisibleLeafColumns().length} className='h-24 !bg-[var(--table-background)] text-center'>
                   {t('common.noData')}
                 </TableCell>
               </TableRow>

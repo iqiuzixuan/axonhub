@@ -10,6 +10,7 @@ import { DataTableFacetedFilter } from '@/components/data-table-faceted-filter';
 import { DateRangePicker } from '@/components/date-range-picker';
 import { useApiKeyCreatorOptions } from '../data/creator-options';
 import { ApiKeyStatus } from '../data/schema';
+import { DataTableViewOptions } from './data-table-view-options';
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
@@ -57,7 +58,7 @@ export function DataTableToolbar<TData>({
   ];
 
   return (
-    <div className='flex items-center justify-between'>
+    <div className='flex flex-wrap items-center justify-between gap-2'>
       <div className='flex flex-1 flex-wrap items-center gap-2'>
         <Input
           placeholder={t('apikeys.filters.filterName')}
@@ -87,6 +88,7 @@ export function DataTableToolbar<TData>({
           </Button>
         )}
       </div>
+      <DataTableViewOptions table={table} />
     </div>
   );
 }
