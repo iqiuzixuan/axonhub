@@ -10,6 +10,7 @@ import { DataTableColumnHeader } from '@/components/data-table-column-header';
 import LongText from '@/components/long-text';
 import { useApiKeysContext } from '../context/apikeys-context';
 import { ApiKey } from '../data/schema';
+import { ApiKeyQuotaCell } from './api-key-quota-cell';
 import { DataTableRowActions } from './data-table-row-actions';
 
 function ApiKeyCell({ apiKey, fullApiKey }: { apiKey: string; fullApiKey: ApiKey }) {
@@ -221,6 +222,12 @@ export const createColumns = (
     accessorFn: (row) => row.profiles?.activeProfile || '',
     header: ({ column }) => <DataTableColumnHeader column={column} title={t('apikeys.columns.activeProfile')} />,
     cell: ({ row }) => <ActiveProfileCell apiKey={row.original} canWrite={canWrite} />,
+    enableSorting: false,
+  },
+  {
+    id: 'quota',
+    header: ({ column }) => <DataTableColumnHeader column={column} title={t('apikeys.quota.column')} />,
+    cell: ({ row }) => <ApiKeyQuotaCell apiKey={row.original} />,
     enableSorting: false,
   },
   {
