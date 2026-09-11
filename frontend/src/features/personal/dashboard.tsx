@@ -166,7 +166,7 @@ export default function PersonalDashboardPage() {
     <div className='flex-1 space-y-6 p-4 pt-6 md:p-8 md:pt-6'>
       <div className='flex flex-wrap items-start justify-between gap-4'>
         <div>
-          <h1 className='text-2xl font-bold tracking-tight'>{t('sidebar.items.dashboard')}</h1>
+          <h1 className='text-2xl font-bold tracking-tight'>{t('personal.dashboard')}</h1>
           <p className='text-muted-foreground mt-1 text-sm'>{t('personal.dashboardDescription')}</p>
         </div>
         <div className='flex gap-2'>
