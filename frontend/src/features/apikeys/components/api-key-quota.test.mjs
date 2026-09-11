@@ -87,7 +87,7 @@ test('three independent limits stay visible with the channel remaining-percent c
   const html = renderCell();
   assert.equal((html.match(/role="progressbar"/g) ?? []).length, 3);
   for (const expected of ['86.00%', '77.50%', '18.00%', '请求次数', '总 Token', '费用']) assert.ok(html.includes(expected));
-  assert.doesNotMatch(html, /chevron|aria-expanded/);
+  assert.doesNotMatch(html, /chevron|aria-expanded|自然月|自然日|滚动统计/);
   assert.equal(queryOptions.refetchInterval, 30000);
   assert.equal(queryOptions.silent, true);
 });
