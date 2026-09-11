@@ -174,12 +174,82 @@ test('quota translations exist in both languages', () => {
     './api-key-quota-usage.tsx',
     '../data/quota-display.ts',
     './apikeys-profiles-dialog.tsx',
+    './apikeys-create-template-dialog.tsx',
+    './apikeys-edit-template-dialog.tsx',
   ]) {
     const source = readFileSync(new URL(file, import.meta.url), 'utf8');
     for (const [, key] of source.matchAll(/['"](apikeys\.(?:quota|profiles\.quota)[\w.]*)['"]/g)) {
       assert.ok(zh[key], `${key} missing in Chinese`);
       assert.ok(en[key], `${key} missing in English`);
     }
+  }
+});
+
+test('natural weeks round-trip through key, profile, template and quota usage schemas', () => {
+  const schema = load('../data/schema.ts', {
+    '@/gql/pagination': { pageInfoSchema: z.any() },
+    '@/features/users/data/schema': { userSchema: z.object({}) },
+  });
+  const { formSchemaFactory } = load('../data/template-form-schema.ts');
+  const weeklyQuota = { ...quota, period: { type: 'calendar_duration', calendarDuration: { unit: 'week' } } };
+  const profile = { name: 'production', modelMappings: [], channelTagsMatchMode: 'any', quota: weeklyQuota };
+  const profiles = { activeProfile: profile.name, profiles: [profile] };
+  for (const inputSchema of [schema.updateApiKeyProfilesInputSchema, schema.updateApiKeyProfilesInputSchemaFactory(t)]) {
+    assert.deepEqual(inputSchema.parse(profiles).profiles[0].quota, weeklyQuota);
+  }
+  const key = schema.apiKeySchema.parse({
+    ...apiKey,
+    key: 'test-only-key',
+    status: 'enabled',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    profiles,
+  });
+  assert.deepEqual(key.profiles.profiles[0].quota, weeklyQuota);
+  const template = { name: 'weekly-template', projectID: 'project-1', profile };
+  for (const inputSchema of [
+    formSchemaFactory(t),
+    schema.createApiKeyProfileTemplateInputSchema,
+    schema.updateApiKeyProfileTemplateInputSchema,
+  ]) {
+    assert.deepEqual(inputSchema.parse(template).profile.quota, weeklyQuota);
+  }
+  const saved = schema.apiKeyProfileTemplateSchema.parse({
+    ...template,
+    id: 'template-1',
+    createdAt: '2026-09-11T07:00:00Z',
+    updatedAt: '2026-09-11T07:00:00Z',
+  });
+  assert.deepEqual(saved.profile.quota, weeklyQuota);
+  assert.deepEqual(schema.apiKeyProfileQuotaUsageSchema.parse({ ...snapshot, quota: weeklyQuota }).quota, weeklyQuota);
+});
+
+test('natural week shows its own caption and Monday reset with all three metrics', () => {
+  const weeklyQuota = { ...quota, period: { type: 'calendar_duration', calendarDuration: { unit: 'week' } } };
+  const weeklySnapshot = {
+    ...snapshot,
+    quota: weeklyQuota,
+    window: { start: new Date('2026-09-06T16:00:00Z'), end: new Date('2026-09-13T16:00:00Z') },
+  };
+  const previousQuery = query;
+  try {
+    query = { ...query, data: [weeklySnapshot] };
+    const html = renderCell({
+      ...apiKey,
+      profiles: { activeProfile: 'production', profiles: [{ name: 'production', quota: weeklyQuota }] },
+    });
+    assert.match(html, /自然周/);
+    assert.match(html, /text-\[10px\]/);
+    assert.equal((html.match(/role="progressbar"/g) ?? []).length, 3);
+    assert.match(html, /18\.00%/);
+    assert.doesNotMatch(html, /自然日|自然月/);
+    const details = renderToStaticMarkup(React.createElement(usage.ApiKeyQuotaUsage, { quota: weeklyQuota, snapshot: weeklySnapshot }));
+    assert.match(details, /自然周/);
+    assert.match(details, /下次重置：2026年9月14日 00:00/);
+    assert.match(details, /Asia\/Shanghai/);
+    assert.match(details, /450\.00K Token/);
+  } finally {
+    query = previousQuery;
   }
 });
 

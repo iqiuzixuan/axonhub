@@ -204,5 +204,6 @@ type APIKeyQuotaCalendarDurationUnit string
 
 const (
 	APIKeyQuotaCalendarDurationUnitDay   APIKeyQuotaCalendarDurationUnit = "day"
+	APIKeyQuotaCalendarDurationUnitWeek  APIKeyQuotaCalendarDurationUnit = "week"
 	APIKeyQuotaCalendarDurationUnitMonth APIKeyQuotaCalendarDurationUnit = "month"
 )

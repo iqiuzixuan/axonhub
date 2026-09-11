@@ -74,6 +74,7 @@ enum APIKeyQuotaPastDurationUnit {
 
 enum APIKeyQuotaCalendarDurationUnit {
   day
+  week
   month
 }
 

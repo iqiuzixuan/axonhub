@@ -35,7 +35,7 @@ export const formSchemaFactory = (t: (key: string) => string) =>
                 .nullable(),
               calendarDuration: z
                 .object({
-                  unit: z.enum(['day', 'month']),
+                  unit: z.enum(['day', 'week', 'month']),
                 })
                 .optional()
                 .nullable(),

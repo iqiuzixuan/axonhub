@@ -92,7 +92,7 @@ export const apiKeySchema = z.object({
                     .nullable(),
                   calendarDuration: z
                     .object({
-                      unit: z.enum(['day', 'month']),
+                      unit: z.enum(['day', 'week', 'month']),
                     })
                     .optional()
                     .nullable(),
@@ -194,7 +194,7 @@ export const apiKeyProfileSchema = z.object({
           .nullable(),
         calendarDuration: z
           .object({
-            unit: z.enum(['day', 'month']),
+            unit: z.enum(['day', 'week', 'month']),
           })
           .optional()
           .nullable(),
@@ -281,7 +281,7 @@ export const updateApiKeyProfilesInputSchemaFactory = (t: (key: string) => strin
                     .nullable(),
                   calendarDuration: z
                     .object({
-                      unit: z.enum(['day', 'month']),
+                      unit: z.enum(['day', 'week', 'month']),
                     })
                     .optional()
                     .nullable(),
@@ -382,7 +382,7 @@ export const updateApiKeyProfilesInputSchema = z.object({
               .nullable(),
             calendarDuration: z
               .object({
-                unit: z.enum(['day', 'month']),
+                unit: z.enum(['day', 'week', 'month']),
               })
               .optional()
               .nullable(),
