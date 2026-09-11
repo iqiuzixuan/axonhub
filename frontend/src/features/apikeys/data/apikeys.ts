@@ -3,6 +3,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient, keepPreviousDa
 import { graphqlRequest } from '@/gql/graphql';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
+import { useAuthStore } from '@/stores/authStore';
 import { useSelectedProjectId } from '@/stores/projectStore';
 import { useErrorHandler } from '@/hooks/use-error-handler';
 import { useRequestPermissions } from '../../../hooks/useRequestPermissions';
@@ -59,6 +60,16 @@ function buildApiKeysQuery(permissions: { canViewUsers: boolean }) {
                 name
                 templateID
                 templateName
+                quota {
+                  requests
+                  totalTokens
+                  cost
+                  period {
+                    type
+                    pastDuration { value unit }
+                    calendarDuration { unit }
+                  }
+                }
               }
             }
           }
@@ -612,29 +623,35 @@ export function useApiKeyQuotaUsages(
   options?: {
     enabled?: boolean;
     refetchInterval?: number;
+    silent?: boolean;
   }
 ) {
   const { t } = useTranslation();
   const { handleError } = useErrorHandler();
   const selectedProjectId = useSelectedProjectId();
+  const accessToken = useAuthStore((state) => state.auth.accessToken);
 
   return useQuery({
-    queryKey: ['apiKeyQuotaUsages', apiKeyId, selectedProjectId],
-    queryFn: async () => {
+    queryKey: ['apiKeyQuotaUsages', apiKeyId, selectedProjectId, accessToken],
+    queryFn: async ({ signal }) => {
       try {
         const headers = selectedProjectId ? { 'X-Project-ID': selectedProjectId } : undefined;
         const data = await graphqlRequest<{ apiKeyQuotaUsages: ApiKeyProfileQuotaUsage[] }>(
           APIKEY_QUOTA_USAGES_QUERY,
           { apiKeyId },
-          headers
+          headers,
+          { signal }
         );
         return apiKeyProfileQuotaUsageSchema.array().parse(data.apiKeyQuotaUsages);
       } catch (error) {
-        handleError(error, t('common.errors.internalServerError'));
+        if (!options?.silent && !(error instanceof DOMException && error.name === 'AbortError')) {
+          handleError(error, t('common.errors.internalServerError'));
+        }
         throw error;
       }
     },
-    enabled: !!apiKeyId && (options?.enabled ?? true),
+    enabled: !!apiKeyId && !!accessToken && (options?.enabled ?? true),
+    staleTime: 10000,
     refetchInterval: options?.refetchInterval,
   });
 }
@@ -769,6 +786,7 @@ export function useUpdateApiKeyProfiles() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['apiKeys'] });
       queryClient.invalidateQueries({ queryKey: ['apiKey', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['apiKeyQuotaUsages', variables.id] });
       toast.success(t('apikeys.messages.profilesUpdateSuccess'));
     },
     onError: (error) => {
@@ -939,6 +957,7 @@ export function useUpdateApiKeyProfileTemplate() {
       queryClient.invalidateQueries({ queryKey: ['apiKeyProfileTemplates'] });
       queryClient.invalidateQueries({ queryKey: ['apiKeys'] });
       queryClient.invalidateQueries({ queryKey: ['apiKey'] });
+      queryClient.invalidateQueries({ queryKey: ['apiKeyQuotaUsages'] });
     },
   });
 }
@@ -981,6 +1000,7 @@ export function useLoadApiKeyProfileTemplate() {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['apiKeys'] });
       queryClient.invalidateQueries({ queryKey: ['apiKey', variables.apiKeyID] });
+      queryClient.invalidateQueries({ queryKey: ['apiKeyQuotaUsages', variables.apiKeyID] });
     },
   });
 }

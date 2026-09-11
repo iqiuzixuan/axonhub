@@ -1,10 +1,8 @@
 import { useEffect, useState, useCallback, useMemo, useRef } from 'react';
-import { format, type Locale } from 'date-fns';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { IconPlus, IconTrash, IconSettings, IconChevronDown, IconChevronUp, IconInfoCircle } from '@tabler/icons-react';
 import { useQueryModels } from '@/gql/models';
-import { zhCN, enUS } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 import { useSelectedProjectId } from '@/stores/projectStore';
 import { formatApiKeyLabel, extractNumberID } from '@/lib/utils';
@@ -23,6 +21,7 @@ import { AutoComplete } from '@/components/auto-complete';
 import { useAllChannelSummarys } from '@/features/channels/data/channels';
 import { useApiKeysContext } from '../context/apikeys-context';
 import { useApiKeyQuotaUsages } from '../data/apikeys';
+import { isSameQuotaPeriod } from '../data/quota-display';
 import {
   normalizeApiKeyProfileRoutingPolicy,
   updateApiKeyProfilesInputSchemaFactory,
@@ -30,47 +29,9 @@ import {
   type ApiKeyProfileQuotaUsage,
   type UpdateApiKeyProfilesInput,
 } from '../data/schema';
+import { ApiKeyQuotaUsage } from './api-key-quota-usage';
 import { ApiKeyLoadTemplatePopover } from './apikeys-load-template-popover';
 import { ApiKeySaveTemplateDialog } from './apikeys-save-template-dialog';
-
-type ApiKeyQuotaPeriod = NonNullable<NonNullable<ApiKeyProfile['quota']>['period']>;
-
-function quotaPeriodLabel(period: ApiKeyQuotaPeriod | null | undefined, t: (key: string) => string) {
-  if (!period) return '-';
-
-  const unitLabel = (unit: string) => {
-    switch (unit) {
-      case 'minute':
-        return t('apikeys.profiles.quotaUnitMinute');
-      case 'hour':
-        return t('apikeys.profiles.quotaUnitHour');
-      case 'day':
-        return t('apikeys.profiles.quotaUnitDay');
-      case 'month':
-        return t('apikeys.profiles.quotaUnitMonth');
-      default:
-        return unit;
-    }
-  };
-
-  switch (period.type) {
-    case 'all_time':
-      return t('apikeys.profiles.quotaPeriodAllTime');
-    case 'past_duration': {
-      const value = period.pastDuration?.value;
-      const unit = period.pastDuration?.unit;
-      const suffix = value && unit ? ` (${value} ${unitLabel(unit)})` : '';
-      return `${t('apikeys.profiles.quotaPeriodPastDuration')}${suffix}`;
-    }
-    case 'calendar_duration': {
-      const unit = period.calendarDuration?.unit;
-      const suffix = unit ? ` (${unitLabel(unit)})` : '';
-      return `${t('apikeys.profiles.quotaPeriodCalendarDuration')}${suffix}`;
-    }
-    default:
-      return period.type;
-  }
-}
 
 interface ApiKeyProfilesDialogProps {
   open: boolean;
@@ -84,14 +45,13 @@ interface ApiKeyProfilesDialogProps {
 }
 
 export function ApiKeyProfilesDialog({ open, onOpenChange, onSubmit, loading = false, initialData }: ApiKeyProfilesDialogProps) {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const { selectedApiKey } = useApiKeysContext();
   const selectedProjectId = useSelectedProjectId();
   const { data: availableModels, mutateAsync: fetchModels } = useQueryModels();
   const [templateLoadPending, setTemplateLoadPending] = useState(false);
   // 用于解决 Dialog 内 Popover 无法滚动的问题
   const [dialogContent, setDialogContent] = useState<HTMLDivElement | null>(null);
-  const locale = i18n.language === 'zh' ? zhCN : enUS;
   const apiKeyId = selectedApiKey?.id ?? '';
   const quotaUsagesQuery = useApiKeyQuotaUsages(apiKeyId, {
     enabled: open && !!apiKeyId,
@@ -99,11 +59,12 @@ export function ApiKeyProfilesDialog({ open, onOpenChange, onSubmit, loading = f
   });
   const quotaUsageByProfileName = useMemo(() => {
     const map = new Map<string, ApiKeyProfileQuotaUsage>();
-    quotaUsagesQuery.data?.forEach((u) => {
-      map.set(u.profileName, u);
-    });
+    if (!quotaUsagesQuery.isError)
+      quotaUsagesQuery.data?.forEach((u) => {
+        map.set(u.profileName, u);
+      });
     return map;
-  }, [quotaUsagesQuery.data]);
+  }, [quotaUsagesQuery.data, quotaUsagesQuery.isError]);
 
   // Template save/load state
   const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
@@ -360,8 +321,9 @@ export function ApiKeyProfilesDialog({ open, onOpenChange, onSubmit, loading = f
                               canRemove={profileFields.length > 1}
                               availableModels={availableModels?.map((model) => model.id) || []}
                               t={t}
-                              locale={locale}
                               quotaUsageByProfileName={quotaUsageByProfileName}
+                              quotaUsageStatus={quotaUsagesQuery.isLoading ? 'loading' : quotaUsagesQuery.isError ? 'error' : 'success'}
+                              quotaUpdatedAt={quotaUsagesQuery.dataUpdatedAt}
                               defaultExpanded={isActive}
                               portalContainer={dialogContent}
                               selectedProjectId={selectedProjectId}
@@ -457,8 +419,9 @@ interface ProfileCardProps {
   canRemove: boolean;
   availableModels: string[];
   t: (key: string) => string;
-  locale: Locale;
   quotaUsageByProfileName: Map<string, ApiKeyProfileQuotaUsage>;
+  quotaUsageStatus: 'loading' | 'error' | 'success';
+  quotaUpdatedAt: number;
   defaultExpanded?: boolean;
   /** Popover Portal 容器元素，解决 Dialog 内无法滚动的问题 */
   portalContainer?: HTMLElement | null;
@@ -474,8 +437,9 @@ function ProfileCard({
   canRemove,
   availableModels,
   t,
-  locale,
   quotaUsageByProfileName,
+  quotaUsageStatus,
+  quotaUpdatedAt,
   defaultExpanded = false,
   portalContainer,
   selectedProjectId,
@@ -516,8 +480,8 @@ function ProfileCard({
   const isExcludeMode = channelTagsMatchMode === 'none';
   const quotaUsage = profileName ? quotaUsageByProfileName.get(profileName) : undefined;
   const currentQuota = form.watch(`profiles.${profileIndex}.quota`);
-  const quotaUsagePeriod = (currentQuota?.period ?? quotaUsage?.quota?.period) as ApiKeyQuotaPeriod | null | undefined;
-  const quotaUsageEnd = quotaUsage?.window.end ?? (quotaUsagePeriod?.type !== 'calendar_duration' ? new Date() : null);
+  const quotaSnapshot =
+    currentQuota && quotaUsage?.quota && isSameQuotaPeriod(currentQuota.period, quotaUsage.quota.period) ? quotaUsage : undefined;
 
   // Initialize local state from form value
   useEffect(() => {
@@ -671,7 +635,7 @@ function ProfileCard({
               />
             </div>
 
-            {form.watch(`profiles.${profileIndex}.quota`) != null && (
+            {currentQuota != null && (
               <div className='space-y-4'>
                 <div className='grid gap-4 md:grid-cols-3'>
                   <FormField
@@ -853,44 +817,23 @@ function ProfileCard({
                   )}
                 </div>
 
-                {quotaUsage && (
-                  <div className='space-y-2 rounded-md border p-3'>
-                    <div className='text-xs font-medium'>{t('apikeys.profiles.quotaUsageTitle')}</div>
-                    <div className='text-muted-foreground text-xs'>
-                      {t('apikeys.profiles.quotaPeriodType')}: {quotaPeriodLabel(quotaUsagePeriod, t)}
-                    </div>
-                    <div className='grid gap-3 md:grid-cols-3'>
-                      <div>
-                        <div className='text-muted-foreground text-xs'>{t('apikeys.profiles.quotaRequests')}</div>
-                        <div className='text-sm'>
-                          {quotaUsage.usage.requestCount}/{currentQuota?.requests ?? '∞'}
-                        </div>
-                      </div>
-                      <div>
-                        <div className='text-muted-foreground text-xs'>{t('apikeys.profiles.quotaTotalTokens')}</div>
-                        <div className='text-sm'>
-                          {quotaUsage.usage.totalTokens}/{currentQuota?.totalTokens ?? '∞'}
-                        </div>
-                      </div>
-                      <div>
-                        <div className='text-muted-foreground text-xs'>{t('apikeys.profiles.quotaCost')}</div>
-                        <div className='text-sm'>
-                          {(quotaUsage.usage.totalCost ?? 0).toLocaleString(undefined, { maximumFractionDigits: 6 })}/
-                          {currentQuota?.cost ?? '∞'}
-                        </div>
-                      </div>
-                    </div>
-                    <div className='text-muted-foreground grid gap-2 text-xs md:grid-cols-2'>
-                      <div>
-                        {t('common.filters.startTime')}{' '}
-                        {quotaUsage.window.start ? format(quotaUsage.window.start, 'PPpp', { locale }) : '-'}
-                      </div>
-                      <div>
-                        {t('common.filters.endTime')} {quotaUsageEnd ? format(quotaUsageEnd, 'PPpp', { locale }) : '-'}
-                      </div>
-                    </div>
-                  </div>
-                )}
+                <div className='space-y-3 rounded-md border p-3'>
+                  <div className='text-sm font-medium'>{t('apikeys.profiles.quotaUsageTitle')}</div>
+                  {quotaUsageStatus === 'loading' && (
+                    <p className='text-muted-foreground text-xs' role='status'>
+                      {t('apikeys.quota.loading')}
+                    </p>
+                  )}
+                  {quotaUsageStatus === 'error' && (
+                    <p className='text-destructive text-xs' role='status'>
+                      {t('apikeys.quota.unavailableHint')}
+                    </p>
+                  )}
+                  {!quotaSnapshot && quotaUsageStatus === 'success' && (
+                    <p className='text-muted-foreground text-xs'>{t('apikeys.quota.saveToViewUsage')}</p>
+                  )}
+                  <ApiKeyQuotaUsage quota={currentQuota} snapshot={quotaSnapshot} updatedAt={quotaSnapshot ? quotaUpdatedAt : undefined} />
+                </div>
               </div>
             )}
           </div>

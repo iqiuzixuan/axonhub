@@ -1,14 +1,15 @@
-export function formatNumber(value: number | null | undefined, options?: { digits?: number }) {
+export function formatNumber(value: number | null | undefined, options?: { digits?: number; trimTrailingZeros?: boolean }) {
   if (value == null || Number.isNaN(value)) {
     return '0';
   }
 
   const digits = options?.digits ?? 1;
+  const trimTrailingZeros = options?.trimTrailingZeros ?? true;
   const absolute = Math.abs(value);
 
   const formatWithSuffix = (divisor: number, suffix: string) => {
     const raw = (value / divisor).toFixed(digits);
-    const trimmed = raw.replace(/\.0+$|(?<=\.\d*[1-9])0+$/g, '').replace(/\.$/, '');
+    const trimmed = trimTrailingZeros ? raw.replace(/\.0+$|(?<=\.\d*[1-9])0+$/g, '').replace(/\.$/, '') : raw;
     return `${trimmed}${suffix}`;
   };
 
@@ -27,6 +28,6 @@ export function formatNumber(value: number | null | undefined, options?: { digit
   const num = parseFloat(value.toFixed(digits));
   return num.toLocaleString(undefined, {
     maximumFractionDigits: digits,
-    minimumFractionDigits: 0
+    minimumFractionDigits: trimTrailingZeros ? 0 : digits,
   });
 }
