@@ -9,6 +9,7 @@ This file provides guidance to AI coding assistants when working with code in th
 1. Do NOT run lint or build commands unless explicitly requested by the user.
 2. Do NOT restart the development server — it's already started and managed.
 3. All summary files should be stored in `.agent/summary` directory if available.
+4. Before creating branches, developing features, or syncing upstream, follow [Fork development workflow](docs/solutions/fork-development-workflow.md). `develop` is this fork's maintained integration and deployment source; upstream PR acceptance is not a release prerequisite.
 
 ## Configuration
 
@@ -70,6 +71,7 @@ All detailed rules are in `.agent/rules/`:
 
 | File | Scope | Description |
 |------|-------|-------------|
+| [git-workflow.md](.agent/rules/git-workflow.md) | All development | Fork 分支、功能合并、上游同步与部署追溯规则 |
 | [go-general.md](.agent/rules/go-general.md) | `**/*.go` | Go 通用约定、错误处理、依赖注入、开发命令约束 |
 | [ent-graphql.md](.agent/rules/ent-graphql.md) | `internal/ent/schema/**/*.go`, `internal/server/gql/**/*.go`, `internal/server/gql/**/*.graphql`, `gqlgen.yml` | Ent、GraphQL、代码生成、schema 变更规则 |
 | [database-indexes.md](.agent/rules/database-indexes.md) | `internal/ent/schema/**/*.go` | 数据库索引设计、命名、跨方言兼容与迁移验证规则 |

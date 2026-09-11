@@ -4,10 +4,12 @@ name: Lint
 on:
   push:
     branches:
+      - 'develop'
       - 'unstable'
       - 'release/**'
   pull_request:
     branches:
+      - 'develop'
       - 'unstable'
       - 'release/**'
 env:

@@ -4,10 +4,12 @@ name: Test
 on:
   push:
     branches:
+      - "develop"
       - "unstable"
       - "release/**"
   pull_request:
     branches:
+      - "develop"
       - "unstable"
       - "release/**"
 env:
