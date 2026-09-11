@@ -1,9 +1,9 @@
 'use client';
 
-
 import { useTranslation } from 'react-i18next';
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, type TooltipProps } from 'recharts';
+import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Loader2 } from 'lucide-react';
+import { formatApiKeyLabel } from '@/lib/utils';
 import { formatNumber } from '@/utils/format-number';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useTokensByAPIKey } from '../data/dashboard';
@@ -38,7 +38,8 @@ export function TokensByAPIKeyChart({ timePeriod }: TokensByAPIKeyChartProps) {
 
   const chartData = tokenData
     ?.map((item) => ({
-      name: item.apiKeyName,
+      id: item.apiKeyId,
+      name: formatApiKeyLabel(item.apiKeyName, item.apiKeyUserName),
       inputTokens: item.inputTokens,
       outputTokens: item.outputTokens,
       cachedTokens: item.cachedTokens,
@@ -48,9 +49,10 @@ export function TokensByAPIKeyChart({ timePeriod }: TokensByAPIKeyChartProps) {
 
   const totalAllKeys = chartData.reduce((sum, item) => sum + item.totalTokens, 0);
 
-  type TokenTooltipProps = TooltipProps<number, string> & {
-    payload?: Array<{
-      payload: {
+  type TokenTooltipProps = {
+    active?: boolean;
+    payload?: ReadonlyArray<{
+      payload?: {
         name: string;
         inputTokens: number;
         outputTokens: number;
@@ -64,6 +66,7 @@ export function TokensByAPIKeyChart({ timePeriod }: TokensByAPIKeyChartProps) {
     if (!props.active || !props.payload?.length) return null;
 
     const data = props.payload[0].payload;
+    if (!data) return null;
     const percent = totalAllKeys ? ((data.totalTokens ?? 0) / totalAllKeys) * 100 : 0;
 
     return (
@@ -120,7 +123,8 @@ export function TokensByAPIKeyChart({ timePeriod }: TokensByAPIKeyChartProps) {
         <BarChart data={chartData}>
           <CartesianGrid strokeDasharray='3 3' stroke='var(--border)' vertical={false} />
           <XAxis
-            dataKey='name'
+            dataKey='id'
+            tickFormatter={(id) => chartData.find((item) => item.id === id)?.name ?? id}
             tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }}
             tickLine={false}
             axisLine={false}

@@ -2,12 +2,13 @@
 
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis, type TooltipProps } from 'recharts';
+import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Loader2 } from 'lucide-react';
+import { formatApiKeyLabel } from '@/lib/utils';
 import { formatNumber } from '@/utils/format-number';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useGeneralSettings } from '../../system/data/system';
-import { useRequestsByAPIKey, useCostByAPIKey } from '../data/dashboard';
+import { useRequestsByAPIKey } from '../data/dashboard';
 import type { TimePeriod } from '@/components/time-period-selector';
 import { ChartLegend } from './chart-legend';
 
@@ -20,13 +21,11 @@ interface RequestsByAPIKeyChartProps {
 export function RequestsByAPIKeyChart({ timePeriod }: RequestsByAPIKeyChartProps) {
   const { t, i18n } = useTranslation();
   
-  const { data: apiKeyData, isLoading: isRequestsLoading, isFetching: isRequestsFetching, error: requestsError } = useRequestsByAPIKey(timePeriod);
-  const { data: costData, isLoading: isCostLoading, isFetching: isCostFetching, error: costError } = useCostByAPIKey(timePeriod);
+  const { data: apiKeyData, isLoading: isRequestsLoading, isFetching: isRequestsFetching, error } = useRequestsByAPIKey(timePeriod);
   const { data: generalSettings, isLoading: isSettingsLoading, isFetching: isSettingsFetching } = useGeneralSettings();
 
-  const isLoading = isRequestsLoading || isCostLoading || isSettingsLoading;
-  const isFetching = isRequestsFetching || isCostFetching || isSettingsFetching;
-  const error = requestsError || costError;
+  const isLoading = isRequestsLoading || isSettingsLoading;
+  const isFetching = isRequestsFetching || isSettingsFetching;
 
   const currencyCode = generalSettings?.currencyCode || 'USD';
   const locale = i18n.language.startsWith('zh') ? 'zh-CN' : 'en-US';
@@ -46,13 +45,12 @@ export function RequestsByAPIKeyChart({ timePeriod }: RequestsByAPIKeyChartProps
   const { chartData, totalRequests, totalCost } = useMemo(() => {
     if (!apiKeyData) return { chartData: [], totalRequests: 0, totalCost: 0 };
 
-    const costMap = new Map((costData ?? []).map((item) => [item.apiKeyName, item.cost]));
-
     const data = apiKeyData
       .map((item) => ({
-        name: item.apiKeyName,
+        id: item.apiKeyId,
+        name: formatApiKeyLabel(item.apiKeyName, item.apiKeyUserName),
         requests: item.count,
-        cost: costMap.get(item.apiKeyName) ?? 0,
+        cost: item.cost,
       }))
       .sort((a, b) => b.requests - a.requests)
       .slice(0, 10);
@@ -61,7 +59,7 @@ export function RequestsByAPIKeyChart({ timePeriod }: RequestsByAPIKeyChartProps
     const totalC = data.reduce((sum, item) => sum + item.cost, 0);
 
     return { chartData: data, totalRequests: totalReq, totalCost: totalC };
-  }, [apiKeyData, costData]);
+  }, [apiKeyData]);
 
   if (isLoading) {
     return (
@@ -81,10 +79,9 @@ export function RequestsByAPIKeyChart({ timePeriod }: RequestsByAPIKeyChartProps
     secondaryValue: formatCurrency(item.cost, 4),
   }));
 
-  type CombinedTooltipProps = TooltipProps<number, string> & {
-    payload?: Array<{
-      name?: string;
-      value?: number;
+  type CombinedTooltipProps = {
+    active?: boolean;
+    payload?: ReadonlyArray<{
       payload?: {
         name: string;
         requests: number;
@@ -137,7 +134,7 @@ export function RequestsByAPIKeyChart({ timePeriod }: RequestsByAPIKeyChartProps
           <ResponsiveContainer width='100%' height={320}>
             <BarChart data={chartData} barSize={32}>
               <CartesianGrid strokeDasharray='3 3' stroke='var(--border)' vertical={false} />
-              <XAxis dataKey='name' hide />
+              <XAxis dataKey='id' hide />
               <YAxis yAxisId='left' tickLine={false} axisLine={false} width={60} tick={{ fontSize: 12, fill: 'var(--muted-foreground)' }} />
               <YAxis
                 yAxisId='right'

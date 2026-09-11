@@ -1,3 +1,4 @@
+import { formatApiKeyLabel } from '@/lib/utils';
 import { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -124,7 +125,12 @@ export function DimensionDetailTable({
               <tbody className='[&_tr:last-child]:border-0'>
                 {currentData.map((item) => (
                   <tr key={item.id} className='border-b transition-colors hover:bg-muted/50'>
-                    <td className='sticky left-0 z-10 truncate bg-card px-4 py-2 text-sm font-medium'>{item.name}</td>
+                    <td
+                      className='sticky left-0 z-10 truncate bg-card px-4 py-2 text-sm font-medium'
+                      title={formatApiKeyLabel(item.name, item.apiKeyUserName)}
+                    >
+                      {formatApiKeyLabel(item.name, item.apiKeyUserName)}
+                    </td>
                     <td className='whitespace-nowrap px-4 py-2 text-right text-sm font-medium'>{formatExactNumber(item.totalTokens)}</td>
                     <td className='whitespace-nowrap px-4 py-2 text-right text-sm'>{formatExactNumber(item.inputTokens)}</td>
                     <td className='whitespace-nowrap px-4 py-2 text-right text-sm'>{formatExactNumber(item.cachedInputTokens)}</td>

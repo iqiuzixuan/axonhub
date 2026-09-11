@@ -6,7 +6,7 @@ import { IconPlus, IconTrash } from '@tabler/icons-react';
 import { useQueryModels } from '@/gql/models';
 import { useTranslation } from 'react-i18next';
 import { useSelectedProjectId } from '@/stores/projectStore';
-import { extractNumberIDAsNumber, buildGUID } from '@/lib/utils';
+import { formatApiKeyLabel, extractNumberIDAsNumber, buildGUID } from '@/lib/utils';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -108,11 +108,11 @@ function APIKeyAutoCompleteWrapper({ field, portalContainer }: APIKeyAutoComplet
   const apiKeyOptions = useMemo(() => {
     const options = new Map<string, { value: string; label: string }>();
     for (const edge of selectedApiKeyData?.edges ?? []) {
-      options.set(edge.node.id, { value: edge.node.id, label: edge.node.name });
+      options.set(edge.node.id, { value: edge.node.id, label: formatApiKeyLabel(edge.node.name, edge.node.user?.name) });
     }
     for (const page of apiKeysData?.pages ?? []) {
       for (const edge of page.edges) {
-        options.set(edge.node.id, { value: edge.node.id, label: edge.node.name });
+        options.set(edge.node.id, { value: edge.node.id, label: formatApiKeyLabel(edge.node.name, edge.node.user?.name) });
       }
     }
     return Array.from(options.values());

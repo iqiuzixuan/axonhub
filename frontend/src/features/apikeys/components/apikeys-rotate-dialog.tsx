@@ -1,3 +1,4 @@
+import { formatApiKeyLabel } from '@/lib/utils';
 import { useState } from 'react';
 import { Copy, RefreshCw, AlertTriangle, CheckIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -51,7 +52,7 @@ export function ApiKeysRotateDialog() {
         <DialogHeader>
           <DialogTitle>{t('apikeys.dialogs.rotate.title')}</DialogTitle>
           <DialogDescription>
-            {t('apikeys.dialogs.rotate.description', { name: selectedApiKey?.name })}
+            {t('apikeys.dialogs.rotate.description', { name: formatApiKeyLabel(selectedApiKey?.name, selectedApiKey?.user?.name) })}
           </DialogDescription>
         </DialogHeader>
 

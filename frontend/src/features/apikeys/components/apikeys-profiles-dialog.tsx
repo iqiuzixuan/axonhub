@@ -7,7 +7,7 @@ import { useQueryModels } from '@/gql/models';
 import { zhCN, enUS } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 import { useSelectedProjectId } from '@/stores/projectStore';
-import { extractNumberID } from '@/lib/utils';
+import { formatApiKeyLabel, extractNumberID } from '@/lib/utils';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -298,7 +298,7 @@ export function ApiKeyProfilesDialog({ open, onOpenChange, onSubmit, loading = f
           </DialogTitle>
           <DialogDescription>
             {t('apikeys.profiles.description', {
-              name: selectedApiKey?.name,
+              name: formatApiKeyLabel(selectedApiKey?.name, selectedApiKey?.user?.name),
             })}
           </DialogDescription>
         </DialogHeader>

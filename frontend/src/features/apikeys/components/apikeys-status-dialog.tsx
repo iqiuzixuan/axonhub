@@ -1,5 +1,7 @@
 'use client';
 
+import { formatApiKeyLabel } from '@/lib/utils';
+
 import { IconAlertTriangle } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -43,8 +45,8 @@ export function ApiKeysStatusDialog() {
       }
       desc={
         isDisabling
-          ? t('apikeys.dialogs.status.disableDescription', { name: selectedApiKey.name })
-          : t('apikeys.dialogs.status.enableDescription', { name: selectedApiKey.name })
+          ? t('apikeys.dialogs.status.disableDescription', { name: formatApiKeyLabel(selectedApiKey.name, selectedApiKey.user?.name) })
+          : t('apikeys.dialogs.status.enableDescription', { name: formatApiKeyLabel(selectedApiKey.name, selectedApiKey.user?.name) })
       }
       confirmText={isDisabling ? t('common.buttons.disable') : t('common.buttons.enable')}
       cancelBtnText={t('common.buttons.cancel')}

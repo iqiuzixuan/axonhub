@@ -415,7 +415,8 @@ const LOAD_APIKEY_PROFILE_TEMPLATE_MUTATION = `
   }
 `;
 
-const API_KEY_OPTIONS_QUERY = `
+function buildAPIKeyOptionsQuery(canViewUsers: boolean) {
+  return `
   query GetAPIKeyOptions($first: Int!, $after: Cursor, $orderBy: APIKeyOrder, $where: APIKeyWhereInput) {
     apiKeys(first: $first, after: $after, orderBy: $orderBy, where: $where) {
       edges {
@@ -423,6 +424,7 @@ const API_KEY_OPTIONS_QUERY = `
           id
           name
           status
+          ${canViewUsers ? 'user { name }' : ''}
         }
       }
       pageInfo {
@@ -432,6 +434,7 @@ const API_KEY_OPTIONS_QUERY = `
     }
   }
 `;
+}
 
 const apiKeyOptionConnectionSchema = z.object({
   edges: z.array(
@@ -440,6 +443,7 @@ const apiKeyOptionConnectionSchema = z.object({
         id: z.string(),
         name: z.string(),
         status: apiKeyStatusSchema,
+        user: z.object({ name: z.string() }).optional().nullable(),
       }),
     })
   ),
@@ -451,11 +455,12 @@ const apiKeyOptionConnectionSchema = z.object({
 
 async function fetchAPIKeyOptions(
   selectedProjectId: string | null | undefined,
-  variables: { first: number; after?: string; where: Record<string, unknown> }
+  variables: { first: number; after?: string; where: Record<string, unknown> },
+  canViewUsers: boolean
 ) {
   const headers = selectedProjectId ? { 'X-Project-ID': selectedProjectId } : undefined;
   const data = await graphqlRequest<{ apiKeys: unknown }>(
-    API_KEY_OPTIONS_QUERY,
+    buildAPIKeyOptionsQuery(canViewUsers),
     {
       ...variables,
       orderBy: { field: 'CREATED_AT', direction: 'DESC' },
@@ -470,22 +475,27 @@ export function useApiKeyOptions(options?: { search?: string; includeArchived?: 
   const { t } = useTranslation();
   const { handleError } = useErrorHandler();
   const selectedProjectId = useSelectedProjectId();
+  const { canViewUsers } = useRequestPermissions();
   const search = options?.search?.trim();
   const includeArchived = options?.includeArchived ?? false;
 
   return useInfiniteQuery({
-    queryKey: ['apiKeys', 'options', selectedProjectId, includeArchived, search],
+    queryKey: ['apiKeys', 'options', selectedProjectId, includeArchived, search, canViewUsers],
     queryFn: async ({ pageParam }) => {
       try {
-        return await fetchAPIKeyOptions(selectedProjectId, {
-          first: 100,
-          after: pageParam,
-          where: {
-            typeNotIn: [NOAUTH_API_KEY_TYPE],
-            statusIn: includeArchived ? ['enabled', 'disabled', 'archived'] : ['enabled', 'disabled'],
-            ...(search ? { nameContainsFold: search } : {}),
+        return await fetchAPIKeyOptions(
+          selectedProjectId,
+          {
+            first: 100,
+            after: pageParam,
+            where: {
+              typeNotIn: [NOAUTH_API_KEY_TYPE],
+              statusIn: includeArchived ? ['enabled', 'disabled', 'archived'] : ['enabled', 'disabled'],
+              ...(search ? { nameContainsFold: search } : {}),
+            },
           },
-        });
+          canViewUsers
+        );
       } catch (error) {
         handleError(error, t('common.errors.internalServerError'));
         throw error;
@@ -501,19 +511,24 @@ export function useApiKeyOptionsByIDs(ids: string[] | undefined, options?: { ena
   const { t } = useTranslation();
   const { handleError } = useErrorHandler();
   const selectedProjectId = useSelectedProjectId();
+  const { canViewUsers } = useRequestPermissions();
 
   return useQuery({
-    queryKey: ['apiKeys', 'options', 'selected', selectedProjectId, ids],
+    queryKey: ['apiKeys', 'options', 'selected', selectedProjectId, ids, canViewUsers],
     queryFn: async () => {
       try {
-        return await fetchAPIKeyOptions(selectedProjectId, {
-          first: Math.min(ids?.length ?? 1, 1000),
-          where: {
-            typeNotIn: [NOAUTH_API_KEY_TYPE],
-            statusIn: ['enabled', 'disabled', 'archived'],
-            idIn: ids,
+        return await fetchAPIKeyOptions(
+          selectedProjectId,
+          {
+            first: Math.min(ids?.length ?? 1, 1000),
+            where: {
+              typeNotIn: [NOAUTH_API_KEY_TYPE],
+              statusIn: ['enabled', 'disabled', 'archived'],
+              idIn: ids,
+            },
           },
-        });
+          canViewUsers
+        );
       } catch (error) {
         handleError(error, t('common.errors.internalServerError'));
         throw error;

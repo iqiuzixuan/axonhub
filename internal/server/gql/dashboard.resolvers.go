@@ -257,8 +257,9 @@ func (r *queryResolver) RequestStatsByAPIKey(ctx context.Context, timeWindow *st
 	since, applyFilter := r.parseTimeWindow(ctx, timeWindow)
 
 	type apiKeyStats struct {
-		APIKeyID int `json:"api_key_id"`
-		Count    int `json:"request_count"`
+		APIKeyID int     `json:"api_key_id"`
+		Count    int     `json:"request_count"`
+		Cost     float64 `json:"total_cost"`
 	}
 
 	var results []apiKeyStats
@@ -274,7 +275,12 @@ func (r *queryResolver) RequestStatsByAPIKey(ctx context.Context, timeWindow *st
 
 	err := query.
 		GroupBy(usagelog.FieldAPIKeyID).
-		Aggregate(ent.As(ent.Count(), "request_count")).
+		Aggregate(
+			ent.As(ent.Count(), "request_count"),
+			func(s *sql.Selector) string {
+				return sql.As(fmt.Sprintf("COALESCE(SUM(%s), 0)", s.C(usagelog.FieldTotalCost)), "total_cost")
+			},
+		).
 		Scan(ctx, &results)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get requests by API key: %w", err)
@@ -299,8 +305,8 @@ func (r *queryResolver) RequestStatsByAPIKey(ctx context.Context, timeWindow *st
 	})
 
 	// Fetch API key details
-	apiKeys, err := r.client.APIKey.Query().
-		Where(apikey.IDIn(apiKeyIDs...)).
+	apiKeys, err := withAPIKeyOwner(ctx, r.client.APIKey.Query().
+		Where(apikey.IDIn(apiKeyIDs...))).
 		All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get API keys: %w", err)
@@ -317,9 +323,11 @@ func (r *queryResolver) RequestStatsByAPIKey(ctx context.Context, timeWindow *st
 	for _, result := range results {
 		if ak, exists := apiKeyMap[result.APIKeyID]; exists {
 			response = append(response, &RequestStatsByAPIKey{
-				APIKeyID:   objects.GUID{Type: "APIKey", ID: result.APIKeyID},
-				APIKeyName: ak.Name,
-				Count:      result.Count,
+				APIKeyID:       objects.GUID{Type: "APIKey", ID: result.APIKeyID},
+				APIKeyName:     ak.Name,
+				APIKeyUserName: apiKeyUserName(ak),
+				Count:          result.Count,
+				Cost:           result.Cost,
 			})
 		}
 	}
@@ -387,8 +395,8 @@ func (r *queryResolver) TokenStatsByAPIKey(ctx context.Context, timeWindow *stri
 	})
 
 	// Fetch API key details
-	apiKeys, err := r.client.APIKey.Query().
-		Where(apikey.IDIn(apiKeyIDs...)).
+	apiKeys, err := withAPIKeyOwner(ctx, r.client.APIKey.Query().
+		Where(apikey.IDIn(apiKeyIDs...))).
 		All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get API keys: %w", err)
@@ -409,6 +417,7 @@ func (r *queryResolver) TokenStatsByAPIKey(ctx context.Context, timeWindow *stri
 			response = append(response, &TokenStatsByAPIKey{
 				APIKeyID:        objects.GUID{Type: "APIKey", ID: result.APIKeyID},
 				APIKeyName:      ak.Name,
+				APIKeyUserName:  apiKeyUserName(ak),
 				InputTokens:     int(result.InputTokens),
 				OutputTokens:    int(result.OutputTokens),
 				CachedTokens:    int(result.CachedTokens),
@@ -1734,8 +1743,8 @@ func (r *queryResolver) CostStatsByAPIKey(ctx context.Context, timeWindow *strin
 		return item.APIKeyID
 	})
 
-	apiKeys, err := r.client.APIKey.Query().
-		Where(apikey.IDIn(apiKeyIDs...)).
+	apiKeys, err := withAPIKeyOwner(ctx, r.client.APIKey.Query().
+		Where(apikey.IDIn(apiKeyIDs...))).
 		All(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get API keys: %w", err)
@@ -1750,9 +1759,10 @@ func (r *queryResolver) CostStatsByAPIKey(ctx context.Context, timeWindow *strin
 	for _, result := range results {
 		if ak, exists := apiKeyMap[result.APIKeyID]; exists {
 			response = append(response, &CostStatsByAPIKey{
-				APIKeyID:   objects.GUID{Type: "APIKey", ID: result.APIKeyID},
-				APIKeyName: ak.Name,
-				Cost:       result.Cost,
+				APIKeyID:       objects.GUID{Type: "APIKey", ID: result.APIKeyID},
+				APIKeyName:     ak.Name,
+				APIKeyUserName: apiKeyUserName(ak),
+				Cost:           result.Cost,
 			})
 		}
 	}

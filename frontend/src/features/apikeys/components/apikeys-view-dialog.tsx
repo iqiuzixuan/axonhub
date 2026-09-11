@@ -1,3 +1,4 @@
+import { formatApiKeyLabel } from '@/lib/utils';
 import { useState, useEffect, useMemo } from 'react';
 import { Copy, Eye, EyeOff, AlertTriangle, Link, CheckIcon } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
@@ -263,7 +264,7 @@ print(response.text)`
         <div className='space-y-4 shrink-0'>
           <div>
             <label className='text-sm font-medium'>{t('common.columns.name')}</label>
-            <div className='bg-muted mt-1 rounded-md p-3'>{selectedApiKey?.name}</div>
+            <div className='bg-muted mt-1 rounded-md p-3 break-words'>{formatApiKeyLabel(selectedApiKey?.name, selectedApiKey?.user?.name)}</div>
           </div>
 
           <div>

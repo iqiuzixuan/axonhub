@@ -62,6 +62,8 @@ Statistics for a single item in a dimension breakdown (channel/model/apiKey/user
 type AnalyticsDimensionStat {
   id: String!
   name: String!
+  "Owner name for the apiKey dimension, only available with permission to read users."
+  apiKeyUserName: String
   requestCount: Int!
   inputTokens: Int!
   cachedInputTokens: Int!

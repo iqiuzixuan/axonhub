@@ -72,8 +72,10 @@ type AnalyticsDailyStat struct {
 
 // Statistics for a single item in a dimension breakdown (channel/model/apiKey/user)
 type AnalyticsDimensionStat struct {
-	ID                string  `json:"id"`
-	Name              string  `json:"name"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// Owner name for the apiKey dimension, only available with permission to read users.
+	APIKeyUserName    *string `json:"apiKeyUserName,omitempty"`
 	RequestCount      int     `json:"requestCount"`
 	InputTokens       int     `json:"inputTokens"`
 	CachedInputTokens int     `json:"cachedInputTokens"`
@@ -245,7 +247,9 @@ type CompleteSystemModelSettingOnboardingInput struct {
 type CostStatsByAPIKey struct {
 	APIKeyID   objects.GUID `json:"apiKeyId"`
 	APIKeyName string       `json:"apiKeyName"`
-	Cost       float64      `json:"cost"`
+	// Owner name, only available with permission to read users.
+	APIKeyUserName *string `json:"apiKeyUserName,omitempty"`
+	Cost           float64 `json:"cost"`
 }
 
 // Cost statistics grouped by channel
@@ -425,7 +429,11 @@ type RequestStats struct {
 type RequestStatsByAPIKey struct {
 	APIKeyID   objects.GUID `json:"apiKeyId"`
 	APIKeyName string       `json:"apiKeyName"`
-	Count      int          `json:"count"`
+	// Owner name, only available with permission to read users.
+	APIKeyUserName *string `json:"apiKeyUserName,omitempty"`
+	Count          int     `json:"count"`
+	// Cost for the same API key and time window as the request count.
+	Cost float64 `json:"cost"`
 }
 
 type RequestStatsByChannel struct {
@@ -520,13 +528,15 @@ type TokenStats struct {
 }
 
 type TokenStatsByAPIKey struct {
-	APIKeyID        objects.GUID `json:"apiKeyId"`
-	APIKeyName      string       `json:"apiKeyName"`
-	InputTokens     int          `json:"inputTokens"`
-	OutputTokens    int          `json:"outputTokens"`
-	CachedTokens    int          `json:"cachedTokens"`
-	ReasoningTokens int          `json:"reasoningTokens"`
-	TotalTokens     int          `json:"totalTokens"`
+	APIKeyID   objects.GUID `json:"apiKeyId"`
+	APIKeyName string       `json:"apiKeyName"`
+	// Owner name, only available with permission to read users.
+	APIKeyUserName  *string `json:"apiKeyUserName,omitempty"`
+	InputTokens     int     `json:"inputTokens"`
+	OutputTokens    int     `json:"outputTokens"`
+	CachedTokens    int     `json:"cachedTokens"`
+	ReasoningTokens int     `json:"reasoningTokens"`
+	TotalTokens     int     `json:"totalTokens"`
 }
 
 // Token usage statistics grouped by channel
