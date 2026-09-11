@@ -10,7 +10,7 @@ import { ApiKeyQuotaUsage, QuotaRemainingBar, useQuotaDisplay } from './api-key-
 
 export function ApiKeyQuotaCell({ apiKey }: { apiKey: ApiKey }) {
   const [open, setOpen] = useState(false);
-  const { t, percent } = useQuotaDisplay();
+  const { t, percent, period } = useQuotaDisplay();
   const profile = getActiveQuotaProfile(apiKey);
   const quota = profile?.quota;
   const query = useApiKeyQuotaUsages(apiKey.id, { enabled: quota != null, refetchInterval: open ? 10000 : 30000, silent: true });
@@ -32,13 +32,7 @@ export function ApiKeyQuotaCell({ apiKey }: { apiKey: ApiKey }) {
 
   const metrics = getQuotaMetrics(quota, snapshot?.usage).filter((metric) => metric.limit != null);
   const unavailable = !query.isLoading && !snapshot;
-  const statusLabel = query.isLoading
-    ? t('apikeys.quota.loading')
-    : unavailable
-      ? t('apikeys.quota.unavailable')
-      : metrics.some((metric) => metric.exhausted)
-        ? t('apikeys.quota.exhausted')
-        : null;
+  const statusLabel = query.isLoading ? t('apikeys.quota.loading') : unavailable ? t('apikeys.quota.unavailable') : period(quota);
   return (
     <Dialog
       open={open}
@@ -65,7 +59,10 @@ export function ApiKeyQuotaCell({ apiKey }: { apiKey: ApiKey }) {
               </span>
             </span>
           ))}
-          {statusLabel && <span className='text-muted-foreground text-left text-[11px] font-normal whitespace-normal'>{statusLabel}</span>}
+          <span className='text-muted-foreground text-left text-[10px] leading-tight font-normal whitespace-normal'>
+            {statusLabel}
+            {snapshot && metrics.some((metric) => metric.exhausted) && ` · ${t('apikeys.quota.exhausted')}`}
+          </span>
         </Button>
       </DialogTrigger>
       <DialogContent>
