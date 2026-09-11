@@ -561,6 +561,7 @@ input APIKeyQuotaCalendarDurationInput {
 
 enum APIKeyQuotaCalendarDurationUnit {
   day
+  week
   month
 }
 

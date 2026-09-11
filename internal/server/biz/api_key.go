@@ -908,7 +908,7 @@ func validateProfileQuota(profiles []objects.APIKeyProfile) error {
 			}
 
 			switch q.Period.CalendarDuration.Unit {
-			case objects.APIKeyQuotaCalendarDurationUnitDay, objects.APIKeyQuotaCalendarDurationUnitMonth:
+			case objects.APIKeyQuotaCalendarDurationUnitDay, objects.APIKeyQuotaCalendarDurationUnitWeek, objects.APIKeyQuotaCalendarDurationUnitMonth:
 			default:
 				return fmt.Errorf("profile '%s' quota.period.calendarDuration.unit is invalid", profile.Name)
 			}

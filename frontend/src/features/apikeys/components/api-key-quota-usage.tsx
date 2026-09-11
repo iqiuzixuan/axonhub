@@ -30,6 +30,7 @@ export function useQuotaDisplay() {
     const window = quota.period;
     if (window.type === 'all_time') return t('apikeys.profiles.quotaPeriodAllTime');
     if (window.type === 'calendar_duration') {
+      if (window.calendarDuration?.unit === 'week') return t('apikeys.quota.calendarWeek');
       return t(window.calendarDuration?.unit === 'month' ? 'apikeys.quota.calendarMonth' : 'apikeys.quota.calendarDay');
     }
     const unit = window.pastDuration?.unit;

@@ -646,6 +646,7 @@ export function ApiKeyEditTemplateDialog({ open, onOpenChange, template }: ApiKe
                                       </SelectTrigger>
                                       <SelectContent>
                                         <SelectItem value='day'>{t('apikeys.profiles.quotaUnitDay')}</SelectItem>
+                                        <SelectItem value='week'>{t('apikeys.profiles.quotaUnitWeek')}</SelectItem>
                                         <SelectItem value='month'>{t('apikeys.profiles.quotaUnitMonth')}</SelectItem>
                                       </SelectContent>
                                     </Select>

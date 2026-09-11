@@ -239,6 +239,15 @@ func quotaWindow(now time.Time, period objects.APIKeyQuotaPeriod, loc *time.Loca
 			end := endLocal.UTC()
 
 			return QuotaWindow{Start: &start, End: &end}, nil
+		case objects.APIKeyQuotaCalendarDurationUnitWeek:
+			nowLocal := now.In(loc)
+			daysSinceMonday := (int(nowLocal.Weekday()) + 6) % 7
+			startLocal := time.Date(nowLocal.Year(), nowLocal.Month(), nowLocal.Day()-daysSinceMonday, 0, 0, 0, 0, loc)
+			endLocal := startLocal.AddDate(0, 0, 7)
+			start := startLocal.UTC()
+			end := endLocal.UTC()
+
+			return QuotaWindow{Start: &start, End: &end}, nil
 		case objects.APIKeyQuotaCalendarDurationUnitMonth:
 			nowLocal := now.In(loc)
 			startLocal := time.Date(nowLocal.Year(), nowLocal.Month(), 1, 0, 0, 0, 0, loc)
