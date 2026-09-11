@@ -1173,6 +1173,87 @@ type ComplexityRoot struct {
 		Enabled func(childComplexity int) int
 	}
 
+	PersonalAPIKey struct {
+		ActiveProfile func(childComplexity int) int
+		Deleted       func(childComplexity int) int
+		ID            func(childComplexity int) int
+		Name          func(childComplexity int) int
+		ProjectID     func(childComplexity int) int
+		ProjectName   func(childComplexity int) int
+		Status        func(childComplexity int) int
+	}
+
+	PersonalAPIKeyUsage struct {
+		APIKey  func(childComplexity int) int
+		Metrics func(childComplexity int) int
+		Quota   func(childComplexity int) int
+	}
+
+	PersonalDailyUsage struct {
+		Date    func(childComplexity int) int
+		Metrics func(childComplexity int) int
+	}
+
+	PersonalDashboard struct {
+		APIKeys  func(childComplexity int) int
+		Daily    func(childComplexity int) int
+		Models   func(childComplexity int) int
+		Overview func(childComplexity int) int
+		Timezone func(childComplexity int) int
+	}
+
+	PersonalModel struct {
+		APIKeys   func(childComplexity int) int
+		CreatedAt func(childComplexity int) int
+		Developer func(childComplexity int) int
+		Group     func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Icon      func(childComplexity int) int
+		ModelCard func(childComplexity int) int
+		ModelID   func(childComplexity int) int
+		Name      func(childComplexity int) int
+		Status    func(childComplexity int) int
+		Type      func(childComplexity int) int
+		UpdatedAt func(childComplexity int) int
+	}
+
+	PersonalModelUsage struct {
+		Metrics func(childComplexity int) int
+		ModelID func(childComplexity int) int
+	}
+
+	PersonalQuota struct {
+		Cost        func(childComplexity int) int
+		End         func(childComplexity int) int
+		Limit       func(childComplexity int) int
+		ProfileName func(childComplexity int) int
+		Requests    func(childComplexity int) int
+		Start       func(childComplexity int) int
+		Tokens      func(childComplexity int) int
+	}
+
+	PersonalUsageMetrics struct {
+		CachedTokens       func(childComplexity int) int
+		CanceledRequests   func(childComplexity int) int
+		Cost               func(childComplexity int) int
+		FailedRequests     func(childComplexity int) int
+		InputTokens        func(childComplexity int) int
+		OutputTokens       func(childComplexity int) int
+		PendingRequests    func(childComplexity int) int
+		Requests           func(childComplexity int) int
+		SuccessRate        func(childComplexity int) int
+		SuccessfulRequests func(childComplexity int) int
+		TotalTokens        func(childComplexity int) int
+		UnpricedUsageCount func(childComplexity int) int
+	}
+
+	PersonalWorkspace struct {
+		APIKeys      func(childComplexity int) int
+		CurrencyCode func(childComplexity int) int
+		Timezone     func(childComplexity int) int
+		Today        func(childComplexity int) int
+	}
+
 	PriceOverride struct {
 		Items    func(childComplexity int) int
 		Name     func(childComplexity int) int
@@ -1411,7 +1492,10 @@ type ComplexityRoot struct {
 		Me                              func(childComplexity int) int
 		ModelPerformanceStats           func(childComplexity int) int
 		Models                          func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.ModelOrder, where *ent.ModelWhereInput) int
+		MyDashboard                     func(childComplexity int, input biz.PersonalUsageInput) int
+		MyModels                        func(childComplexity int, input *PersonalModelsInput) int
 		MyProjects                      func(childComplexity int) int
+		MyWorkspace                     func(childComplexity int, projectID *objects.GUID) int
 		Node                            func(childComplexity int, id objects.GUID) int
 		Nodes                           func(childComplexity int, ids []*objects.GUID) int
 		OidcIdentities                  func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.OIDCIdentityOrder, where *ent.OIDCIdentityWhereInput) int
@@ -2429,6 +2513,9 @@ type QueryResolver interface {
 	AllScopes(ctx context.Context, level *string) ([]*ScopeInfo, error)
 	Me(ctx context.Context) (*objects.UserInfo, error)
 	MyProjects(ctx context.Context) ([]*ent.Project, error)
+	MyWorkspace(ctx context.Context, projectID *objects.GUID) (*biz.PersonalWorkspace, error)
+	MyDashboard(ctx context.Context, input biz.PersonalUsageInput) (*biz.PersonalDashboard, error)
+	MyModels(ctx context.Context, input *PersonalModelsInput) ([]*biz.PersonalModel, error)
 	PreviewGcCleanup(ctx context.Context, input gc.TriggerGcCleanupInput) ([]*gc.GcCleanupPreviewItem, error)
 	ProvidersCatalog(ctx context.Context, filtered *bool) (*ProvidersCatalog, error)
 	CatalogSettings(ctx context.Context) (*biz.CatalogSettings, error)
@@ -7423,6 +7510,339 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.PassThroughSettings.Enabled(childComplexity), true
 
+	case "PersonalAPIKey.activeProfile":
+		if e.complexity.PersonalAPIKey.ActiveProfile == nil {
+			break
+		}
+
+		return e.complexity.PersonalAPIKey.ActiveProfile(childComplexity), true
+	case "PersonalAPIKey.deleted":
+		if e.complexity.PersonalAPIKey.Deleted == nil {
+			break
+		}
+
+		return e.complexity.PersonalAPIKey.Deleted(childComplexity), true
+	case "PersonalAPIKey.id":
+		if e.complexity.PersonalAPIKey.ID == nil {
+			break
+		}
+
+		return e.complexity.PersonalAPIKey.ID(childComplexity), true
+	case "PersonalAPIKey.name":
+		if e.complexity.PersonalAPIKey.Name == nil {
+			break
+		}
+
+		return e.complexity.PersonalAPIKey.Name(childComplexity), true
+	case "PersonalAPIKey.projectId":
+		if e.complexity.PersonalAPIKey.ProjectID == nil {
+			break
+		}
+
+		return e.complexity.PersonalAPIKey.ProjectID(childComplexity), true
+	case "PersonalAPIKey.projectName":
+		if e.complexity.PersonalAPIKey.ProjectName == nil {
+			break
+		}
+
+		return e.complexity.PersonalAPIKey.ProjectName(childComplexity), true
+	case "PersonalAPIKey.status":
+		if e.complexity.PersonalAPIKey.Status == nil {
+			break
+		}
+
+		return e.complexity.PersonalAPIKey.Status(childComplexity), true
+
+	case "PersonalAPIKeyUsage.apiKey":
+		if e.complexity.PersonalAPIKeyUsage.APIKey == nil {
+			break
+		}
+
+		return e.complexity.PersonalAPIKeyUsage.APIKey(childComplexity), true
+	case "PersonalAPIKeyUsage.metrics":
+		if e.complexity.PersonalAPIKeyUsage.Metrics == nil {
+			break
+		}
+
+		return e.complexity.PersonalAPIKeyUsage.Metrics(childComplexity), true
+	case "PersonalAPIKeyUsage.quota":
+		if e.complexity.PersonalAPIKeyUsage.Quota == nil {
+			break
+		}
+
+		return e.complexity.PersonalAPIKeyUsage.Quota(childComplexity), true
+
+	case "PersonalDailyUsage.date":
+		if e.complexity.PersonalDailyUsage.Date == nil {
+			break
+		}
+
+		return e.complexity.PersonalDailyUsage.Date(childComplexity), true
+	case "PersonalDailyUsage.metrics":
+		if e.complexity.PersonalDailyUsage.Metrics == nil {
+			break
+		}
+
+		return e.complexity.PersonalDailyUsage.Metrics(childComplexity), true
+
+	case "PersonalDashboard.apiKeys":
+		if e.complexity.PersonalDashboard.APIKeys == nil {
+			break
+		}
+
+		return e.complexity.PersonalDashboard.APIKeys(childComplexity), true
+	case "PersonalDashboard.daily":
+		if e.complexity.PersonalDashboard.Daily == nil {
+			break
+		}
+
+		return e.complexity.PersonalDashboard.Daily(childComplexity), true
+	case "PersonalDashboard.models":
+		if e.complexity.PersonalDashboard.Models == nil {
+			break
+		}
+
+		return e.complexity.PersonalDashboard.Models(childComplexity), true
+	case "PersonalDashboard.overview":
+		if e.complexity.PersonalDashboard.Overview == nil {
+			break
+		}
+
+		return e.complexity.PersonalDashboard.Overview(childComplexity), true
+	case "PersonalDashboard.timezone":
+		if e.complexity.PersonalDashboard.Timezone == nil {
+			break
+		}
+
+		return e.complexity.PersonalDashboard.Timezone(childComplexity), true
+
+	case "PersonalModel.apiKeys":
+		if e.complexity.PersonalModel.APIKeys == nil {
+			break
+		}
+
+		return e.complexity.PersonalModel.APIKeys(childComplexity), true
+	case "PersonalModel.createdAt":
+		if e.complexity.PersonalModel.CreatedAt == nil {
+			break
+		}
+
+		return e.complexity.PersonalModel.CreatedAt(childComplexity), true
+	case "PersonalModel.developer":
+		if e.complexity.PersonalModel.Developer == nil {
+			break
+		}
+
+		return e.complexity.PersonalModel.Developer(childComplexity), true
+	case "PersonalModel.group":
+		if e.complexity.PersonalModel.Group == nil {
+			break
+		}
+
+		return e.complexity.PersonalModel.Group(childComplexity), true
+	case "PersonalModel.id":
+		if e.complexity.PersonalModel.ID == nil {
+			break
+		}
+
+		return e.complexity.PersonalModel.ID(childComplexity), true
+	case "PersonalModel.icon":
+		if e.complexity.PersonalModel.Icon == nil {
+			break
+		}
+
+		return e.complexity.PersonalModel.Icon(childComplexity), true
+	case "PersonalModel.modelCard":
+		if e.complexity.PersonalModel.ModelCard == nil {
+			break
+		}
+
+		return e.complexity.PersonalModel.ModelCard(childComplexity), true
+	case "PersonalModel.modelId":
+		if e.complexity.PersonalModel.ModelID == nil {
+			break
+		}
+
+		return e.complexity.PersonalModel.ModelID(childComplexity), true
+	case "PersonalModel.name":
+		if e.complexity.PersonalModel.Name == nil {
+			break
+		}
+
+		return e.complexity.PersonalModel.Name(childComplexity), true
+	case "PersonalModel.status":
+		if e.complexity.PersonalModel.Status == nil {
+			break
+		}
+
+		return e.complexity.PersonalModel.Status(childComplexity), true
+	case "PersonalModel.type":
+		if e.complexity.PersonalModel.Type == nil {
+			break
+		}
+
+		return e.complexity.PersonalModel.Type(childComplexity), true
+	case "PersonalModel.updatedAt":
+		if e.complexity.PersonalModel.UpdatedAt == nil {
+			break
+		}
+
+		return e.complexity.PersonalModel.UpdatedAt(childComplexity), true
+
+	case "PersonalModelUsage.metrics":
+		if e.complexity.PersonalModelUsage.Metrics == nil {
+			break
+		}
+
+		return e.complexity.PersonalModelUsage.Metrics(childComplexity), true
+	case "PersonalModelUsage.modelId":
+		if e.complexity.PersonalModelUsage.ModelID == nil {
+			break
+		}
+
+		return e.complexity.PersonalModelUsage.ModelID(childComplexity), true
+
+	case "PersonalQuota.cost":
+		if e.complexity.PersonalQuota.Cost == nil {
+			break
+		}
+
+		return e.complexity.PersonalQuota.Cost(childComplexity), true
+	case "PersonalQuota.end":
+		if e.complexity.PersonalQuota.End == nil {
+			break
+		}
+
+		return e.complexity.PersonalQuota.End(childComplexity), true
+	case "PersonalQuota.limit":
+		if e.complexity.PersonalQuota.Limit == nil {
+			break
+		}
+
+		return e.complexity.PersonalQuota.Limit(childComplexity), true
+	case "PersonalQuota.profileName":
+		if e.complexity.PersonalQuota.ProfileName == nil {
+			break
+		}
+
+		return e.complexity.PersonalQuota.ProfileName(childComplexity), true
+	case "PersonalQuota.requests":
+		if e.complexity.PersonalQuota.Requests == nil {
+			break
+		}
+
+		return e.complexity.PersonalQuota.Requests(childComplexity), true
+	case "PersonalQuota.start":
+		if e.complexity.PersonalQuota.Start == nil {
+			break
+		}
+
+		return e.complexity.PersonalQuota.Start(childComplexity), true
+	case "PersonalQuota.tokens":
+		if e.complexity.PersonalQuota.Tokens == nil {
+			break
+		}
+
+		return e.complexity.PersonalQuota.Tokens(childComplexity), true
+
+	case "PersonalUsageMetrics.cachedTokens":
+		if e.complexity.PersonalUsageMetrics.CachedTokens == nil {
+			break
+		}
+
+		return e.complexity.PersonalUsageMetrics.CachedTokens(childComplexity), true
+	case "PersonalUsageMetrics.canceledRequests":
+		if e.complexity.PersonalUsageMetrics.CanceledRequests == nil {
+			break
+		}
+
+		return e.complexity.PersonalUsageMetrics.CanceledRequests(childComplexity), true
+	case "PersonalUsageMetrics.cost":
+		if e.complexity.PersonalUsageMetrics.Cost == nil {
+			break
+		}
+
+		return e.complexity.PersonalUsageMetrics.Cost(childComplexity), true
+	case "PersonalUsageMetrics.failedRequests":
+		if e.complexity.PersonalUsageMetrics.FailedRequests == nil {
+			break
+		}
+
+		return e.complexity.PersonalUsageMetrics.FailedRequests(childComplexity), true
+	case "PersonalUsageMetrics.inputTokens":
+		if e.complexity.PersonalUsageMetrics.InputTokens == nil {
+			break
+		}
+
+		return e.complexity.PersonalUsageMetrics.InputTokens(childComplexity), true
+	case "PersonalUsageMetrics.outputTokens":
+		if e.complexity.PersonalUsageMetrics.OutputTokens == nil {
+			break
+		}
+
+		return e.complexity.PersonalUsageMetrics.OutputTokens(childComplexity), true
+	case "PersonalUsageMetrics.pendingRequests":
+		if e.complexity.PersonalUsageMetrics.PendingRequests == nil {
+			break
+		}
+
+		return e.complexity.PersonalUsageMetrics.PendingRequests(childComplexity), true
+	case "PersonalUsageMetrics.requests":
+		if e.complexity.PersonalUsageMetrics.Requests == nil {
+			break
+		}
+
+		return e.complexity.PersonalUsageMetrics.Requests(childComplexity), true
+	case "PersonalUsageMetrics.successRate":
+		if e.complexity.PersonalUsageMetrics.SuccessRate == nil {
+			break
+		}
+
+		return e.complexity.PersonalUsageMetrics.SuccessRate(childComplexity), true
+	case "PersonalUsageMetrics.successfulRequests":
+		if e.complexity.PersonalUsageMetrics.SuccessfulRequests == nil {
+			break
+		}
+
+		return e.complexity.PersonalUsageMetrics.SuccessfulRequests(childComplexity), true
+	case "PersonalUsageMetrics.totalTokens":
+		if e.complexity.PersonalUsageMetrics.TotalTokens == nil {
+			break
+		}
+
+		return e.complexity.PersonalUsageMetrics.TotalTokens(childComplexity), true
+	case "PersonalUsageMetrics.unpricedUsageCount":
+		if e.complexity.PersonalUsageMetrics.UnpricedUsageCount == nil {
+			break
+		}
+
+		return e.complexity.PersonalUsageMetrics.UnpricedUsageCount(childComplexity), true
+
+	case "PersonalWorkspace.apiKeys":
+		if e.complexity.PersonalWorkspace.APIKeys == nil {
+			break
+		}
+
+		return e.complexity.PersonalWorkspace.APIKeys(childComplexity), true
+	case "PersonalWorkspace.currencyCode":
+		if e.complexity.PersonalWorkspace.CurrencyCode == nil {
+			break
+		}
+
+		return e.complexity.PersonalWorkspace.CurrencyCode(childComplexity), true
+	case "PersonalWorkspace.timezone":
+		if e.complexity.PersonalWorkspace.Timezone == nil {
+			break
+		}
+
+		return e.complexity.PersonalWorkspace.Timezone(childComplexity), true
+	case "PersonalWorkspace.today":
+		if e.complexity.PersonalWorkspace.Today == nil {
+			break
+		}
+
+		return e.complexity.PersonalWorkspace.Today(childComplexity), true
+
 	case "PriceOverride.items":
 		if e.complexity.PriceOverride.Items == nil {
 			break
@@ -8517,12 +8937,45 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.Models(childComplexity, args["after"].(*entgql.Cursor[int]), args["first"].(*int), args["before"].(*entgql.Cursor[int]), args["last"].(*int), args["orderBy"].(*ent.ModelOrder), args["where"].(*ent.ModelWhereInput)), true
+	case "Query.myDashboard":
+		if e.complexity.Query.MyDashboard == nil {
+			break
+		}
+
+		args, err := ec.field_Query_myDashboard_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MyDashboard(childComplexity, args["input"].(biz.PersonalUsageInput)), true
+	case "Query.myModels":
+		if e.complexity.Query.MyModels == nil {
+			break
+		}
+
+		args, err := ec.field_Query_myModels_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MyModels(childComplexity, args["input"].(*PersonalModelsInput)), true
 	case "Query.myProjects":
 		if e.complexity.Query.MyProjects == nil {
 			break
 		}
 
 		return e.complexity.Query.MyProjects(childComplexity), true
+	case "Query.myWorkspace":
+		if e.complexity.Query.MyWorkspace == nil {
+			break
+		}
+
+		args, err := ec.field_Query_myWorkspace_args(ctx, rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.MyWorkspace(childComplexity, args["projectId"].(*objects.GUID)), true
 	case "Query.node":
 		if e.complexity.Query.Node == nil {
 			break
@@ -11804,6 +12257,8 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputOverrideMatchInput,
 		ec.unmarshalInputOverrideOperationInput,
 		ec.unmarshalInputOverrideWhenInput,
+		ec.unmarshalInputPersonalModelsInput,
+		ec.unmarshalInputPersonalUsageInput,
 		ec.unmarshalInputPriceOverrideInput,
 		ec.unmarshalInputPriceScheduleInput,
 		ec.unmarshalInputPriceTierInput,
@@ -12006,7 +12461,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 	return introspection.WrapTypeFromDef(ec.Schema(), ec.Schema().Types[name]), nil
 }
 
-//go:embed "axonhub.graphql" "ent.graphql" "dashboard.graphql" "scopes.graphql" "me.graphql" "system.graphql" "filter.graphql" "model.graphql" "backup.graphql" "channel_probe.graphql" "prompt.graphql" "prompt_protection_rule.graphql" "price.graphql" "cost.graphql" "analytics.graphql"
+//go:embed "axonhub.graphql" "ent.graphql" "dashboard.graphql" "scopes.graphql" "me.graphql" "personal.graphql" "system.graphql" "filter.graphql" "model.graphql" "backup.graphql" "channel_probe.graphql" "prompt.graphql" "prompt_protection_rule.graphql" "price.graphql" "cost.graphql" "analytics.graphql"
 var sourcesFS embed.FS
 
 func sourceData(filename string) string {
@@ -12023,6 +12478,7 @@ var sources = []*ast.Source{
 	{Name: "dashboard.graphql", Input: sourceData("dashboard.graphql"), BuiltIn: false},
 	{Name: "scopes.graphql", Input: sourceData("scopes.graphql"), BuiltIn: false},
 	{Name: "me.graphql", Input: sourceData("me.graphql"), BuiltIn: false},
+	{Name: "personal.graphql", Input: sourceData("personal.graphql"), BuiltIn: false},
 	{Name: "system.graphql", Input: sourceData("system.graphql"), BuiltIn: false},
 	{Name: "filter.graphql", Input: sourceData("filter.graphql"), BuiltIn: false},
 	{Name: "model.graphql", Input: sourceData("model.graphql"), BuiltIn: false},
@@ -14508,6 +14964,39 @@ func (ec *executionContext) field_Query_models_args(ctx context.Context, rawArgs
 		return nil, err
 	}
 	args["where"] = arg5
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_myDashboard_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalNPersonalUsageInput2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalUsageInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_myModels_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "input", ec.unmarshalOPersonalModelsInput2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋgqlᚐPersonalModelsInput)
+	if err != nil {
+		return nil, err
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_myWorkspace_args(ctx context.Context, rawArgs map[string]any) (map[string]any, error) {
+	var err error
+	args := map[string]any{}
+	arg0, err := graphql.ProcessArgField(ctx, rawArgs, "projectId", ec.unmarshalOID2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐGUID)
+	if err != nil {
+		return nil, err
+	}
+	args["projectId"] = arg0
 	return args, nil
 }
 
@@ -40147,6 +40636,1792 @@ func (ec *executionContext) fieldContext_PassThroughSettings_enabled(_ context.C
 	return fc, nil
 }
 
+func (ec *executionContext) _PersonalAPIKey_id(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalAPIKey) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalAPIKey_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNID2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐGUID,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalAPIKey_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalAPIKey_name(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalAPIKey) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalAPIKey_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalAPIKey_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalAPIKey_projectId(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalAPIKey) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalAPIKey_projectId,
+		func(ctx context.Context) (any, error) {
+			return obj.ProjectID, nil
+		},
+		nil,
+		ec.marshalNID2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐGUID,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalAPIKey_projectId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ID does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalAPIKey_projectName(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalAPIKey) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalAPIKey_projectName,
+		func(ctx context.Context) (any, error) {
+			return obj.ProjectName, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalAPIKey_projectName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalAPIKey_status(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalAPIKey) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalAPIKey_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNAPIKeyStatus2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋentᚋapikeyᚐStatus,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalAPIKey_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type APIKeyStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalAPIKey_deleted(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalAPIKey) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalAPIKey_deleted,
+		func(ctx context.Context) (any, error) {
+			return obj.Deleted, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalAPIKey_deleted(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalAPIKey_activeProfile(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalAPIKey) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalAPIKey_activeProfile,
+		func(ctx context.Context) (any, error) {
+			return obj.ActiveProfile, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalAPIKey_activeProfile(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalAPIKeyUsage_apiKey(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalAPIKeyUsage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalAPIKeyUsage_apiKey,
+		func(ctx context.Context) (any, error) {
+			return obj.APIKey, nil
+		},
+		nil,
+		ec.marshalNPersonalAPIKey2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalAPIKey,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalAPIKeyUsage_apiKey(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalAPIKeyUsage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PersonalAPIKey_id(ctx, field)
+			case "name":
+				return ec.fieldContext_PersonalAPIKey_name(ctx, field)
+			case "projectId":
+				return ec.fieldContext_PersonalAPIKey_projectId(ctx, field)
+			case "projectName":
+				return ec.fieldContext_PersonalAPIKey_projectName(ctx, field)
+			case "status":
+				return ec.fieldContext_PersonalAPIKey_status(ctx, field)
+			case "deleted":
+				return ec.fieldContext_PersonalAPIKey_deleted(ctx, field)
+			case "activeProfile":
+				return ec.fieldContext_PersonalAPIKey_activeProfile(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersonalAPIKey", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalAPIKeyUsage_metrics(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalAPIKeyUsage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalAPIKeyUsage_metrics,
+		func(ctx context.Context) (any, error) {
+			return obj.Metrics, nil
+		},
+		nil,
+		ec.marshalNPersonalUsageMetrics2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalUsageMetrics,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalAPIKeyUsage_metrics(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalAPIKeyUsage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "requests":
+				return ec.fieldContext_PersonalUsageMetrics_requests(ctx, field)
+			case "successfulRequests":
+				return ec.fieldContext_PersonalUsageMetrics_successfulRequests(ctx, field)
+			case "failedRequests":
+				return ec.fieldContext_PersonalUsageMetrics_failedRequests(ctx, field)
+			case "canceledRequests":
+				return ec.fieldContext_PersonalUsageMetrics_canceledRequests(ctx, field)
+			case "pendingRequests":
+				return ec.fieldContext_PersonalUsageMetrics_pendingRequests(ctx, field)
+			case "inputTokens":
+				return ec.fieldContext_PersonalUsageMetrics_inputTokens(ctx, field)
+			case "outputTokens":
+				return ec.fieldContext_PersonalUsageMetrics_outputTokens(ctx, field)
+			case "cachedTokens":
+				return ec.fieldContext_PersonalUsageMetrics_cachedTokens(ctx, field)
+			case "totalTokens":
+				return ec.fieldContext_PersonalUsageMetrics_totalTokens(ctx, field)
+			case "cost":
+				return ec.fieldContext_PersonalUsageMetrics_cost(ctx, field)
+			case "unpricedUsageCount":
+				return ec.fieldContext_PersonalUsageMetrics_unpricedUsageCount(ctx, field)
+			case "successRate":
+				return ec.fieldContext_PersonalUsageMetrics_successRate(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersonalUsageMetrics", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalAPIKeyUsage_quota(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalAPIKeyUsage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalAPIKeyUsage_quota,
+		func(ctx context.Context) (any, error) {
+			return obj.Quota, nil
+		},
+		nil,
+		ec.marshalOPersonalQuota2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalQuota,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalAPIKeyUsage_quota(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalAPIKeyUsage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "profileName":
+				return ec.fieldContext_PersonalQuota_profileName(ctx, field)
+			case "limit":
+				return ec.fieldContext_PersonalQuota_limit(ctx, field)
+			case "start":
+				return ec.fieldContext_PersonalQuota_start(ctx, field)
+			case "end":
+				return ec.fieldContext_PersonalQuota_end(ctx, field)
+			case "requests":
+				return ec.fieldContext_PersonalQuota_requests(ctx, field)
+			case "tokens":
+				return ec.fieldContext_PersonalQuota_tokens(ctx, field)
+			case "cost":
+				return ec.fieldContext_PersonalQuota_cost(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersonalQuota", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalDailyUsage_date(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalDailyUsage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalDailyUsage_date,
+		func(ctx context.Context) (any, error) {
+			return obj.Date, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalDailyUsage_date(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalDailyUsage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalDailyUsage_metrics(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalDailyUsage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalDailyUsage_metrics,
+		func(ctx context.Context) (any, error) {
+			return obj.Metrics, nil
+		},
+		nil,
+		ec.marshalNPersonalUsageMetrics2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalUsageMetrics,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalDailyUsage_metrics(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalDailyUsage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "requests":
+				return ec.fieldContext_PersonalUsageMetrics_requests(ctx, field)
+			case "successfulRequests":
+				return ec.fieldContext_PersonalUsageMetrics_successfulRequests(ctx, field)
+			case "failedRequests":
+				return ec.fieldContext_PersonalUsageMetrics_failedRequests(ctx, field)
+			case "canceledRequests":
+				return ec.fieldContext_PersonalUsageMetrics_canceledRequests(ctx, field)
+			case "pendingRequests":
+				return ec.fieldContext_PersonalUsageMetrics_pendingRequests(ctx, field)
+			case "inputTokens":
+				return ec.fieldContext_PersonalUsageMetrics_inputTokens(ctx, field)
+			case "outputTokens":
+				return ec.fieldContext_PersonalUsageMetrics_outputTokens(ctx, field)
+			case "cachedTokens":
+				return ec.fieldContext_PersonalUsageMetrics_cachedTokens(ctx, field)
+			case "totalTokens":
+				return ec.fieldContext_PersonalUsageMetrics_totalTokens(ctx, field)
+			case "cost":
+				return ec.fieldContext_PersonalUsageMetrics_cost(ctx, field)
+			case "unpricedUsageCount":
+				return ec.fieldContext_PersonalUsageMetrics_unpricedUsageCount(ctx, field)
+			case "successRate":
+				return ec.fieldContext_PersonalUsageMetrics_successRate(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersonalUsageMetrics", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalDashboard_timezone(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalDashboard) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalDashboard_timezone,
+		func(ctx context.Context) (any, error) {
+			return obj.Timezone, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalDashboard_timezone(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalDashboard",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalDashboard_overview(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalDashboard) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalDashboard_overview,
+		func(ctx context.Context) (any, error) {
+			return obj.Overview, nil
+		},
+		nil,
+		ec.marshalNPersonalUsageMetrics2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalUsageMetrics,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalDashboard_overview(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalDashboard",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "requests":
+				return ec.fieldContext_PersonalUsageMetrics_requests(ctx, field)
+			case "successfulRequests":
+				return ec.fieldContext_PersonalUsageMetrics_successfulRequests(ctx, field)
+			case "failedRequests":
+				return ec.fieldContext_PersonalUsageMetrics_failedRequests(ctx, field)
+			case "canceledRequests":
+				return ec.fieldContext_PersonalUsageMetrics_canceledRequests(ctx, field)
+			case "pendingRequests":
+				return ec.fieldContext_PersonalUsageMetrics_pendingRequests(ctx, field)
+			case "inputTokens":
+				return ec.fieldContext_PersonalUsageMetrics_inputTokens(ctx, field)
+			case "outputTokens":
+				return ec.fieldContext_PersonalUsageMetrics_outputTokens(ctx, field)
+			case "cachedTokens":
+				return ec.fieldContext_PersonalUsageMetrics_cachedTokens(ctx, field)
+			case "totalTokens":
+				return ec.fieldContext_PersonalUsageMetrics_totalTokens(ctx, field)
+			case "cost":
+				return ec.fieldContext_PersonalUsageMetrics_cost(ctx, field)
+			case "unpricedUsageCount":
+				return ec.fieldContext_PersonalUsageMetrics_unpricedUsageCount(ctx, field)
+			case "successRate":
+				return ec.fieldContext_PersonalUsageMetrics_successRate(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersonalUsageMetrics", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalDashboard_daily(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalDashboard) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalDashboard_daily,
+		func(ctx context.Context) (any, error) {
+			return obj.Daily, nil
+		},
+		nil,
+		ec.marshalNPersonalDailyUsage2ᚕᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalDailyUsageᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalDashboard_daily(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalDashboard",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "date":
+				return ec.fieldContext_PersonalDailyUsage_date(ctx, field)
+			case "metrics":
+				return ec.fieldContext_PersonalDailyUsage_metrics(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersonalDailyUsage", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalDashboard_models(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalDashboard) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalDashboard_models,
+		func(ctx context.Context) (any, error) {
+			return obj.Models, nil
+		},
+		nil,
+		ec.marshalNPersonalModelUsage2ᚕᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalModelUsageᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalDashboard_models(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalDashboard",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "modelId":
+				return ec.fieldContext_PersonalModelUsage_modelId(ctx, field)
+			case "metrics":
+				return ec.fieldContext_PersonalModelUsage_metrics(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersonalModelUsage", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalDashboard_apiKeys(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalDashboard) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalDashboard_apiKeys,
+		func(ctx context.Context) (any, error) {
+			return obj.APIKeys, nil
+		},
+		nil,
+		ec.marshalNPersonalAPIKeyUsage2ᚕᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalAPIKeyUsageᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalDashboard_apiKeys(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalDashboard",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "apiKey":
+				return ec.fieldContext_PersonalAPIKeyUsage_apiKey(ctx, field)
+			case "metrics":
+				return ec.fieldContext_PersonalAPIKeyUsage_metrics(ctx, field)
+			case "quota":
+				return ec.fieldContext_PersonalAPIKeyUsage_quota(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersonalAPIKeyUsage", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalModel_id(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalModel) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalModel_id,
+		func(ctx context.Context) (any, error) {
+			return obj.ID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalModel_id(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalModel",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalModel_modelId(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalModel) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalModel_modelId,
+		func(ctx context.Context) (any, error) {
+			return obj.ModelID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalModel_modelId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalModel",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalModel_name(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalModel) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalModel_name,
+		func(ctx context.Context) (any, error) {
+			return obj.Name, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalModel_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalModel",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalModel_developer(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalModel) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalModel_developer,
+		func(ctx context.Context) (any, error) {
+			return obj.Developer, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalModel_developer(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalModel",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalModel_icon(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalModel) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalModel_icon,
+		func(ctx context.Context) (any, error) {
+			return obj.Icon, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalModel_icon(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalModel",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalModel_group(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalModel) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalModel_group,
+		func(ctx context.Context) (any, error) {
+			return obj.Group, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalModel_group(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalModel",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalModel_type(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalModel) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalModel_type,
+		func(ctx context.Context) (any, error) {
+			return obj.Type, nil
+		},
+		nil,
+		ec.marshalOModelType2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋentᚋmodelᚐType,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalModel_type(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalModel",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ModelType does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalModel_status(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalModel) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalModel_status,
+		func(ctx context.Context) (any, error) {
+			return obj.Status, nil
+		},
+		nil,
+		ec.marshalNModelStatus2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋentᚋmodelᚐStatus,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalModel_status(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalModel",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type ModelStatus does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalModel_createdAt(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalModel) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalModel_createdAt,
+		func(ctx context.Context) (any, error) {
+			return obj.CreatedAt, nil
+		},
+		nil,
+		ec.marshalNTime2timeᚐTime,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalModel_createdAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalModel",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalModel_updatedAt(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalModel) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalModel_updatedAt,
+		func(ctx context.Context) (any, error) {
+			return obj.UpdatedAt, nil
+		},
+		nil,
+		ec.marshalNTime2timeᚐTime,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalModel_updatedAt(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalModel",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalModel_modelCard(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalModel) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalModel_modelCard,
+		func(ctx context.Context) (any, error) {
+			return obj.ModelCard, nil
+		},
+		nil,
+		ec.marshalOModelCard2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐModelCard,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalModel_modelCard(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalModel",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "reasoning":
+				return ec.fieldContext_ModelCard_reasoning(ctx, field)
+			case "toolCall":
+				return ec.fieldContext_ModelCard_toolCall(ctx, field)
+			case "temperature":
+				return ec.fieldContext_ModelCard_temperature(ctx, field)
+			case "modalities":
+				return ec.fieldContext_ModelCard_modalities(ctx, field)
+			case "vision":
+				return ec.fieldContext_ModelCard_vision(ctx, field)
+			case "cost":
+				return ec.fieldContext_ModelCard_cost(ctx, field)
+			case "limit":
+				return ec.fieldContext_ModelCard_limit(ctx, field)
+			case "knowledge":
+				return ec.fieldContext_ModelCard_knowledge(ctx, field)
+			case "releaseDate":
+				return ec.fieldContext_ModelCard_releaseDate(ctx, field)
+			case "lastUpdated":
+				return ec.fieldContext_ModelCard_lastUpdated(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModelCard", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalModel_apiKeys(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalModel) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalModel_apiKeys,
+		func(ctx context.Context) (any, error) {
+			return obj.APIKeys, nil
+		},
+		nil,
+		ec.marshalNPersonalAPIKey2ᚕᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalAPIKeyᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalModel_apiKeys(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalModel",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PersonalAPIKey_id(ctx, field)
+			case "name":
+				return ec.fieldContext_PersonalAPIKey_name(ctx, field)
+			case "projectId":
+				return ec.fieldContext_PersonalAPIKey_projectId(ctx, field)
+			case "projectName":
+				return ec.fieldContext_PersonalAPIKey_projectName(ctx, field)
+			case "status":
+				return ec.fieldContext_PersonalAPIKey_status(ctx, field)
+			case "deleted":
+				return ec.fieldContext_PersonalAPIKey_deleted(ctx, field)
+			case "activeProfile":
+				return ec.fieldContext_PersonalAPIKey_activeProfile(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersonalAPIKey", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalModelUsage_modelId(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalModelUsage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalModelUsage_modelId,
+		func(ctx context.Context) (any, error) {
+			return obj.ModelID, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalModelUsage_modelId(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalModelUsage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalModelUsage_metrics(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalModelUsage) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalModelUsage_metrics,
+		func(ctx context.Context) (any, error) {
+			return obj.Metrics, nil
+		},
+		nil,
+		ec.marshalNPersonalUsageMetrics2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalUsageMetrics,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalModelUsage_metrics(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalModelUsage",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "requests":
+				return ec.fieldContext_PersonalUsageMetrics_requests(ctx, field)
+			case "successfulRequests":
+				return ec.fieldContext_PersonalUsageMetrics_successfulRequests(ctx, field)
+			case "failedRequests":
+				return ec.fieldContext_PersonalUsageMetrics_failedRequests(ctx, field)
+			case "canceledRequests":
+				return ec.fieldContext_PersonalUsageMetrics_canceledRequests(ctx, field)
+			case "pendingRequests":
+				return ec.fieldContext_PersonalUsageMetrics_pendingRequests(ctx, field)
+			case "inputTokens":
+				return ec.fieldContext_PersonalUsageMetrics_inputTokens(ctx, field)
+			case "outputTokens":
+				return ec.fieldContext_PersonalUsageMetrics_outputTokens(ctx, field)
+			case "cachedTokens":
+				return ec.fieldContext_PersonalUsageMetrics_cachedTokens(ctx, field)
+			case "totalTokens":
+				return ec.fieldContext_PersonalUsageMetrics_totalTokens(ctx, field)
+			case "cost":
+				return ec.fieldContext_PersonalUsageMetrics_cost(ctx, field)
+			case "unpricedUsageCount":
+				return ec.fieldContext_PersonalUsageMetrics_unpricedUsageCount(ctx, field)
+			case "successRate":
+				return ec.fieldContext_PersonalUsageMetrics_successRate(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersonalUsageMetrics", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalQuota_profileName(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalQuota) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalQuota_profileName,
+		func(ctx context.Context) (any, error) {
+			return obj.ProfileName, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalQuota_profileName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalQuota",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalQuota_limit(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalQuota) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalQuota_limit,
+		func(ctx context.Context) (any, error) {
+			return obj.Limit, nil
+		},
+		nil,
+		ec.marshalNAPIKeyQuota2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐAPIKeyQuota,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalQuota_limit(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalQuota",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "requests":
+				return ec.fieldContext_APIKeyQuota_requests(ctx, field)
+			case "totalTokens":
+				return ec.fieldContext_APIKeyQuota_totalTokens(ctx, field)
+			case "cost":
+				return ec.fieldContext_APIKeyQuota_cost(ctx, field)
+			case "period":
+				return ec.fieldContext_APIKeyQuota_period(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type APIKeyQuota", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalQuota_start(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalQuota) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalQuota_start,
+		func(ctx context.Context) (any, error) {
+			return obj.Start, nil
+		},
+		nil,
+		ec.marshalOTime2ᚖtimeᚐTime,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalQuota_start(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalQuota",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalQuota_end(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalQuota) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalQuota_end,
+		func(ctx context.Context) (any, error) {
+			return obj.End, nil
+		},
+		nil,
+		ec.marshalOTime2ᚖtimeᚐTime,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalQuota_end(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalQuota",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalQuota_requests(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalQuota) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalQuota_requests,
+		func(ctx context.Context) (any, error) {
+			return obj.Requests, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalQuota_requests(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalQuota",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalQuota_tokens(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalQuota) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalQuota_tokens,
+		func(ctx context.Context) (any, error) {
+			return obj.Tokens, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalQuota_tokens(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalQuota",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalQuota_cost(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalQuota) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalQuota_cost,
+		func(ctx context.Context) (any, error) {
+			return obj.Cost, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalQuota_cost(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalQuota",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalUsageMetrics_requests(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalUsageMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalUsageMetrics_requests,
+		func(ctx context.Context) (any, error) {
+			return obj.Requests, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalUsageMetrics_requests(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalUsageMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalUsageMetrics_successfulRequests(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalUsageMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalUsageMetrics_successfulRequests,
+		func(ctx context.Context) (any, error) {
+			return obj.SuccessfulRequests, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalUsageMetrics_successfulRequests(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalUsageMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalUsageMetrics_failedRequests(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalUsageMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalUsageMetrics_failedRequests,
+		func(ctx context.Context) (any, error) {
+			return obj.FailedRequests, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalUsageMetrics_failedRequests(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalUsageMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalUsageMetrics_canceledRequests(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalUsageMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalUsageMetrics_canceledRequests,
+		func(ctx context.Context) (any, error) {
+			return obj.CanceledRequests, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalUsageMetrics_canceledRequests(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalUsageMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalUsageMetrics_pendingRequests(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalUsageMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalUsageMetrics_pendingRequests,
+		func(ctx context.Context) (any, error) {
+			return obj.PendingRequests, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalUsageMetrics_pendingRequests(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalUsageMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalUsageMetrics_inputTokens(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalUsageMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalUsageMetrics_inputTokens,
+		func(ctx context.Context) (any, error) {
+			return obj.InputTokens, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalUsageMetrics_inputTokens(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalUsageMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalUsageMetrics_outputTokens(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalUsageMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalUsageMetrics_outputTokens,
+		func(ctx context.Context) (any, error) {
+			return obj.OutputTokens, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalUsageMetrics_outputTokens(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalUsageMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalUsageMetrics_cachedTokens(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalUsageMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalUsageMetrics_cachedTokens,
+		func(ctx context.Context) (any, error) {
+			return obj.CachedTokens, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalUsageMetrics_cachedTokens(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalUsageMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalUsageMetrics_totalTokens(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalUsageMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalUsageMetrics_totalTokens,
+		func(ctx context.Context) (any, error) {
+			return obj.TotalTokens, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalUsageMetrics_totalTokens(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalUsageMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalUsageMetrics_cost(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalUsageMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalUsageMetrics_cost,
+		func(ctx context.Context) (any, error) {
+			return obj.Cost, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalUsageMetrics_cost(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalUsageMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalUsageMetrics_unpricedUsageCount(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalUsageMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalUsageMetrics_unpricedUsageCount,
+		func(ctx context.Context) (any, error) {
+			return obj.UnpricedUsageCount, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalUsageMetrics_unpricedUsageCount(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalUsageMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalUsageMetrics_successRate(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalUsageMetrics) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalUsageMetrics_successRate,
+		func(ctx context.Context) (any, error) {
+			return obj.SuccessRate, nil
+		},
+		nil,
+		ec.marshalOFloat2ᚖfloat64,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalUsageMetrics_successRate(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalUsageMetrics",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalWorkspace_timezone(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalWorkspace) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalWorkspace_timezone,
+		func(ctx context.Context) (any, error) {
+			return obj.Timezone, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalWorkspace_timezone(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalWorkspace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalWorkspace_currencyCode(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalWorkspace) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalWorkspace_currencyCode,
+		func(ctx context.Context) (any, error) {
+			return obj.CurrencyCode, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalWorkspace_currencyCode(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalWorkspace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalWorkspace_today(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalWorkspace) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalWorkspace_today,
+		func(ctx context.Context) (any, error) {
+			return obj.Today, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalWorkspace_today(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalWorkspace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _PersonalWorkspace_apiKeys(ctx context.Context, field graphql.CollectedField, obj *biz.PersonalWorkspace) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_PersonalWorkspace_apiKeys,
+		func(ctx context.Context) (any, error) {
+			return obj.APIKeys, nil
+		},
+		nil,
+		ec.marshalNPersonalAPIKey2ᚕᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalAPIKeyᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_PersonalWorkspace_apiKeys(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "PersonalWorkspace",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PersonalAPIKey_id(ctx, field)
+			case "name":
+				return ec.fieldContext_PersonalAPIKey_name(ctx, field)
+			case "projectId":
+				return ec.fieldContext_PersonalAPIKey_projectId(ctx, field)
+			case "projectName":
+				return ec.fieldContext_PersonalAPIKey_projectName(ctx, field)
+			case "status":
+				return ec.fieldContext_PersonalAPIKey_status(ctx, field)
+			case "deleted":
+				return ec.fieldContext_PersonalAPIKey_deleted(ctx, field)
+			case "activeProfile":
+				return ec.fieldContext_PersonalAPIKey_activeProfile(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersonalAPIKey", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _PriceOverride_name(ctx context.Context, field graphql.CollectedField, obj *objects.PriceOverride) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -46406,6 +48681,177 @@ func (ec *executionContext) fieldContext_Query_myProjects(_ context.Context, fie
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Project", field.Name)
 		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_myWorkspace(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_myWorkspace,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().MyWorkspace(ctx, fc.Args["projectId"].(*objects.GUID))
+		},
+		nil,
+		ec.marshalNPersonalWorkspace2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalWorkspace,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_myWorkspace(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "timezone":
+				return ec.fieldContext_PersonalWorkspace_timezone(ctx, field)
+			case "currencyCode":
+				return ec.fieldContext_PersonalWorkspace_currencyCode(ctx, field)
+			case "today":
+				return ec.fieldContext_PersonalWorkspace_today(ctx, field)
+			case "apiKeys":
+				return ec.fieldContext_PersonalWorkspace_apiKeys(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersonalWorkspace", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_myWorkspace_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_myDashboard(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_myDashboard,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().MyDashboard(ctx, fc.Args["input"].(biz.PersonalUsageInput))
+		},
+		nil,
+		ec.marshalNPersonalDashboard2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalDashboard,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_myDashboard(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "timezone":
+				return ec.fieldContext_PersonalDashboard_timezone(ctx, field)
+			case "overview":
+				return ec.fieldContext_PersonalDashboard_overview(ctx, field)
+			case "daily":
+				return ec.fieldContext_PersonalDashboard_daily(ctx, field)
+			case "models":
+				return ec.fieldContext_PersonalDashboard_models(ctx, field)
+			case "apiKeys":
+				return ec.fieldContext_PersonalDashboard_apiKeys(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersonalDashboard", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_myDashboard_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_myModels(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_myModels,
+		func(ctx context.Context) (any, error) {
+			fc := graphql.GetFieldContext(ctx)
+			return ec.resolvers.Query().MyModels(ctx, fc.Args["input"].(*PersonalModelsInput))
+		},
+		nil,
+		ec.marshalNPersonalModel2ᚕᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalModelᚄ,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_myModels(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "id":
+				return ec.fieldContext_PersonalModel_id(ctx, field)
+			case "modelId":
+				return ec.fieldContext_PersonalModel_modelId(ctx, field)
+			case "name":
+				return ec.fieldContext_PersonalModel_name(ctx, field)
+			case "developer":
+				return ec.fieldContext_PersonalModel_developer(ctx, field)
+			case "icon":
+				return ec.fieldContext_PersonalModel_icon(ctx, field)
+			case "group":
+				return ec.fieldContext_PersonalModel_group(ctx, field)
+			case "type":
+				return ec.fieldContext_PersonalModel_type(ctx, field)
+			case "status":
+				return ec.fieldContext_PersonalModel_status(ctx, field)
+			case "createdAt":
+				return ec.fieldContext_PersonalModel_createdAt(ctx, field)
+			case "updatedAt":
+				return ec.fieldContext_PersonalModel_updatedAt(ctx, field)
+			case "modelCard":
+				return ec.fieldContext_PersonalModel_modelCard(ctx, field)
+			case "apiKeys":
+				return ec.fieldContext_PersonalModel_apiKeys(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type PersonalModel", field.Name)
+		},
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			err = ec.Recover(ctx, r)
+			ec.Error(ctx, err)
+		}
+	}()
+	ctx = graphql.WithFieldContext(ctx, fc)
+	if fc.Args, err = ec.field_Query_myModels_args(ctx, field.ArgumentMap(ec.Variables)); err != nil {
+		ec.Error(ctx, err)
+		return fc, err
 	}
 	return fc, nil
 }
@@ -75473,6 +77919,95 @@ func (ec *executionContext) unmarshalInputOverrideWhenInput(ctx context.Context,
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputPersonalModelsInput(ctx context.Context, obj any) (PersonalModelsInput, error) {
+	var it PersonalModelsInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"projectId", "apiKeyId", "search"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "projectId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectId"))
+			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐGUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ProjectID = data
+		case "apiKeyId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("apiKeyId"))
+			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐGUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.APIKeyID = data
+		case "search":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("search"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Search = data
+		}
+	}
+
+	return it, nil
+}
+
+func (ec *executionContext) unmarshalInputPersonalUsageInput(ctx context.Context, obj any) (biz.PersonalUsageInput, error) {
+	var it biz.PersonalUsageInput
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"projectId", "apiKeyId", "startDate", "endDate"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "projectId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("projectId"))
+			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐGUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ProjectID = data
+		case "apiKeyId":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("apiKeyId"))
+			data, err := ec.unmarshalOID2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐGUID(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.APIKeyID = data
+		case "startDate":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startDate"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.StartDate = data
+		case "endDate":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("endDate"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.EndDate = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputPriceOverrideInput(ctx context.Context, obj any) (objects.PriceOverride, error) {
 	var it objects.PriceOverride
 	asMap := map[string]any{}
@@ -99909,6 +102444,564 @@ func (ec *executionContext) _PassThroughSettings(ctx context.Context, sel ast.Se
 	return out
 }
 
+var personalAPIKeyImplementors = []string{"PersonalAPIKey"}
+
+func (ec *executionContext) _PersonalAPIKey(ctx context.Context, sel ast.SelectionSet, obj *biz.PersonalAPIKey) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, personalAPIKeyImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PersonalAPIKey")
+		case "id":
+			out.Values[i] = ec._PersonalAPIKey_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._PersonalAPIKey_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "projectId":
+			out.Values[i] = ec._PersonalAPIKey_projectId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "projectName":
+			out.Values[i] = ec._PersonalAPIKey_projectName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "status":
+			out.Values[i] = ec._PersonalAPIKey_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "deleted":
+			out.Values[i] = ec._PersonalAPIKey_deleted(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "activeProfile":
+			out.Values[i] = ec._PersonalAPIKey_activeProfile(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var personalAPIKeyUsageImplementors = []string{"PersonalAPIKeyUsage"}
+
+func (ec *executionContext) _PersonalAPIKeyUsage(ctx context.Context, sel ast.SelectionSet, obj *biz.PersonalAPIKeyUsage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, personalAPIKeyUsageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PersonalAPIKeyUsage")
+		case "apiKey":
+			out.Values[i] = ec._PersonalAPIKeyUsage_apiKey(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "metrics":
+			out.Values[i] = ec._PersonalAPIKeyUsage_metrics(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "quota":
+			out.Values[i] = ec._PersonalAPIKeyUsage_quota(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var personalDailyUsageImplementors = []string{"PersonalDailyUsage"}
+
+func (ec *executionContext) _PersonalDailyUsage(ctx context.Context, sel ast.SelectionSet, obj *biz.PersonalDailyUsage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, personalDailyUsageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PersonalDailyUsage")
+		case "date":
+			out.Values[i] = ec._PersonalDailyUsage_date(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "metrics":
+			out.Values[i] = ec._PersonalDailyUsage_metrics(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var personalDashboardImplementors = []string{"PersonalDashboard"}
+
+func (ec *executionContext) _PersonalDashboard(ctx context.Context, sel ast.SelectionSet, obj *biz.PersonalDashboard) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, personalDashboardImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PersonalDashboard")
+		case "timezone":
+			out.Values[i] = ec._PersonalDashboard_timezone(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "overview":
+			out.Values[i] = ec._PersonalDashboard_overview(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "daily":
+			out.Values[i] = ec._PersonalDashboard_daily(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "models":
+			out.Values[i] = ec._PersonalDashboard_models(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "apiKeys":
+			out.Values[i] = ec._PersonalDashboard_apiKeys(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var personalModelImplementors = []string{"PersonalModel"}
+
+func (ec *executionContext) _PersonalModel(ctx context.Context, sel ast.SelectionSet, obj *biz.PersonalModel) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, personalModelImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PersonalModel")
+		case "id":
+			out.Values[i] = ec._PersonalModel_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "modelId":
+			out.Values[i] = ec._PersonalModel_modelId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "name":
+			out.Values[i] = ec._PersonalModel_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "developer":
+			out.Values[i] = ec._PersonalModel_developer(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "icon":
+			out.Values[i] = ec._PersonalModel_icon(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "group":
+			out.Values[i] = ec._PersonalModel_group(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "type":
+			out.Values[i] = ec._PersonalModel_type(ctx, field, obj)
+		case "status":
+			out.Values[i] = ec._PersonalModel_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "createdAt":
+			out.Values[i] = ec._PersonalModel_createdAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "updatedAt":
+			out.Values[i] = ec._PersonalModel_updatedAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "modelCard":
+			out.Values[i] = ec._PersonalModel_modelCard(ctx, field, obj)
+		case "apiKeys":
+			out.Values[i] = ec._PersonalModel_apiKeys(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var personalModelUsageImplementors = []string{"PersonalModelUsage"}
+
+func (ec *executionContext) _PersonalModelUsage(ctx context.Context, sel ast.SelectionSet, obj *biz.PersonalModelUsage) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, personalModelUsageImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PersonalModelUsage")
+		case "modelId":
+			out.Values[i] = ec._PersonalModelUsage_modelId(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "metrics":
+			out.Values[i] = ec._PersonalModelUsage_metrics(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var personalQuotaImplementors = []string{"PersonalQuota"}
+
+func (ec *executionContext) _PersonalQuota(ctx context.Context, sel ast.SelectionSet, obj *biz.PersonalQuota) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, personalQuotaImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PersonalQuota")
+		case "profileName":
+			out.Values[i] = ec._PersonalQuota_profileName(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "limit":
+			out.Values[i] = ec._PersonalQuota_limit(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "start":
+			out.Values[i] = ec._PersonalQuota_start(ctx, field, obj)
+		case "end":
+			out.Values[i] = ec._PersonalQuota_end(ctx, field, obj)
+		case "requests":
+			out.Values[i] = ec._PersonalQuota_requests(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "tokens":
+			out.Values[i] = ec._PersonalQuota_tokens(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "cost":
+			out.Values[i] = ec._PersonalQuota_cost(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var personalUsageMetricsImplementors = []string{"PersonalUsageMetrics"}
+
+func (ec *executionContext) _PersonalUsageMetrics(ctx context.Context, sel ast.SelectionSet, obj *biz.PersonalUsageMetrics) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, personalUsageMetricsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PersonalUsageMetrics")
+		case "requests":
+			out.Values[i] = ec._PersonalUsageMetrics_requests(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "successfulRequests":
+			out.Values[i] = ec._PersonalUsageMetrics_successfulRequests(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "failedRequests":
+			out.Values[i] = ec._PersonalUsageMetrics_failedRequests(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "canceledRequests":
+			out.Values[i] = ec._PersonalUsageMetrics_canceledRequests(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "pendingRequests":
+			out.Values[i] = ec._PersonalUsageMetrics_pendingRequests(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "inputTokens":
+			out.Values[i] = ec._PersonalUsageMetrics_inputTokens(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "outputTokens":
+			out.Values[i] = ec._PersonalUsageMetrics_outputTokens(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "cachedTokens":
+			out.Values[i] = ec._PersonalUsageMetrics_cachedTokens(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "totalTokens":
+			out.Values[i] = ec._PersonalUsageMetrics_totalTokens(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "cost":
+			out.Values[i] = ec._PersonalUsageMetrics_cost(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "unpricedUsageCount":
+			out.Values[i] = ec._PersonalUsageMetrics_unpricedUsageCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "successRate":
+			out.Values[i] = ec._PersonalUsageMetrics_successRate(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
+var personalWorkspaceImplementors = []string{"PersonalWorkspace"}
+
+func (ec *executionContext) _PersonalWorkspace(ctx context.Context, sel ast.SelectionSet, obj *biz.PersonalWorkspace) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, personalWorkspaceImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("PersonalWorkspace")
+		case "timezone":
+			out.Values[i] = ec._PersonalWorkspace_timezone(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "currencyCode":
+			out.Values[i] = ec._PersonalWorkspace_currencyCode(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "today":
+			out.Values[i] = ec._PersonalWorkspace_today(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "apiKeys":
+			out.Values[i] = ec._PersonalWorkspace_apiKeys(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var priceOverrideImplementors = []string{"PriceOverride"}
 
 func (ec *executionContext) _PriceOverride(ctx context.Context, sel ast.SelectionSet, obj *objects.PriceOverride) graphql.Marshaler {
@@ -103020,6 +106113,72 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_myProjects(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "myWorkspace":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_myWorkspace(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "myDashboard":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_myDashboard(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "myModels":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_myModels(ctx, field)
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
@@ -114862,6 +118021,319 @@ func (ec *executionContext) marshalNPassThroughSettings2ᚖgithubᚗcomᚋlooplj
 	return ec._PassThroughSettings(ctx, sel, v)
 }
 
+func (ec *executionContext) marshalNPersonalAPIKey2ᚕᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalAPIKeyᚄ(ctx context.Context, sel ast.SelectionSet, v []*biz.PersonalAPIKey) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPersonalAPIKey2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalAPIKey(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPersonalAPIKey2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalAPIKey(ctx context.Context, sel ast.SelectionSet, v *biz.PersonalAPIKey) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PersonalAPIKey(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPersonalAPIKeyUsage2ᚕᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalAPIKeyUsageᚄ(ctx context.Context, sel ast.SelectionSet, v []*biz.PersonalAPIKeyUsage) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPersonalAPIKeyUsage2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalAPIKeyUsage(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPersonalAPIKeyUsage2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalAPIKeyUsage(ctx context.Context, sel ast.SelectionSet, v *biz.PersonalAPIKeyUsage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PersonalAPIKeyUsage(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPersonalDailyUsage2ᚕᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalDailyUsageᚄ(ctx context.Context, sel ast.SelectionSet, v []*biz.PersonalDailyUsage) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPersonalDailyUsage2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalDailyUsage(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPersonalDailyUsage2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalDailyUsage(ctx context.Context, sel ast.SelectionSet, v *biz.PersonalDailyUsage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PersonalDailyUsage(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPersonalDashboard2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalDashboard(ctx context.Context, sel ast.SelectionSet, v biz.PersonalDashboard) graphql.Marshaler {
+	return ec._PersonalDashboard(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPersonalDashboard2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalDashboard(ctx context.Context, sel ast.SelectionSet, v *biz.PersonalDashboard) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PersonalDashboard(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPersonalModel2ᚕᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalModelᚄ(ctx context.Context, sel ast.SelectionSet, v []*biz.PersonalModel) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPersonalModel2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalModel(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPersonalModel2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalModel(ctx context.Context, sel ast.SelectionSet, v *biz.PersonalModel) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PersonalModel(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPersonalModelUsage2ᚕᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalModelUsageᚄ(ctx context.Context, sel ast.SelectionSet, v []*biz.PersonalModelUsage) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNPersonalModelUsage2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalModelUsage(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+
+	for _, e := range ret {
+		if e == graphql.Null {
+			return graphql.Null
+		}
+	}
+
+	return ret
+}
+
+func (ec *executionContext) marshalNPersonalModelUsage2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalModelUsage(ctx context.Context, sel ast.SelectionSet, v *biz.PersonalModelUsage) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PersonalModelUsage(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNPersonalUsageInput2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalUsageInput(ctx context.Context, v any) (biz.PersonalUsageInput, error) {
+	res, err := ec.unmarshalInputPersonalUsageInput(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNPersonalUsageMetrics2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalUsageMetrics(ctx context.Context, sel ast.SelectionSet, v *biz.PersonalUsageMetrics) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PersonalUsageMetrics(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNPersonalWorkspace2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalWorkspace(ctx context.Context, sel ast.SelectionSet, v biz.PersonalWorkspace) graphql.Marshaler {
+	return ec._PersonalWorkspace(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNPersonalWorkspace2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalWorkspace(ctx context.Context, sel ast.SelectionSet, v *biz.PersonalWorkspace) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			graphql.AddErrorf(ctx, "the requested element is null which the schema does not allow")
+		}
+		return graphql.Null
+	}
+	return ec._PersonalWorkspace(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalNPriceItemCode2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐPriceItemCode(ctx context.Context, v any) (objects.PriceItemCode, error) {
 	tmp, err := graphql.UnmarshalString(v)
 	res := objects.PriceItemCode(tmp)
@@ -120681,6 +124153,13 @@ func (ec *executionContext) unmarshalOModelAssociationWhenInput2ᚖgithubᚗcom�
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) marshalOModelCard2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐModelCard(ctx context.Context, sel ast.SelectionSet, v *objects.ModelCard) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ModelCard(ctx, sel, v)
+}
+
 func (ec *executionContext) unmarshalOModelCardCostInput2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐModelCardCost(ctx context.Context, v any) (objects.ModelCardCost, error) {
 	res, err := ec.unmarshalInputModelCardCostInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -121333,6 +124812,21 @@ func (ec *executionContext) unmarshalOOverrideOperationInput2ᚕgithubᚗcomᚋl
 		}
 	}
 	return res, nil
+}
+
+func (ec *executionContext) unmarshalOPersonalModelsInput2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋgqlᚐPersonalModelsInput(ctx context.Context, v any) (*PersonalModelsInput, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputPersonalModelsInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOPersonalQuota2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋserverᚋbizᚐPersonalQuota(ctx context.Context, sel ast.SelectionSet, v *biz.PersonalQuota) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._PersonalQuota(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOPriceSchedule2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐPriceSchedule(ctx context.Context, sel ast.SelectionSet, v *objects.PriceSchedule) graphql.Marshaler {

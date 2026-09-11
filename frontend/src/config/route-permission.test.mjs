@@ -10,18 +10,18 @@ const noPermissions = {
   isProjectOwner: false,
 };
 
-test('login chooses an accessible page instead of sending every member to the playground', () => {
-  assert.equal(getDefaultRoute({ ...noPermissions, projectScopes: ['read_api_keys', 'read_requests'] }, true), '/project/api-keys');
-  assert.equal(getDefaultRoute({ ...noPermissions, projectScopes: ['read_requests'] }, true), '/project/requests');
-  assert.equal(getDefaultRoute({ ...noPermissions, projectScopes: ['write_requests'] }, true), '/project/playground');
-  assert.equal(getDefaultRoute({ ...noPermissions, systemScopes: ['read_channels'] }, true), '/channels');
+test('members land on their personal dashboard while administrators retain the system dashboard', () => {
+  assert.equal(getDefaultRoute({ ...noPermissions, projectScopes: ['read_api_keys', 'read_requests'] }, true), '/me/dashboard');
+  assert.equal(getDefaultRoute({ ...noPermissions, projectScopes: ['read_requests'] }, true), '/me/dashboard');
+  assert.equal(getDefaultRoute({ ...noPermissions, projectScopes: ['write_requests'] }, true), '/me/dashboard');
+  assert.equal(getDefaultRoute({ ...noPermissions, systemScopes: ['read_channels'] }, true), '/me/dashboard');
   assert.equal(getDefaultRoute({ ...noPermissions, isOwner: true }, false), '/');
 });
 
-test('login falls back to the profile when no business page is accessible', () => {
-  assert.equal(getDefaultRoute(noPermissions, true), '/settings/profile');
-  assert.equal(getDefaultRoute({ ...noPermissions, projectScopes: ['read_users'] }, true), '/settings/profile');
-  assert.equal(getDefaultRoute({ ...noPermissions, projectScopes: ['read_requests'] }, false), '/settings/profile');
+test('personal dashboard remains accessible without project or business scopes', () => {
+  assert.equal(getDefaultRoute(noPermissions, true), '/me/dashboard');
+  assert.equal(getDefaultRoute({ ...noPermissions, projectScopes: ['read_users'] }, true), '/me/dashboard');
+  assert.equal(getDefaultRoute({ ...noPermissions, projectScopes: ['read_requests'] }, false), '/me/dashboard');
 });
 
 function canAccess(permissions, path) {

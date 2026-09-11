@@ -1,4 +1,6 @@
 import * as React from 'react';
+import { useLocation } from '@tanstack/react-router';
+import { usePersonalScope } from '@/stores/personalWorkspaceStore';
 import { ChevronsUpDown, FolderKanban } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { useProjectStore } from '@/stores/projectStore';
@@ -16,6 +18,16 @@ export function ProjectSwitcher() {
   const { data: myProjects, isLoading: isLoadingProjects } = useMyProjects();
   const { t } = useTranslation();
   const { selectedProjectId, setSelectedProjectId } = useProjectStore();
+  const pathname = useLocation({ select: (location) => location.pathname });
+  const isPersonal = pathname.startsWith('/me/');
+  const personal = usePersonalScope();
+  const activeProjectId = isPersonal ? personal.projectId : selectedProjectId;
+
+  React.useEffect(() => {
+    if (isPersonal && personal.projectId && myProjects && !myProjects.some((project) => project.id === personal.projectId)) {
+      personal.setProjectId(null);
+    }
+  }, [isPersonal, personal.projectId, personal.setProjectId, myProjects]);
 
   // 当项目列表加载完成后，验证并设置选中的项目
   React.useEffect(() => {
@@ -49,13 +61,14 @@ export function ProjectSwitcher() {
 
   // 处理项目切换
   const handleProjectChange = (projectId: string) => {
-    setSelectedProjectId(projectId);
+    if (isPersonal) personal.setProjectId(projectId);
+    else setSelectedProjectId(projectId);
   };
 
   // 获取当前选中的项目
   const selectedProject = React.useMemo(() => {
-    return myProjects?.find((p) => p.id === selectedProjectId);
-  }, [myProjects, selectedProjectId]);
+    return myProjects?.find((p) => p.id === activeProjectId);
+  }, [myProjects, activeProjectId]);
 
   // 是否有项目可以切换
   const hasProjects = !isLoadingProjects && myProjects && myProjects.length > 0;
@@ -64,7 +77,7 @@ export function ProjectSwitcher() {
     return null;
   }
 
-  const displayName = selectedProject?.name || t('sidebar.projectSwitcher.selectProject');
+  const displayName = isPersonal && !activeProjectId ? t('personal.allProjects') : selectedProject?.name || t('sidebar.projectSwitcher.selectProject');
 
   return (
     <DropdownMenu>
@@ -76,6 +89,11 @@ export function ProjectSwitcher() {
       </DropdownMenuTrigger>
       <DropdownMenuContent className='min-w-56 rounded-lg' align='start' sideOffset={4}>
         <DropdownMenuLabel className='text-muted-foreground text-xs'>{t('sidebar.projectSwitcher.projects')}</DropdownMenuLabel>
+        {isPersonal && <DropdownMenuItem onClick={() => personal.setProjectId(null)} className='gap-2 p-2'>
+          <div className='flex size-6 items-center justify-center rounded-sm border'><FolderKanban className='size-4' /></div>
+          <span className='text-sm font-medium'>{t('personal.allProjects')}</span>
+          {!activeProjectId && <DropdownMenuShortcut>✓</DropdownMenuShortcut>}
+        </DropdownMenuItem>}
         {myProjects.map((project) => (
           <DropdownMenuItem key={project.id} onClick={() => handleProjectChange(project.id)} className='gap-2 p-2'>
             <div className='flex size-6 items-center justify-center rounded-sm border'>
@@ -84,7 +102,7 @@ export function ProjectSwitcher() {
             <div className='flex flex-col'>
               <span className='text-sm font-medium'>{project.name}</span>
             </div>
-            {selectedProjectId === project.id && <DropdownMenuShortcut>✓</DropdownMenuShortcut>}
+            {activeProjectId === project.id && <DropdownMenuShortcut>✓</DropdownMenuShortcut>}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

@@ -1001,13 +1001,13 @@ export interface DeveloperModelSettings {
   associations: ModelAssociation[];
 }
 
-export function useModelSettings() {
+export function useModelSettings(options?: { enabled?: boolean }) {
   const { handleError } = useErrorHandler();
   const { hasSystemScope } = usePermissions();
 
   return useQuery({
     queryKey: ['modelSettings'],
-    enabled: hasSystemScope('read_settings'),
+    enabled: options?.enabled !== false && hasSystemScope('read_settings'),
     queryFn: async () => {
       try {
         const data = await graphqlRequest<{ systemModelSettings: ModelSettings }>(MODEL_SETTINGS_QUERY);
