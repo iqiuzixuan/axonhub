@@ -384,6 +384,12 @@ type PassThroughSettings struct {
 	Enabled bool `json:"enabled"`
 }
 
+type PersonalModelsInput struct {
+	ProjectID *objects.GUID `json:"projectId,omitempty"`
+	APIKeyID  *objects.GUID `json:"apiKeyId,omitempty"`
+	Search    *string       `json:"search,omitempty"`
+}
+
 type PromptProtectionRulePreviewInput struct {
 	Pattern  string                            `json:"pattern"`
 	TestText string                            `json:"testText"`

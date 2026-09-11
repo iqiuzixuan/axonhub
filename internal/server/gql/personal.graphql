@@ -1,0 +1,95 @@
+# Self-service queries never accept a user ID and never return Ent nodes.
+input PersonalUsageInput {
+  projectId: ID
+  apiKeyId: ID
+  startDate: String!
+  endDate: String!
+}
+
+input PersonalModelsInput {
+  projectId: ID
+  apiKeyId: ID
+  search: String
+}
+
+type PersonalAPIKey {
+  id: ID!
+  name: String!
+  projectId: ID!
+  projectName: String!
+  status: APIKeyStatus!
+  deleted: Boolean!
+  activeProfile: String!
+}
+
+type PersonalQuota {
+  profileName: String!
+  limit: APIKeyQuota!
+  start: Time
+  end: Time
+  requests: Float!
+  tokens: Float!
+  cost: Float!
+}
+type PersonalWorkspace {
+  timezone: String!
+  currencyCode: String!
+  today: String!
+  apiKeys: [PersonalAPIKey!]!
+}
+
+type PersonalUsageMetrics {
+  requests: Float!
+  successfulRequests: Float!
+  failedRequests: Float!
+  canceledRequests: Float!
+  pendingRequests: Float!
+  inputTokens: Float!
+  outputTokens: Float!
+  cachedTokens: Float!
+  totalTokens: Float!
+  cost: Float!
+  unpricedUsageCount: Float!
+  successRate: Float
+}
+
+type PersonalDailyUsage {
+  date: String!
+  metrics: PersonalUsageMetrics!
+}
+type PersonalModelUsage {
+  modelId: String!
+  metrics: PersonalUsageMetrics!
+}
+type PersonalAPIKeyUsage {
+  apiKey: PersonalAPIKey!
+  metrics: PersonalUsageMetrics!
+  quota: PersonalQuota
+}
+type PersonalDashboard {
+  timezone: String!
+  overview: PersonalUsageMetrics!
+  daily: [PersonalDailyUsage!]!
+  models: [PersonalModelUsage!]!
+  apiKeys: [PersonalAPIKeyUsage!]!
+}
+type PersonalModel {
+  id: String!
+  modelId: String!
+  name: String!
+  developer: String!
+  icon: String!
+  group: String!
+  type: ModelType
+  status: ModelStatus!
+  createdAt: Time!
+  updatedAt: Time!
+  modelCard: ModelCard
+  apiKeys: [PersonalAPIKey!]!
+}
+
+extend type Query {
+  myWorkspace(projectId: ID): PersonalWorkspace!
+  myDashboard(input: PersonalUsageInput!): PersonalDashboard!
+  myModels(input: PersonalModelsInput): [PersonalModel!]!
+}

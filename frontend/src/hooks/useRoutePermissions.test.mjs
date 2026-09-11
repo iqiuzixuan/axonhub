@@ -171,7 +171,7 @@ test('password and SSO login reach an accessible page through the shared home ro
     mutation.onSuccess(method === 'password' ? response : { data: response });
     assert.deepEqual(navigations.pop(), { to: '/', replace: true });
     assert.equal(renderHome(), '');
-    assert.deepEqual(navigations.pop(), { to: '/project/api-keys', replace: true });
+    assert.deepEqual(navigations.pop(), { to: '/me/dashboard', replace: true });
     assert.equal(dashboardMounts, 0);
   }
 });
@@ -187,18 +187,18 @@ test('home waits for the active project selection instead of redirecting with em
   assert.deepEqual(navigations, []);
   selectedProjectId = 'project-a';
   renderHome();
-  assert.deepEqual(navigations, [{ to: '/project/requests', replace: true }]);
+  assert.deepEqual(navigations, [{ to: '/me/dashboard', replace: true }]);
 });
 
 test('a pending navigation cannot make the old home guard redirect again to the profile', () => {
   authUser.projects[0].effectiveScopes = ['read_api_keys', 'read_requests'];
   locationPathname = '/';
   renderHome();
-  assert.deepEqual(navigations.pop(), { to: '/project/api-keys', replace: true });
+  assert.deepEqual(navigations.pop(), { to: '/me/dashboard', replace: true });
   // The router updates its URL while the old home match is still mounted.
   locationPathname = '/project/api-keys';
   renderHome();
-  assert.deepEqual(navigations, [{ to: '/project/api-keys', replace: true }]);
+  assert.deepEqual(navigations, [{ to: '/me/dashboard', replace: true }]);
   assert.equal(dashboardMounts, 0);
 });
 
@@ -209,15 +209,15 @@ test('home waits for a stale project to be cleared when there are no active proj
   assert.deepEqual(navigations, []);
   selectedProjectId = null;
   renderHome();
-  assert.deepEqual(navigations, [{ to: '/settings/profile', replace: true }]);
+  assert.deepEqual(navigations, [{ to: '/me/dashboard', replace: true }]);
 });
 
-test('members without business scopes land on their profile and owners retain the dashboard', () => {
+test('members without business scopes land on their personal dashboard and owners retain the system dashboard', () => {
   authUser.projects = [];
   myProjects = [];
   selectedProjectId = null;
   assert.equal(renderHome(), '');
-  assert.deepEqual(navigations.pop(), { to: '/settings/profile', replace: true });
+  assert.deepEqual(navigations.pop(), { to: '/me/dashboard', replace: true });
   authUser.isOwner = true;
   assert.match(renderHome(), /dashboard-loaded/);
   assert.equal(dashboardMounts, 1);
@@ -241,7 +241,7 @@ test('the denied playground returns to a permitted page even if its explicit fal
   assert.match(html, /common.routeGuard.accessDenied/);
   assert.doesNotMatch(html, /playground-loaded/);
   goBack();
-  assert.deepEqual(navigations, [{ to: '/project/api-keys', replace: true }]);
+  assert.deepEqual(navigations, [{ to: '/me/dashboard', replace: true }]);
 });
 
 function readMenu() {

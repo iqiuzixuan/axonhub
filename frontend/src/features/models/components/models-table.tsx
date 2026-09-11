@@ -52,6 +52,8 @@ interface ModelsTableProps {
   onSortingChange: (updater: SortingState | ((prev: SortingState) => SortingState)) => void;
   onNameFilterChange: (filter: string) => void;
   canWrite?: boolean;
+  showAssociations?: boolean;
+  renderExpandedFooter?: (model: Model) => React.ReactNode;
 }
 
 export function ModelsTable({
@@ -64,11 +66,13 @@ export function ModelsTable({
   onSortingChange,
   onNameFilterChange,
   canWrite = true,
+  showAssociations = true,
+  renderExpandedFooter,
 }: ModelsTableProps) {
   const { t } = useTranslation();
   const getDeveloperLabel = useDeveloperLabel();
   const { setSelectedModels, setResetRowSelection, setOpen, setCurrentDeveloper } = useModels();
-  const { data: modelSettings } = useModelSettings();
+  const { data: modelSettings } = useModelSettings({ enabled: showAssociations });
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [expanded, setExpanded] = useState<ExpandedState>({});
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -271,7 +275,7 @@ export function ModelsTable({
                           <Badge variant='secondary' className='text-xs'>
                             {rows.length}
                           </Badge>
-                          {canWrite ? (
+                          {showAssociations && (canWrite ? (
                             <Button
                               variant='ghost'
                               size='sm'
@@ -296,7 +300,7 @@ export function ModelsTable({
                                 {developerRuleCount}
                               </Badge>
                             </div>
-                          )}
+                          ))}
                         </div>
                       </TableCell>
                     </TableRow>
@@ -502,6 +506,7 @@ export function ModelsTable({
                                         </div>
                                       </div>
                                     </div>
+                                    {renderExpandedFooter && <div className='border-t pt-4'>{renderExpandedFooter(model)}</div>}
                                   </div>
                                 </motion.div>
                             </TableCell>

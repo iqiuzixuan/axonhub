@@ -80,6 +80,13 @@ export const routeConfigs: RouteGroup[] = [
     ],
   },
   {
+    title: 'Personal',
+    routes: [
+      { path: '/me/dashboard', mode: 'hidden' },
+      { path: '/me/models', mode: 'hidden' },
+    ],
+  },
+  {
     title: 'Project',
     scopeLevel: 'any', // Project 路由组可以通过 system-level 或 project-level 权限访问
     routes: [
@@ -212,19 +219,9 @@ export function hasGroupAccess(permissions: RoutePermissions, group: RouteGroup)
   return group.routes.some((route) => hasRouteAccess(permissions, { ...route, scopeLevel: route.scopeLevel ?? group.scopeLevel }));
 }
 
-export function getDefaultRoute(permissions: RoutePermissions, hasSelectedProject: boolean): string {
-  for (const group of routeConfigs) {
-    for (const route of group.routes) {
-      // Exclude demo/settings routes and project pages without a selected project.
-      if (route.mode !== 'hidden' || (route.path.startsWith('/project/') && !hasSelectedProject)) {
-        continue;
-      }
-      if (hasRouteAccess(permissions, { ...route, scopeLevel: route.scopeLevel ?? group.scopeLevel })) {
-        return route.path;
-      }
-    }
-  }
-
-  // Every signed-in user can access their own profile, even without business scopes.
-  return '/settings/profile';
+export function getDefaultRoute(permissions: RoutePermissions, _hasSelectedProject: boolean): string {
+  // Personal pages need only a signed-in session, even without project scopes.
+  return hasRouteAccess(permissions, { path: '/', requiredScopes: ['read_dashboard'], scopeLevel: 'system' })
+    ? '/'
+    : '/me/dashboard';
 }

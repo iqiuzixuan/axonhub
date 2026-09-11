@@ -84,6 +84,13 @@ export function useSidebarData(): SidebarData {
       ],
     },
     {
+      title: t('personal.sidebarGroup'),
+      items: [
+        { title: t('sidebar.items.dashboard'), url: '/me/dashboard', icon: IconLayoutDashboard } as NavLink,
+        { title: t('sidebar.items.models'), url: '/me/models', icon: IconRobot } as NavLink,
+      ],
+    },
+    {
       title: t('sidebar.groups.project'),
       items: [
         {

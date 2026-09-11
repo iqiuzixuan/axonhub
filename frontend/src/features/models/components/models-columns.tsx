@@ -16,6 +16,7 @@ import { Model } from '../data/schema';
 import { DataTableRowActions } from './data-table-row-actions';
 import { ModelsStatusDialog } from './models-status-dialog';
 import { useDeveloperLabel } from './models-table';
+import { ModelIDCopyCell } from './model-id-copy-cell';
 
 // Status Switch Cell Component to handle status toggle with confirmation dialog
 function StatusSwitchCell({ row }: { row: Row<Model> }) {
@@ -80,8 +81,8 @@ function AssociationRulesCell({ row }: { row: Row<Model> }) {
   );
 }
 
-export const createColumns = (t: ReturnType<typeof useTranslation>['t'], canWrite: boolean = true): ColumnDef<Model>[] => {
-  return [
+export const createColumns = (t: ReturnType<typeof useTranslation>['t'], canWrite: boolean = true, options: { showAssociations?: boolean; readOnly?: boolean; copyModelID?: boolean } = {}): ColumnDef<Model>[] => {
+  const columns: ColumnDef<Model>[] = [
     {
       id: 'expand',
       header: () => null,
@@ -166,7 +167,7 @@ export const createColumns = (t: ReturnType<typeof useTranslation>['t'], canWrit
       accessorKey: 'modelID',
       header: ({ column }) => <DataTableColumnHeader column={column} title={t('models.columns.modelId')} />,
       cell: ({ row }) => {
-        return <span className='text-sm font-medium'>{row.getValue('modelID')}</span>;
+        return options.copyModelID ? <ModelIDCopyCell value={row.original.modelID} /> : <span className='text-sm font-medium'>{row.getValue('modelID')}</span>;
       },
       meta: {
         className: 'min-w-48',
@@ -284,7 +285,7 @@ export const createColumns = (t: ReturnType<typeof useTranslation>['t'], canWrit
     {
       accessorKey: 'status',
       header: ({ column }) => <DataTableColumnHeader column={column} title={t('common.columns.status')} />,
-      cell: StatusSwitchCell,
+      cell: options.readOnly ? ({ row }) => <Badge variant='outline'>{t(`personal.status.${row.original.status}`)}</Badge> : StatusSwitchCell,
       enableSorting: false,
       enableHiding: false,
     },
@@ -344,4 +345,7 @@ export const createColumns = (t: ReturnType<typeof useTranslation>['t'], canWrit
             }]
           : []),
   ];
+  return options.showAssociations === false
+    ? columns.filter((column) => column.id !== 'associationRules' && column.id !== 'associatedChannels')
+    : columns;
 };

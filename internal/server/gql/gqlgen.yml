@@ -7,6 +7,7 @@ schema:
   - dashboard.graphql
   - scopes.graphql
   - me.graphql
+  - personal.graphql
   - system.graphql
   - filter.graphql
   - model.graphql
@@ -781,3 +782,43 @@ models:
   DeleteDisabledAPIKeysPayload:
     model:
       - github.com/looplj/axonhub/internal/server/biz.DeleteDisabledAPIKeysResult
+
+  PersonalUsageInput:
+    model:
+      - github.com/looplj/axonhub/internal/server/biz.PersonalUsageInput
+
+  PersonalAPIKey:
+    model:
+      - github.com/looplj/axonhub/internal/server/biz.PersonalAPIKey
+
+  PersonalQuota:
+    model:
+      - github.com/looplj/axonhub/internal/server/biz.PersonalQuota
+
+  PersonalUsageMetrics:
+    model:
+      - github.com/looplj/axonhub/internal/server/biz.PersonalUsageMetrics
+
+  PersonalDailyUsage:
+    model:
+      - github.com/looplj/axonhub/internal/server/biz.PersonalDailyUsage
+
+  PersonalModelUsage:
+    model:
+      - github.com/looplj/axonhub/internal/server/biz.PersonalModelUsage
+
+  PersonalAPIKeyUsage:
+    model:
+      - github.com/looplj/axonhub/internal/server/biz.PersonalAPIKeyUsage
+
+  PersonalDashboard:
+    model:
+      - github.com/looplj/axonhub/internal/server/biz.PersonalDashboard
+
+  PersonalModel:
+    model:
+      - github.com/looplj/axonhub/internal/server/biz.PersonalModel
+
+  PersonalWorkspace:
+    model:
+      - github.com/looplj/axonhub/internal/server/biz.PersonalWorkspace

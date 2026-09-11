@@ -68,6 +68,7 @@ type Dependencies struct {
 	ChannelOverrideTemplateService *biz.ChannelOverrideTemplateService
 	APIKeyProfileTemplateService   *biz.APIKeyProfileTemplateService
 	ModelService                   *biz.ModelService
+	PersonalService                *biz.PersonalService
 	BackupService                  *backup.BackupService
 	ChannelProbeService            *biz.ChannelProbeService
 	PromptService                  *biz.PromptService
@@ -108,6 +109,7 @@ func NewGraphqlHandlers(deps Dependencies) *GraphqlHandler {
 			deps.ChannelOverrideTemplateService,
 			deps.APIKeyProfileTemplateService,
 			deps.ModelService,
+			deps.PersonalService,
 			deps.BackupService,
 			deps.ChannelProbeService,
 			deps.PromptService,

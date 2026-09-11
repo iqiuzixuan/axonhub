@@ -643,6 +643,11 @@ func (svc *ModelService) ListModels(ctx context.Context, statusIn []model.Status
 // When HideUnroutableModelsInList is true, configured models with no capable
 // endpoint on the key-scoped channels are omitted from this public list.
 func (svc *ModelService) ListEnabledModels(ctx context.Context) ([]ModelFacade, error) {
+	apiKey, _ := contexts.GetAPIKey(ctx)
+	return svc.listEnabledModels(ctx, apiKey, false)
+}
+
+func (svc *ModelService) listEnabledModels(ctx context.Context, apiKey *ent.APIKey, requireRoutable bool) ([]ModelFacade, error) {
 	var (
 		channels = svc.channelService.GetEnabledChannels()
 		profile  *objects.APIKeyProfile
@@ -650,7 +655,7 @@ func (svc *ModelService) ListEnabledModels(ctx context.Context) ([]ModelFacade, 
 
 	ctx = authz.WithScopeDecision(ctx, scopes.ScopeReadChannels)
 
-	if apiKey, ok := contexts.GetAPIKey(ctx); ok && apiKey != nil {
+	if apiKey != nil {
 		// Project-level profile filtering (upper boundary)
 		if projectProfile := apiKey.Edges.Project.GetActiveProfile(); projectProfile != nil {
 			if len(projectProfile.ChannelIDs) > 0 {
@@ -688,7 +693,7 @@ func (svc *ModelService) ListEnabledModels(ctx context.Context) ([]ModelFacade, 
 	}
 
 	// Query configured Model entities (used in both modes)
-	configuredModels, suppressedIDs, err := svc.queryConfiguredModelFacades(ctx, allowedModelIDs, channels)
+	configuredModels, suppressedIDs, err := svc.queryConfiguredModelFacades(ctx, allowedModelIDs, channels, requireRoutable)
 	if err != nil {
 		return nil, err
 	}
@@ -757,7 +762,7 @@ func (svc *ModelService) ListEnabledModels(ctx context.Context) ([]ModelFacade, 
 // filtered by allowed model IDs and channel associations.
 // suppressedIDs are configured model IDs omitted as structurally unroutable; callers that
 // merge channel-derived models must treat them as already seen so they are not resurrected.
-func (svc *ModelService) queryConfiguredModelFacades(ctx context.Context, allowedModelIDs []string, channels []*Channel) ([]ModelFacade, map[string]struct{}, error) {
+func (svc *ModelService) queryConfiguredModelFacades(ctx context.Context, allowedModelIDs []string, channels []*Channel, requireRoutable bool) ([]ModelFacade, map[string]struct{}, error) {
 	query := svc.entFromContext(ctx).
 		Model.
 		Query().
@@ -779,10 +784,13 @@ func (svc *ModelService) queryConfiguredModelFacades(ctx context.Context, allowe
 		effectiveAssociations := EffectiveModelAssociations(systemSettings, m)
 		connections := MatchConnections(effectiveAssociations, channels)
 		if len(connections) == 0 {
+			if requireRoutable {
+				suppressedIDs[m.ModelID] = struct{}{}
+			}
 			continue
 		}
 
-		if systemSettings.HideUnroutableModelsInList && !hasCapableEndpointForModel(m, connections) {
+		if (requireRoutable || systemSettings.HideUnroutableModelsInList) && !hasCapableEndpointForModel(m, connections) {
 			suppressedIDs[m.ModelID] = struct{}{}
 			continue
 		}

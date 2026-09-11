@@ -40,6 +40,7 @@ type Resolver struct {
 	channelOverrideTemplateService *biz.ChannelOverrideTemplateService
 	apiKeyProfileTemplateService   *biz.APIKeyProfileTemplateService
 	modelService                   *biz.ModelService
+	personalService                *biz.PersonalService
 	backupService                  *backup.BackupService
 	channelProbeService            *biz.ChannelProbeService
 	promptService                  *biz.PromptService
@@ -75,6 +76,7 @@ func NewSchema(
 	channelOverrideTemplateService *biz.ChannelOverrideTemplateService,
 	apiKeyProfileTemplateService *biz.APIKeyProfileTemplateService,
 	modelService *biz.ModelService,
+	personalService *biz.PersonalService,
 	backupService *backup.BackupService,
 	channelProbeService *biz.ChannelProbeService,
 	promptService *biz.PromptService,
@@ -109,6 +111,7 @@ func NewSchema(
 			channelOverrideTemplateService: channelOverrideTemplateService,
 			apiKeyProfileTemplateService:   apiKeyProfileTemplateService,
 			modelService:                   modelService,
+			personalService:                personalService,
 			backupService:                  backupService,
 			channelProbeService:            channelProbeService,
 			promptService:                  promptService,
