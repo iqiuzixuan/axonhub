@@ -14,6 +14,7 @@ let selectedProjectId;
 let authUser;
 let meData;
 let pathname;
+let locationPathname;
 let navigations;
 let effects;
 let goBack;
@@ -49,7 +50,8 @@ const { RouteGuard } = loadComponent('../components/route-guard.tsx', {
   react: { ...React, useEffect: (effect) => effects.push(effect) },
   '@tanstack/react-router': {
     useRouter: () => router,
-    useLocation: ({ select }) => select({ pathname }),
+    useLocation: ({ select }) => select({ pathname: locationPathname }),
+    useMatch: ({ select }) => select({ pathname }),
   },
   '@tabler/icons-react': { IconShieldX: () => null, IconArrowLeft: () => null },
   'react-i18next': { useTranslation: () => ({ t: (key) => key }) },
@@ -122,6 +124,7 @@ const { useMyProjects } = loadComponent('../features/projects/data/projects.ts',
 beforeEach(() => {
   selectedProjectId = 'project-a';
   pathname = '/project/users/';
+  locationPathname = pathname;
   navigations = [];
   effects = [];
   goBack = undefined;
@@ -185,6 +188,18 @@ test('home waits for the active project selection instead of redirecting with em
   selectedProjectId = 'project-a';
   renderHome();
   assert.deepEqual(navigations, [{ to: '/project/requests', replace: true }]);
+});
+
+test('a pending navigation cannot make the old home guard redirect again to the profile', () => {
+  authUser.projects[0].effectiveScopes = ['read_api_keys', 'read_requests'];
+  locationPathname = '/';
+  renderHome();
+  assert.deepEqual(navigations.pop(), { to: '/project/api-keys', replace: true });
+  // The router updates its URL while the old home match is still mounted.
+  locationPathname = '/project/api-keys';
+  renderHome();
+  assert.deepEqual(navigations, [{ to: '/project/api-keys', replace: true }]);
+  assert.equal(dashboardMounts, 0);
 });
 
 test('home waits for a stale project to be cleared when there are no active projects', () => {

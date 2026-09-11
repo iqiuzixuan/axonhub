@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { useLocation, useRouter } from '@tanstack/react-router';
+import { useMatch, useRouter } from '@tanstack/react-router';
 import { IconShieldX, IconArrowLeft } from '@tabler/icons-react';
 import { type ScopeLevel } from '@/config/route-permission';
 import { useTranslation } from 'react-i18next';
@@ -25,7 +25,9 @@ export function RouteGuard({
   requireProjectOwner = false,
 }: RouteGuardProps) {
   const router = useRouter();
-  const pathname = useLocation({ select: (location) => location.pathname });
+  // During navigation the URL can change before this route unmounts.
+  // Always check the page being rendered, not the pending destination.
+  const pathname = useMatch({ strict: false, select: (match) => match.pathname });
   const { checkRouteAccess, hasRouteAccess, defaultPath } = useRoutePermissions();
   const accessibleFallback = fallbackPath && checkRouteAccess(fallbackPath).hasAccess ? fallbackPath : defaultPath;
   const returnPath = accessibleFallback === pathname ? '/settings/profile' : accessibleFallback;
