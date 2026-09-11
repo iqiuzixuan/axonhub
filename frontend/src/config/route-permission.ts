@@ -4,6 +4,7 @@ export type ScopeLevel = 'system' | 'project' | 'any';
 export interface RouteConfig {
   path: string;
   requiredScopes?: string[];
+  requiredAllScopes?: string[]; // 页面查询依赖的权限，必须全部满足
   scopeLevel?: ScopeLevel; // 权限级别：system 只检查系统级权限，project 只检查项目级权限，any 检查两者
   mode?: 'hidden' | 'disabled'; // 当没有权限时的处理方式
   children?: RouteConfig[];
@@ -120,7 +121,8 @@ export const routeConfigs: RouteGroup[] = [
       },
       {
         path: '/project/users',
-        requiredScopes: ['read_users'],
+        // ProjectUsers queries the Project node before reading its members.
+        requiredAllScopes: ['read_projects', 'read_users'],
         mode: 'hidden',
       },
       {
@@ -130,7 +132,8 @@ export const routeConfigs: RouteGroup[] = [
       },
       {
         path: '/project/playground',
-        // Playground is accessible to all users
+        requiredScopes: ['write_requests', 'read_channels'],
+        mode: 'hidden',
       },
     ],
   },
@@ -159,36 +162,52 @@ export const routeConfigs: RouteGroup[] = [
 
 // 获取路由配置的辅助函数
 export function getRouteConfig(path: string): RouteConfig | undefined {
-  for (const group of routeConfigs) {
-    for (const route of group.routes) {
-      if (route.path === path) {
-        return route;
-      }
-      if (route.children) {
-        const childConfig = route.children.find((child) => child.path === path);
-        if (childConfig) return childConfig;
+  const pathname = path.split(/[?#]/)[0].replace(/\/+$/, '') || '/';
+  let matchedRoute: RouteConfig | undefined;
+
+  const visitRoute = (route: RouteConfig, scopeLevel?: ScopeLevel) => {
+    const resolvedRoute = { ...route, scopeLevel: route.scopeLevel ?? scopeLevel };
+    if (pathname === route.path || (route.path !== '/' && pathname.startsWith(`${route.path}/`))) {
+      if (!matchedRoute || route.path.length > matchedRoute.path.length) {
+        matchedRoute = resolvedRoute;
       }
     }
+    route.children?.forEach((child) => visitRoute(child, resolvedRoute.scopeLevel));
+  };
+
+  for (const group of routeConfigs) {
+    group.routes.forEach((route) => visitRoute(route, group.scopeLevel));
   }
-  return undefined;
+  return matchedRoute;
+}
+
+export interface RoutePermissions {
+  systemScopes: string[];
+  projectScopes: string[];
+  isOwner: boolean;
+  isProjectOwner: boolean;
 }
 
 // 检查用户是否有访问路由的权限
-export function hasRouteAccess(userScopes: string[], routeConfig: RouteConfig): boolean {
-  if (!routeConfig.requiredScopes || routeConfig.requiredScopes.length === 0) {
+export function hasRouteAccess(permissions: RoutePermissions, routeConfig: RouteConfig): boolean {
+  const { systemScopes, projectScopes, isOwner, isProjectOwner } = permissions;
+  if (routeConfig.requireProjectOwner && !isOwner && !isProjectOwner) {
+    return false;
+  }
+
+  const scopeLevel = routeConfig.scopeLevel ?? 'any';
+  if (isOwner || (isProjectOwner && scopeLevel !== 'system')) {
     return true;
   }
 
-  // 如果用户有通配符权限，则拥有所有权限
-  if (userScopes.includes('*')) {
-    return true;
-  }
+  const scopes = scopeLevel === 'system' ? systemScopes : scopeLevel === 'project' ? projectScopes : [...systemScopes, ...projectScopes];
+  const hasScope = (scope: string) => scopes.includes('*') || scopes.includes(scope);
+  const { requiredScopes = [], requiredAllScopes = [] } = routeConfig;
 
-  // 检查用户是否拥有所需的任一权限
-  return routeConfig.requiredScopes.some((scope) => userScopes.includes(scope));
+  return (requiredScopes.length === 0 || requiredScopes.some(hasScope)) && requiredAllScopes.every(hasScope);
 }
 
 // 检查用户是否有访问路由组的权限
-export function hasGroupAccess(userScopes: string[], group: RouteGroup): boolean {
-  return group.routes.some((route) => hasRouteAccess(userScopes, route));
+export function hasGroupAccess(permissions: RoutePermissions, group: RouteGroup): boolean {
+  return group.routes.some((route) => hasRouteAccess(permissions, { ...route, scopeLevel: route.scopeLevel ?? group.scopeLevel }));
 }
