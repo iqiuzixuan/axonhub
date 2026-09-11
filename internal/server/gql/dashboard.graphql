@@ -27,12 +27,18 @@ type RequestStatsByModel {
 type RequestStatsByAPIKey {
   apiKeyId: ID!
   apiKeyName: String!
+  "Owner name, only available with permission to read users."
+  apiKeyUserName: String
   count: Int!
+  "Cost for the same API key and time window as the request count."
+  cost: Float!
 }
 
 type TokenStatsByAPIKey {
   apiKeyId: ID!
   apiKeyName: String!
+  "Owner name, only available with permission to read users."
+  apiKeyUserName: String
   inputTokens: Int!
   outputTokens: Int!
   cachedTokens: Int!
@@ -208,6 +214,8 @@ Cost statistics grouped by API key
 type CostStatsByAPIKey {
   apiKeyId: ID!
   apiKeyName: String!
+  "Owner name, only available with permission to read users."
+  apiKeyUserName: String
   cost: Float!
 }
 

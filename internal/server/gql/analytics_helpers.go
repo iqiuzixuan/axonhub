@@ -152,14 +152,15 @@ func trimSpace(s string) string {
 
 // dimStats holds aggregated dimension statistics from raw SQL queries.
 type dimStats struct {
-	ID           string  `json:"id"`
-	Name         string  `json:"name"`
-	RequestCount int     `json:"request_count"`
-	InputTokens  int64   `json:"input_tokens"`
-	CachedTokens int64   `json:"cached_tokens"`
-	OutputTokens int64   `json:"output_tokens"`
-	TotalTokens  int64   `json:"total_tokens"`
-	Cost         float64 `json:"cost"`
+	ID             string  `json:"id"`
+	Name           string  `json:"name"`
+	APIKeyUserName *string `json:"api_key_user_name,omitempty"`
+	RequestCount   int     `json:"request_count"`
+	InputTokens    int64   `json:"input_tokens"`
+	CachedTokens   int64   `json:"cached_tokens"`
+	OutputTokens   int64   `json:"output_tokens"`
+	TotalTokens    int64   `json:"total_tokens"`
+	Cost           float64 `json:"cost"`
 }
 
 func (r *queryResolver) queryChannelStats(ctx context.Context, filter *AnalyticsFilter, apiKeyIDs []int, hasUserFilter bool, loc *time.Location) ([]dimStats, error) {
@@ -290,7 +291,7 @@ func (r *queryResolver) queryAPIKeyStats(ctx context.Context, filter *AnalyticsF
 
 	if len(rawResults) > 0 {
 		akIDs := lo.Map(rawResults, func(item apiKeyStatsRaw, _ int) int { return item.APIKeyID })
-		apiKeys, qErr := r.client.APIKey.Query().Where(apikey.IDIn(akIDs...)).All(ctx)
+		apiKeys, qErr := withAPIKeyOwner(ctx, r.client.APIKey.Query().Where(apikey.IDIn(akIDs...))).All(ctx)
 		if qErr != nil {
 			return nil, fmt.Errorf("failed to get API key details: %w", qErr)
 		}
@@ -298,18 +299,21 @@ func (r *queryResolver) queryAPIKeyStats(ctx context.Context, filter *AnalyticsF
 
 		for _, raw := range rawResults {
 			name := fmt.Sprintf("API Key #%d", raw.APIKeyID)
+			var ownerName *string
 			if ak, ok := apiKeyMap[raw.APIKeyID]; ok {
 				name = ak.Name
+				ownerName = apiKeyUserName(ak)
 			}
 			results = append(results, dimStats{
-				ID:           fmt.Sprintf("%d", raw.APIKeyID),
-				Name:         name,
-				RequestCount: raw.RequestCount,
-				InputTokens:  raw.InputTokens,
-				CachedTokens: raw.CachedTokens,
-				OutputTokens: raw.OutputTokens,
-				TotalTokens:  raw.TotalTokens,
-				Cost:         raw.Cost,
+				ID:             fmt.Sprintf("%d", raw.APIKeyID),
+				Name:           name,
+				APIKeyUserName: ownerName,
+				RequestCount:   raw.RequestCount,
+				InputTokens:    raw.InputTokens,
+				CachedTokens:   raw.CachedTokens,
+				OutputTokens:   raw.OutputTokens,
+				TotalTokens:    raw.TotalTokens,
+				Cost:           raw.Cost,
 			})
 		}
 	}
@@ -400,6 +404,7 @@ func dimStatsToDimensionStats(items []dimStats) []*AnalyticsDimensionStat {
 		return &AnalyticsDimensionStat{
 			ID:                item.ID,
 			Name:              item.Name,
+			APIKeyUserName:    item.APIKeyUserName,
 			RequestCount:      item.RequestCount,
 			InputTokens:       safeIntFromInt64(item.InputTokens),
 			CachedInputTokens: safeIntFromInt64(item.CachedTokens),

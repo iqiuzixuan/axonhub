@@ -23,6 +23,11 @@ export function formatUserName(name?: string | null, email?: string | null) {
   return name?.trim() || email || '';
 }
 
+export function formatApiKeyLabel(name?: string | null, userName?: string | null) {
+  const owner = userName?.trim();
+  return name && owner ? `${name} · ${owner}` : name || '';
+}
+
 export function userNameInitials(name?: string | null, email?: string | null) {
   return Array.from(formatUserName(name, email)).slice(0, 2).join('').toUpperCase() || 'U';
 }

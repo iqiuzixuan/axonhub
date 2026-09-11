@@ -1,3 +1,4 @@
+import { formatApiKeyLabel } from '@/lib/utils';
 ﻿import { useMemo, useState } from 'react';
 import { Cross2Icon } from '@radix-ui/react-icons';
 import { Table } from '@tanstack/react-table';
@@ -322,11 +323,11 @@ export function DataTableToolbar<TData>({
 
     const options = new Map<string, { value: string; label: string }>();
     for (const edge of selectedApiKeysData?.edges ?? []) {
-      options.set(edge.node.id, { value: edge.node.id, label: edge.node.name });
+      options.set(edge.node.id, { value: edge.node.id, label: formatApiKeyLabel(edge.node.name, edge.node.user?.name) });
     }
     for (const page of apiKeysData?.pages ?? []) {
       for (const edge of page.edges) {
-        options.set(edge.node.id, { value: edge.node.id, label: edge.node.name });
+        options.set(edge.node.id, { value: edge.node.id, label: formatApiKeyLabel(edge.node.name, edge.node.user?.name) });
       }
     }
     return Array.from(options.values());

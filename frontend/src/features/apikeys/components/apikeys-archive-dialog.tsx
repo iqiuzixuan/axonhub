@@ -1,5 +1,7 @@
 'use client';
 
+import { formatApiKeyLabel } from '@/lib/utils';
+
 import { IconArchive, IconCheck, IconInfoCircle } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -31,7 +33,7 @@ export function ApiKeysArchiveDialog() {
   const getDescription = () => {
     const baseDescription = t(
       isArchived ? 'apikeys.dialogs.archive.restoreDescription' : 'apikeys.dialogs.archive.description',
-      { name: selectedApiKey.name }
+      { name: formatApiKeyLabel(selectedApiKey.name, selectedApiKey.user?.name) }
     );
     const warningText = t(
       isArchived ? 'apikeys.dialogs.archive.restoreInfo' : 'apikeys.dialogs.archive.warning'

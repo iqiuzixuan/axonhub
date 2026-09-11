@@ -5,6 +5,8 @@ import { ChevronDown, BarChart4, Activity, DollarSign } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { formatApiKeyLabel } from '@/lib/utils';
+import { buildDimensionChartData } from '../utils/dimension-chart-data';
 import { formatCurrencySimple } from '../utils/format-currency';
 
 function formatExactNumber(value: number): string {
@@ -83,8 +85,6 @@ const COLORS = [
   'var(--chart-6)',
 ];
 
-const MAX_ITEMS = 9;
-
 interface PieChartCardProps {
   title: string;
   data: AnalyticsDimensionStat[];
@@ -136,28 +136,22 @@ function PieChartCard({ title, data, valueKey, valueFormatter, otherLabel }: Pie
     );
   }
 
-  // Sort by value descending and take top N, but exclude items with < 2% ratio
-  const sorted = [...data].sort((a, b) => (b[valueKey] as number) - (a[valueKey] as number));
-  const chartData: Array<{ name: string; value: number; percentage: number }> = [];
-  let otherValue = 0;
+  const chartData = buildDimensionChartData(data, valueKey, otherLabel).map((item) => ({
+    ...item,
+    name: formatApiKeyLabel(item.name, item.apiKeyUserName),
+  }));
 
-  for (const item of sorted) {
-    const value = item[valueKey] as number;
-    const percentage = total > 0 ? (value / total) * 100 : 0;
-    if (chartData.length < MAX_ITEMS && percentage >= 2) {
-      chartData.push({ name: item.name, value, percentage });
-    } else {
-      otherValue += value;
-    }
-  }
-
-  const otherPercentage = total > 0 ? (otherValue / total) * 100 : 0;
-  if (otherValue > 0) {
-    chartData.push({ name: otherLabel, value: otherValue, percentage: otherPercentage });
-  }
-
-  // 按百分比降序排序图例
-  chartData.sort((a, b) => b.percentage - a.percentage);
+  // Render each item's own percentage; labels can be identical, even with owners.
+  const legendContent = () => (
+    <ul className='space-y-1 text-xs'>
+      {chartData.map((item, index) => (
+        <li key={item.id} className='flex items-start gap-2'>
+          <span className='mt-1 h-2 w-2 shrink-0 rounded-full' style={{ backgroundColor: COLORS[index % COLORS.length] }} />
+          <span className='min-w-0 break-words'>{item.name} ({item.percentage.toFixed(1)}%)</span>
+        </li>
+      ))}
+    </ul>
+  );
 
   const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number }> }) => {
     if (!active || !payload || payload.length === 0) return null;
@@ -194,8 +188,8 @@ function PieChartCard({ title, data, valueKey, valueFormatter, otherLabel }: Pie
                   dataKey='value'
                   nameKey='name'
                 >
-                  {chartData.map((_, index) => (
-                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                  {chartData.map((item, index) => (
+                    <Cell key={item.id} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
@@ -206,16 +200,7 @@ function PieChartCard({ title, data, valueKey, valueFormatter, otherLabel }: Pie
                   iconSize={8}
                   itemSorter={null}
                   portal={legendPortal}
-                  payload={chartData.map((item, index) => ({
-                    value: item.name,
-                    type: 'circle' as const,
-                    color: COLORS[index % COLORS.length],
-                  }))}
-                  formatter={(value: string) => {
-                    const item = chartData.find((d) => d.name === value);
-                    const pct = item ? item.percentage.toFixed(1) : '0';
-                    return <span className='text-xs'>{value} ({pct}%)</span>;
-                  }}
+                  content={legendContent}
                 />
               </PieChart>
             </ResponsiveContainer>
@@ -247,8 +232,8 @@ function PieChartCard({ title, data, valueKey, valueFormatter, otherLabel }: Pie
                   dataKey='value'
                   nameKey='name'
                 >
-                  {chartData.map((_, index) => (
-                    <Cell key={index} fill={COLORS[index % COLORS.length]} />
+                  {chartData.map((item, index) => (
+                    <Cell key={item.id} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
                 <Tooltip content={<CustomTooltip />} />
@@ -259,16 +244,7 @@ function PieChartCard({ title, data, valueKey, valueFormatter, otherLabel }: Pie
                   iconSize={8}
                   itemSorter={null}
                   portal={legendPortal}
-                  payload={chartData.map((item, index) => ({
-                    value: item.name,
-                    type: 'circle' as const,
-                    color: COLORS[index % COLORS.length],
-                  }))}
-                  formatter={(value: string) => {
-                    const item = chartData.find((d) => d.name === value);
-                    const pct = item ? item.percentage.toFixed(1) : '0';
-                    return <span className='text-xs'>{value} ({pct}%)</span>;
-                  }}
+                  content={legendContent}
                 />
               </PieChart>
             </ResponsiveContainer>

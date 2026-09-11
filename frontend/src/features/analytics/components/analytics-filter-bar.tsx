@@ -3,7 +3,7 @@ import { IconCalendar, IconX, IconFilter } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useAnalyticsFilterStore } from '@/stores/analyticsStore';
-import { cn, formatUserName } from '@/lib/utils';
+import { formatApiKeyLabel, cn, formatUserName } from '@/lib/utils';
 import { useDebounce } from '@/hooks/use-debounce';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
@@ -167,11 +167,11 @@ export function AnalyticsFilterBar({ earliestDate }: AnalyticsFilterBarProps) {
   const apiKeyOptions = useMemo(() => {
     const options = new Map<string, { label: string; value: string }>();
     for (const edge of selectedApiKeysData?.edges ?? []) {
-      options.set(edge.node.id, { label: edge.node.name, value: edge.node.id });
+      options.set(edge.node.id, { label: formatApiKeyLabel(edge.node.name, edge.node.user?.name), value: edge.node.id });
     }
     for (const page of apiKeysData?.pages ?? []) {
       for (const edge of page.edges) {
-        options.set(edge.node.id, { label: edge.node.name, value: edge.node.id });
+        options.set(edge.node.id, { label: formatApiKeyLabel(edge.node.name, edge.node.user?.name), value: edge.node.id });
       }
     }
     return Array.from(options.values());

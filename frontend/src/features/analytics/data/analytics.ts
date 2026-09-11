@@ -44,6 +44,7 @@ export type AnalyticsDailyStat = z.infer<typeof analyticsDailyStatSchema>;
 export const analyticsDimensionStatSchema = z.object({
   id: z.string(),
   name: z.string(),
+  apiKeyUserName: z.string().nullable().optional(),
   requestCount: z.number(),
   inputTokens: z.number(),
   cachedInputTokens: z.number(),
@@ -104,6 +105,7 @@ const ANALYTICS_DIMENSION_STATS_QUERY = `
     analyticsDimensionStats(filter: $filter, dimension: $dimension) {
       id
       name
+      apiKeyUserName
       requestCount
       inputTokens
       cachedInputTokens

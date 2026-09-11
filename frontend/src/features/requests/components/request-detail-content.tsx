@@ -7,7 +7,7 @@ import { Copy, Clock, Key, Database, FileText, Layers, Download, Terminal } from
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { copyTextToClipboard } from '@/lib/clipboard';
-import { extractNumberID } from '@/lib/utils';
+import { extractNumberID, formatApiKeyLabel } from '@/lib/utils';
 import { useRequestPermissions } from '@/hooks/useRequestPermissions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -415,11 +415,13 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
             </div>
 
             <div className='bg-muted/30 flex items-center justify-between gap-2 rounded-lg border px-3 py-2'>
-              <div className='flex items-center gap-2'>
+              <div className='flex shrink-0 items-center gap-2'>
                 <Key className='text-primary h-3.5 w-3.5' />
                 <span className='text-xs font-medium'>{t('requests.dialogs.requestDetail.fields.apiKeyName')}</span>
               </div>
-              <p className='text-muted-foreground font-mono text-xs'>{request.apiKey?.name || t('requests.columns.unknown')}</p>
+              <p className='text-muted-foreground min-w-0 break-words text-right font-mono text-xs'>
+                {formatApiKeyLabel(request.apiKey?.name, request.apiKey?.user?.name) || t('requests.columns.unknown')}
+              </p>
             </div>
           </div>
         </CardContent>

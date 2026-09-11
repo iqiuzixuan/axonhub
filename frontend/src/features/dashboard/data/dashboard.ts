@@ -31,12 +31,15 @@ export const requestsByModelSchema = z.object({
 export const requestsByAPIKeySchema = z.object({
   apiKeyId: z.string(),
   apiKeyName: z.string(),
+  apiKeyUserName: z.string().nullable().optional(),
   count: z.number(),
+  cost: z.number(),
 });
 
 export const tokensByAPIKeySchema = z.object({
   apiKeyId: z.string(),
   apiKeyName: z.string(),
+  apiKeyUserName: z.string().nullable().optional(),
   inputTokens: z.number(),
   outputTokens: z.number(),
   cachedTokens: z.number(),
@@ -76,6 +79,7 @@ export const costByModelSchema = z.object({
 export const costByAPIKeySchema = z.object({
   apiKeyId: z.string(),
   apiKeyName: z.string(),
+  apiKeyUserName: z.string().nullable().optional(),
   cost: z.number(),
 });
 
@@ -202,7 +206,9 @@ const REQUESTS_BY_API_KEY_QUERY = `
     requestStatsByAPIKey(timeWindow: $timeWindow) {
       apiKeyId
       apiKeyName
+      apiKeyUserName
       count
+      cost
     }
   }
 `;
@@ -212,6 +218,7 @@ const TOKENS_BY_API_KEY_QUERY = `
     tokenStatsByAPIKey(timeWindow: $timeWindow) {
       apiKeyId
       apiKeyName
+      apiKeyUserName
       inputTokens
       outputTokens
       cachedTokens
@@ -271,6 +278,7 @@ const COST_BY_API_KEY_QUERY = `
     costStatsByAPIKey(timeWindow: $timeWindow) {
       apiKeyId
       apiKeyName
+      apiKeyUserName
       cost
     }
   }

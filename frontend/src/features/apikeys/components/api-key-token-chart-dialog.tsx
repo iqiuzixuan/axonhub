@@ -1,3 +1,4 @@
+import { formatApiKeyLabel } from '@/lib/utils';
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -78,7 +79,7 @@ export function ApiKeyTokenChartDialog({ apiKey, open, onOpenChange }: ApiKeyTok
       <DialogContent className="sm:max-w-2xl max-h-[90vh] flex flex-col">
         <DialogHeader className="flex flex-col space-y-3 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
           <DialogTitle className="text-base sm:text-lg">
-            {t('apikeys.tokenUsageChart.title')} - {apiKey?.name}
+            {t('apikeys.tokenUsageChart.title')} - {formatApiKeyLabel(apiKey?.name, apiKey?.user?.name)}
           </DialogTitle>
           <Tabs value={timeRange} onValueChange={(value) => setTimeRange(value as TimeRange)}>
             <TabsList className="grid w-full grid-cols-3 sm:w-auto sm:mr-6">

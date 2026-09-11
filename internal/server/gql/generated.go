@@ -245,6 +245,7 @@ type ComplexityRoot struct {
 	}
 
 	AnalyticsDimensionStat struct {
+		APIKeyUserName    func(childComplexity int) int
 		CachedInputTokens func(childComplexity int) int
 		Cost              func(childComplexity int) int
 		ID                func(childComplexity int) int
@@ -641,9 +642,10 @@ type ComplexityRoot struct {
 	}
 
 	CostStatsByAPIKey struct {
-		APIKeyID   func(childComplexity int) int
-		APIKeyName func(childComplexity int) int
-		Cost       func(childComplexity int) int
+		APIKeyID       func(childComplexity int) int
+		APIKeyName     func(childComplexity int) int
+		APIKeyUserName func(childComplexity int) int
+		Cost           func(childComplexity int) int
 	}
 
 	CostStatsByChannel struct {
@@ -1578,9 +1580,11 @@ type ComplexityRoot struct {
 	}
 
 	RequestStatsByAPIKey struct {
-		APIKeyID   func(childComplexity int) int
-		APIKeyName func(childComplexity int) int
-		Count      func(childComplexity int) int
+		APIKeyID       func(childComplexity int) int
+		APIKeyName     func(childComplexity int) int
+		APIKeyUserName func(childComplexity int) int
+		Cost           func(childComplexity int) int
+		Count          func(childComplexity int) int
 	}
 
 	RequestStatsByChannel struct {
@@ -1886,6 +1890,7 @@ type ComplexityRoot struct {
 	TokenStatsByAPIKey struct {
 		APIKeyID        func(childComplexity int) int
 		APIKeyName      func(childComplexity int) int
+		APIKeyUserName  func(childComplexity int) int
 		CachedTokens    func(childComplexity int) int
 		InputTokens     func(childComplexity int) int
 		OutputTokens    func(childComplexity int) int
@@ -3118,6 +3123,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.AnalyticsDailyStat.UncachedInputTokens(childComplexity), true
 
+	case "AnalyticsDimensionStat.apiKeyUserName":
+		if e.complexity.AnalyticsDimensionStat.APIKeyUserName == nil {
+			break
+		}
+
+		return e.complexity.AnalyticsDimensionStat.APIKeyUserName(childComplexity), true
 	case "AnalyticsDimensionStat.cachedInputTokens":
 		if e.complexity.AnalyticsDimensionStat.CachedInputTokens == nil {
 			break
@@ -4637,6 +4648,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.CostStatsByAPIKey.APIKeyName(childComplexity), true
+	case "CostStatsByAPIKey.apiKeyUserName":
+		if e.complexity.CostStatsByAPIKey.APIKeyUserName == nil {
+			break
+		}
+
+		return e.complexity.CostStatsByAPIKey.APIKeyUserName(childComplexity), true
 	case "CostStatsByAPIKey.cost":
 		if e.complexity.CostStatsByAPIKey.Cost == nil {
 			break
@@ -9457,6 +9474,18 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.RequestStatsByAPIKey.APIKeyName(childComplexity), true
+	case "RequestStatsByAPIKey.apiKeyUserName":
+		if e.complexity.RequestStatsByAPIKey.APIKeyUserName == nil {
+			break
+		}
+
+		return e.complexity.RequestStatsByAPIKey.APIKeyUserName(childComplexity), true
+	case "RequestStatsByAPIKey.cost":
+		if e.complexity.RequestStatsByAPIKey.Cost == nil {
+			break
+		}
+
+		return e.complexity.RequestStatsByAPIKey.Cost(childComplexity), true
 	case "RequestStatsByAPIKey.count":
 		if e.complexity.RequestStatsByAPIKey.Count == nil {
 			break
@@ -10538,6 +10567,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.TokenStatsByAPIKey.APIKeyName(childComplexity), true
+	case "TokenStatsByAPIKey.apiKeyUserName":
+		if e.complexity.TokenStatsByAPIKey.APIKeyUserName == nil {
+			break
+		}
+
+		return e.complexity.TokenStatsByAPIKey.APIKeyUserName(childComplexity), true
 	case "TokenStatsByAPIKey.cachedTokens":
 		if e.complexity.TokenStatsByAPIKey.CachedTokens == nil {
 			break
@@ -18343,6 +18378,35 @@ func (ec *executionContext) _AnalyticsDimensionStat_name(ctx context.Context, fi
 }
 
 func (ec *executionContext) fieldContext_AnalyticsDimensionStat_name(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "AnalyticsDimensionStat",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _AnalyticsDimensionStat_apiKeyUserName(ctx context.Context, field graphql.CollectedField, obj *AnalyticsDimensionStat) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_AnalyticsDimensionStat_apiKeyUserName,
+		func(ctx context.Context) (any, error) {
+			return obj.APIKeyUserName, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_AnalyticsDimensionStat_apiKeyUserName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "AnalyticsDimensionStat",
 		Field:      field,
@@ -26437,6 +26501,35 @@ func (ec *executionContext) _CostStatsByAPIKey_apiKeyName(ctx context.Context, f
 }
 
 func (ec *executionContext) fieldContext_CostStatsByAPIKey_apiKeyName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CostStatsByAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CostStatsByAPIKey_apiKeyUserName(ctx context.Context, field graphql.CollectedField, obj *CostStatsByAPIKey) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CostStatsByAPIKey_apiKeyUserName,
+		func(ctx context.Context) (any, error) {
+			return obj.APIKeyUserName, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CostStatsByAPIKey_apiKeyUserName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "CostStatsByAPIKey",
 		Field:      field,
@@ -45308,8 +45401,12 @@ func (ec *executionContext) fieldContext_Query_requestStatsByAPIKey(ctx context.
 				return ec.fieldContext_RequestStatsByAPIKey_apiKeyId(ctx, field)
 			case "apiKeyName":
 				return ec.fieldContext_RequestStatsByAPIKey_apiKeyName(ctx, field)
+			case "apiKeyUserName":
+				return ec.fieldContext_RequestStatsByAPIKey_apiKeyUserName(ctx, field)
 			case "count":
 				return ec.fieldContext_RequestStatsByAPIKey_count(ctx, field)
+			case "cost":
+				return ec.fieldContext_RequestStatsByAPIKey_cost(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type RequestStatsByAPIKey", field.Name)
 		},
@@ -45357,6 +45454,8 @@ func (ec *executionContext) fieldContext_Query_tokenStatsByAPIKey(ctx context.Co
 				return ec.fieldContext_TokenStatsByAPIKey_apiKeyId(ctx, field)
 			case "apiKeyName":
 				return ec.fieldContext_TokenStatsByAPIKey_apiKeyName(ctx, field)
+			case "apiKeyUserName":
+				return ec.fieldContext_TokenStatsByAPIKey_apiKeyUserName(ctx, field)
 			case "inputTokens":
 				return ec.fieldContext_TokenStatsByAPIKey_inputTokens(ctx, field)
 			case "outputTokens":
@@ -46069,6 +46168,8 @@ func (ec *executionContext) fieldContext_Query_costStatsByAPIKey(ctx context.Con
 				return ec.fieldContext_CostStatsByAPIKey_apiKeyId(ctx, field)
 			case "apiKeyName":
 				return ec.fieldContext_CostStatsByAPIKey_apiKeyName(ctx, field)
+			case "apiKeyUserName":
+				return ec.fieldContext_CostStatsByAPIKey_apiKeyUserName(ctx, field)
 			case "cost":
 				return ec.fieldContext_CostStatsByAPIKey_cost(ctx, field)
 			}
@@ -47715,6 +47816,8 @@ func (ec *executionContext) fieldContext_Query_analyticsDimensionStats(ctx conte
 				return ec.fieldContext_AnalyticsDimensionStat_id(ctx, field)
 			case "name":
 				return ec.fieldContext_AnalyticsDimensionStat_name(ctx, field)
+			case "apiKeyUserName":
+				return ec.fieldContext_AnalyticsDimensionStat_apiKeyUserName(ctx, field)
 			case "requestCount":
 				return ec.fieldContext_AnalyticsDimensionStat_requestCount(ctx, field)
 			case "inputTokens":
@@ -50959,6 +51062,35 @@ func (ec *executionContext) fieldContext_RequestStatsByAPIKey_apiKeyName(_ conte
 	return fc, nil
 }
 
+func (ec *executionContext) _RequestStatsByAPIKey_apiKeyUserName(ctx context.Context, field graphql.CollectedField, obj *RequestStatsByAPIKey) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RequestStatsByAPIKey_apiKeyUserName,
+		func(ctx context.Context) (any, error) {
+			return obj.APIKeyUserName, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_RequestStatsByAPIKey_apiKeyUserName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RequestStatsByAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _RequestStatsByAPIKey_count(ctx context.Context, field graphql.CollectedField, obj *RequestStatsByAPIKey) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -50983,6 +51115,35 @@ func (ec *executionContext) fieldContext_RequestStatsByAPIKey_count(_ context.Co
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Int does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _RequestStatsByAPIKey_cost(ctx context.Context, field graphql.CollectedField, obj *RequestStatsByAPIKey) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_RequestStatsByAPIKey_cost,
+		func(ctx context.Context) (any, error) {
+			return obj.Cost, nil
+		},
+		nil,
+		ec.marshalNFloat2float64,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_RequestStatsByAPIKey_cost(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "RequestStatsByAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Float does not have child fields")
 		},
 	}
 	return fc, nil
@@ -56360,6 +56521,35 @@ func (ec *executionContext) _TokenStatsByAPIKey_apiKeyName(ctx context.Context, 
 }
 
 func (ec *executionContext) fieldContext_TokenStatsByAPIKey_apiKeyName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TokenStatsByAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _TokenStatsByAPIKey_apiKeyUserName(ctx context.Context, field graphql.CollectedField, obj *TokenStatsByAPIKey) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TokenStatsByAPIKey_apiKeyUserName,
+		func(ctx context.Context) (any, error) {
+			return obj.APIKeyUserName, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_TokenStatsByAPIKey_apiKeyUserName(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
 	fc = &graphql.FieldContext{
 		Object:     "TokenStatsByAPIKey",
 		Field:      field,
@@ -91905,6 +92095,8 @@ func (ec *executionContext) _AnalyticsDimensionStat(ctx context.Context, sel ast
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "apiKeyUserName":
+			out.Values[i] = ec._AnalyticsDimensionStat_apiKeyUserName(ctx, field, obj)
 		case "requestCount":
 			out.Values[i] = ec._AnalyticsDimensionStat_requestCount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -95650,6 +95842,8 @@ func (ec *executionContext) _CostStatsByAPIKey(ctx context.Context, sel ast.Sele
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "apiKeyUserName":
+			out.Values[i] = ec._CostStatsByAPIKey_apiKeyUserName(ctx, field, obj)
 		case "cost":
 			out.Values[i] = ec._CostStatsByAPIKey_cost(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -105107,8 +105301,15 @@ func (ec *executionContext) _RequestStatsByAPIKey(ctx context.Context, sel ast.S
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "apiKeyUserName":
+			out.Values[i] = ec._RequestStatsByAPIKey_apiKeyUserName(ctx, field, obj)
 		case "count":
 			out.Values[i] = ec._RequestStatsByAPIKey_count(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "cost":
+			out.Values[i] = ec._RequestStatsByAPIKey_cost(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -107825,6 +108026,8 @@ func (ec *executionContext) _TokenStatsByAPIKey(ctx context.Context, sel ast.Sel
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
+		case "apiKeyUserName":
+			out.Values[i] = ec._TokenStatsByAPIKey_apiKeyUserName(ctx, field, obj)
 		case "inputTokens":
 			out.Values[i] = ec._TokenStatsByAPIKey_inputTokens(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
