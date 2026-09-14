@@ -114,6 +114,7 @@
   "apikeys.validation.activeProfileMustExist": "Active profile must exist in the profile list",
   "apikeys.validation.duplicateProfileName": "Profile names must be unique",
   "apikeys.filters.filterName": "Search by name or API key...",
+  "apikeys.filters.filterNameKeyOrUser": "Search by name, API key or user name...",
   "apikeys.filters.status": "Status",
   "apikeys.filters.creator": "Creator",
   "apikeys.profiles.title": "API Key Profiles",
