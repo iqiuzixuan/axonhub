@@ -405,6 +405,8 @@ var schemaGraph = func() *sqlgraph.Schema {
 			request.FieldDataStorageID:              {Type: field.TypeInt, Column: request.FieldDataStorageID},
 			request.FieldSource:                     {Type: field.TypeEnum, Column: request.FieldSource},
 			request.FieldModelID:                    {Type: field.TypeString, Column: request.FieldModelID},
+			request.FieldOriginalModelID:            {Type: field.TypeString, Column: request.FieldOriginalModelID},
+			request.FieldBilling:                    {Type: field.TypeJSON, Column: request.FieldBilling},
 			request.FieldReasoningEffort:            {Type: field.TypeString, Column: request.FieldReasoningEffort},
 			request.FieldFormat:                     {Type: field.TypeString, Column: request.FieldFormat},
 			request.FieldRequestHeaders:             {Type: field.TypeJSON, Column: request.FieldRequestHeaders},
@@ -444,6 +446,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			requestexecution.FieldDataStorageID:              {Type: field.TypeInt, Column: requestexecution.FieldDataStorageID},
 			requestexecution.FieldExternalID:                 {Type: field.TypeString, Column: requestexecution.FieldExternalID},
 			requestexecution.FieldModelID:                    {Type: field.TypeString, Column: requestexecution.FieldModelID},
+			requestexecution.FieldCostPrice:                  {Type: field.TypeJSON, Column: requestexecution.FieldCostPrice},
 			requestexecution.FieldChannelAPIKeyMasked:        {Type: field.TypeString, Column: requestexecution.FieldChannelAPIKeyMasked},
 			requestexecution.FieldFormat:                     {Type: field.TypeString, Column: requestexecution.FieldFormat},
 			requestexecution.FieldReasoningEffort:            {Type: field.TypeString, Column: requestexecution.FieldReasoningEffort},
@@ -569,6 +572,10 @@ var schemaGraph = func() *sqlgraph.Schema {
 			usagelog.FieldCompletionRejectedPredictionTokens: {Type: field.TypeInt64, Column: usagelog.FieldCompletionRejectedPredictionTokens},
 			usagelog.FieldSource:                             {Type: field.TypeEnum, Column: usagelog.FieldSource},
 			usagelog.FieldFormat:                             {Type: field.TypeString, Column: usagelog.FieldFormat},
+			usagelog.FieldChannelCost:                        {Type: field.TypeFloat64, Column: usagelog.FieldChannelCost},
+			usagelog.FieldChannelCostItems:                   {Type: field.TypeJSON, Column: usagelog.FieldChannelCostItems},
+			usagelog.FieldBillingModelID:                     {Type: field.TypeString, Column: usagelog.FieldBillingModelID},
+			usagelog.FieldBillingModelSource:                 {Type: field.TypeString, Column: usagelog.FieldBillingModelSource},
 			usagelog.FieldTotalCost:                          {Type: field.TypeFloat64, Column: usagelog.FieldTotalCost},
 			usagelog.FieldCostItems:                          {Type: field.TypeJSON, Column: usagelog.FieldCostItems},
 			usagelog.FieldCostPriceReferenceID:               {Type: field.TypeString, Column: usagelog.FieldCostPriceReferenceID},
@@ -3301,6 +3308,16 @@ func (f *RequestFilter) WhereModelID(p entql.StringP) {
 	f.Where(p.Field(request.FieldModelID))
 }
 
+// WhereOriginalModelID applies the entql string predicate on the original_model_id field.
+func (f *RequestFilter) WhereOriginalModelID(p entql.StringP) {
+	f.Where(p.Field(request.FieldOriginalModelID))
+}
+
+// WhereBilling applies the entql json.RawMessage predicate on the billing field.
+func (f *RequestFilter) WhereBilling(p entql.BytesP) {
+	f.Where(p.Field(request.FieldBilling))
+}
+
 // WhereReasoningEffort applies the entql string predicate on the reasoning_effort field.
 func (f *RequestFilter) WhereReasoningEffort(p entql.StringP) {
 	f.Where(p.Field(request.FieldReasoningEffort))
@@ -3567,6 +3584,11 @@ func (f *RequestExecutionFilter) WhereExternalID(p entql.StringP) {
 // WhereModelID applies the entql string predicate on the model_id field.
 func (f *RequestExecutionFilter) WhereModelID(p entql.StringP) {
 	f.Where(p.Field(requestexecution.FieldModelID))
+}
+
+// WhereCostPrice applies the entql json.RawMessage predicate on the cost_price field.
+func (f *RequestExecutionFilter) WhereCostPrice(p entql.BytesP) {
+	f.Where(p.Field(requestexecution.FieldCostPrice))
 }
 
 // WhereChannelAPIKeyMasked applies the entql string predicate on the channel_api_key_masked field.
@@ -4221,6 +4243,26 @@ func (f *UsageLogFilter) WhereSource(p entql.StringP) {
 // WhereFormat applies the entql string predicate on the format field.
 func (f *UsageLogFilter) WhereFormat(p entql.StringP) {
 	f.Where(p.Field(usagelog.FieldFormat))
+}
+
+// WhereChannelCost applies the entql float64 predicate on the channel_cost field.
+func (f *UsageLogFilter) WhereChannelCost(p entql.Float64P) {
+	f.Where(p.Field(usagelog.FieldChannelCost))
+}
+
+// WhereChannelCostItems applies the entql json.RawMessage predicate on the channel_cost_items field.
+func (f *UsageLogFilter) WhereChannelCostItems(p entql.BytesP) {
+	f.Where(p.Field(usagelog.FieldChannelCostItems))
+}
+
+// WhereBillingModelID applies the entql string predicate on the billing_model_id field.
+func (f *UsageLogFilter) WhereBillingModelID(p entql.StringP) {
+	f.Where(p.Field(usagelog.FieldBillingModelID))
+}
+
+// WhereBillingModelSource applies the entql string predicate on the billing_model_source field.
+func (f *UsageLogFilter) WhereBillingModelSource(p entql.StringP) {
+	f.Where(p.Field(usagelog.FieldBillingModelSource))
 }
 
 // WhereTotalCost applies the entql float64 predicate on the total_cost field.

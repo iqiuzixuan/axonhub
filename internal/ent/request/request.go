@@ -34,6 +34,10 @@ const (
 	FieldSource = "source"
 	// FieldModelID holds the string denoting the model_id field in the database.
 	FieldModelID = "model_id"
+	// FieldOriginalModelID holds the string denoting the original_model_id field in the database.
+	FieldOriginalModelID = "original_model_id"
+	// FieldBilling holds the string denoting the billing field in the database.
+	FieldBilling = "billing"
 	// FieldReasoningEffort holds the string denoting the reasoning_effort field in the database.
 	FieldReasoningEffort = "reasoning_effort"
 	// FieldFormat holds the string denoting the format field in the database.
@@ -148,6 +152,8 @@ var Columns = []string{
 	FieldDataStorageID,
 	FieldSource,
 	FieldModelID,
+	FieldOriginalModelID,
+	FieldBilling,
 	FieldReasoningEffort,
 	FieldFormat,
 	FieldRequestHeaders,
@@ -305,6 +311,11 @@ func BySource(opts ...sql.OrderTermOption) OrderOption {
 // ByModelID orders the results by the model_id field.
 func ByModelID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldModelID, opts...).ToFunc()
+}
+
+// ByOriginalModelID orders the results by the original_model_id field.
+func ByOriginalModelID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldOriginalModelID, opts...).ToFunc()
 }
 
 // ByReasoningEffort orders the results by the reasoning_effort field.

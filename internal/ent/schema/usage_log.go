@@ -70,18 +70,23 @@ func (UsageLog) Fields() []ent.Field {
 		field.Enum("source").Values("api", "playground", "test").Default("api").Immutable().Comment("Source of the request"),
 		field.String("format").Immutable().Default("openai/chat_completions").Comment("Request format used"),
 
+		// Channel cost stays separate from the amount charged to the caller.
+		field.Float("channel_cost").Optional().Nillable().Annotations(entgql.Skip(entgql.SkipAll)),
+		field.JSON("channel_cost_items", []objects.CostItem{}).Optional().Annotations(entgql.Skip(entgql.SkipAll)),
+		field.String("billing_model_id").Optional().Immutable().Annotations(entgql.Skip(entgql.SkipAll)),
+		field.String("billing_model_source").Optional().Immutable().Annotations(entgql.Skip(entgql.SkipAll)),
 		// Cost fields
 		field.Float("total_cost").
 			Nillable().
 			Optional().
-			Comment("Total cost calculated based on channel model price"),
+			Comment("Amount charged under the request billing policy"),
 		field.JSON("cost_items", []objects.CostItem{}).
 			Default([]objects.CostItem{}).
 			Comment("Detailed cost breakdown items in JSON").
 			Optional(),
 		field.String("cost_price_reference_id").
 			Optional().
-			Comment("Reference ID to the channel model price version used for cost calculation"),
+			Comment("Reference to the saved public or channel price used for billing"),
 	}
 }
 

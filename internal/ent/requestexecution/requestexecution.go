@@ -33,6 +33,8 @@ const (
 	FieldExternalID = "external_id"
 	// FieldModelID holds the string denoting the model_id field in the database.
 	FieldModelID = "model_id"
+	// FieldCostPrice holds the string denoting the cost_price field in the database.
+	FieldCostPrice = "cost_price"
 	// FieldChannelAPIKeyMasked holds the string denoting the channel_api_key_masked field in the database.
 	FieldChannelAPIKeyMasked = "channel_api_key_masked"
 	// FieldFormat holds the string denoting the format field in the database.
@@ -107,6 +109,7 @@ var Columns = []string{
 	FieldDataStorageID,
 	FieldExternalID,
 	FieldModelID,
+	FieldCostPrice,
 	FieldChannelAPIKeyMasked,
 	FieldFormat,
 	FieldReasoningEffort,

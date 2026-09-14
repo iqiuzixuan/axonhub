@@ -146,9 +146,11 @@ export function useRequestsColumns(options?: UseRequestsColumnsOptions): ColumnD
         const request = row.original;
         const originalModelId = request.modelID || t('requests.columns.unknown');
         const executions = request.executions?.edges?.flatMap((edge) => (edge.node ? [edge.node] : [])) ?? [];
-        const executionModelIds = Array.from(new Set(executions.map((exe) => exe.modelID || ''))).filter(
-          (id) => id && id !== originalModelId
-        );
+        const executionModelIds = (
+          permissions.canViewDetails
+            ? Array.from(new Set([...executions.map((exe) => exe.modelID || ''), request.requestedModelID || '']))
+            : []
+        ).filter((id) => id && id !== originalModelId);
         const reasoningEffort = executions[0]?.reasoningEffort ?? request.reasoningEffort;
         const inboundFormat = request.format;
         const outboundFormat = executions[0]?.format;
@@ -177,9 +179,11 @@ export function useRequestsColumns(options?: UseRequestsColumnsOptions): ColumnD
               </TooltipTrigger>
               <TooltipContent side='right' className='border-amber-200 bg-white dark:bg-zinc-900'>
                 <div className='flex items-center gap-2 p-2'>
-                  <span className='text-muted-foreground text-xs whitespace-nowrap'>{t('requests.columns.executedModelId')}:</span>
+                  <span className='text-muted-foreground text-xs whitespace-nowrap'>{t('billing.routing')}:</span>
                   <span className='rounded bg-amber-100 px-2 py-0.5 text-xs font-medium whitespace-nowrap text-amber-800 dark:bg-amber-900/40 dark:text-amber-200'>
-                    {executionModelIds[0]}
+                    {[request.requestedModelID, ...executions.map((exe) => exe.modelID)]
+                      .filter((id, index, ids) => id && ids.indexOf(id) === index)
+                      .join(' → ')}
                   </span>
                 </div>
               </TooltipContent>
@@ -229,7 +233,9 @@ export function useRequestsColumns(options?: UseRequestsColumnsOptions): ColumnD
                     <IconRoute className='h-3.5 w-3.5' />
                   </span>
                 </TooltipTrigger>
-                <TooltipContent>{t(passThroughApplied ? 'requests.tooltips.passThroughApplied' : 'requests.tooltips.passThroughNotApplied')}</TooltipContent>
+                <TooltipContent>
+                  {t(passThroughApplied ? 'requests.tooltips.passThroughApplied' : 'requests.tooltips.passThroughNotApplied')}
+                </TooltipContent>
               </Tooltip>
             </div>
           </div>
@@ -558,13 +564,21 @@ export function useRequestsColumns(options?: UseRequestsColumnsOptions): ColumnD
         }
 
         if (!request.stream) {
-          return <span className='font-mono text-xs'>{t('requests.duration.total', { duration: formatDuration(request.metricsLatencyMs) })}</span>;
+          return (
+            <span className='font-mono text-xs'>
+              {t('requests.duration.total', { duration: formatDuration(request.metricsLatencyMs) })}
+            </span>
+          );
         }
 
         return (
           <div className='min-w-[128px] font-mono text-xs'>
-            {request.metricsFirstTokenLatencyMs != null && <div>{t('requests.duration.firstToken', { duration: formatDuration(request.metricsFirstTokenLatencyMs) })}</div>}
-            <div className='text-muted-foreground'>{t('requests.duration.total', { duration: formatDuration(request.metricsLatencyMs) })}</div>
+            {request.metricsFirstTokenLatencyMs != null && (
+              <div>{t('requests.duration.firstToken', { duration: formatDuration(request.metricsFirstTokenLatencyMs) })}</div>
+            )}
+            <div className='text-muted-foreground'>
+              {t('requests.duration.total', { duration: formatDuration(request.metricsLatencyMs) })}
+            </div>
           </div>
         );
       },
@@ -608,9 +622,7 @@ export function useRequestsColumns(options?: UseRequestsColumnsOptions): ColumnD
       enableSorting: true,
       enableHiding: true,
       cell: ({ row }) => (
-        <span className='text-xs whitespace-nowrap'>
-          {format(new Date(row.original.createdAt), 'yyyy-MM-dd HH:mm:ss', { locale })}
-        </span>
+        <span className='text-xs whitespace-nowrap'>{format(new Date(row.original.createdAt), 'yyyy-MM-dd HH:mm:ss', { locale })}</span>
       ),
     },
     {

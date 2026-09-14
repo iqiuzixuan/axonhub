@@ -178,6 +178,7 @@ func (s *RequestService) CreateRequest(
 	llmRequest *llm.Request,
 	httpRequest *httpclient.Request,
 	format llm.APIFormat,
+	billing ...*objects.RequestBilling,
 ) (*ent.Request, error) {
 	// Get project ID from context.
 	// If project ID is not found, use zero.
@@ -237,6 +238,9 @@ func (s *RequestService) CreateRequest(
 		SetStream(isStream).
 		SetRequestHeaders(requestHeadersBytes)
 
+	if len(billing) > 0 && billing[0] != nil {
+		mut.SetBilling(billing[0]).SetOriginalModelID(billing[0].OriginalModel)
+	}
 	if httpRequest != nil {
 		mut = mut.SetClientIP(httpRequest.ClientIP)
 	}
@@ -309,6 +313,7 @@ func (s *RequestService) CreateRequestExecution(
 	channelRequest httpclient.Request,
 	format llm.APIFormat,
 	passThroughApplied bool,
+	costPrice ...*objects.RequestBilling,
 ) (*ent.RequestExecution, error) {
 	// Decide whether to store the channel request body
 	storeRequestBody := true
@@ -378,6 +383,10 @@ func (s *RequestService) CreateRequestExecution(
 		SetStream(request.Stream).
 		SetRequestHeaders(requestHeadersBytes).
 		SetPassThroughApplied(passThroughApplied)
+
+	if len(costPrice) > 0 && costPrice[0] != nil {
+		mut.SetCostPrice(costPrice[0])
+	}
 
 	if apiKey, ok := contexts.GetChannelAPIKey(ctx); ok && apiKey != "" {
 		mut = mut.SetChannelAPIKeyMasked(maskChannelAPIKey(apiKey))

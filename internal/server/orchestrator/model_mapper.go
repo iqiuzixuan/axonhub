@@ -76,7 +76,7 @@ func (m *apiKeyModelMappingMiddleware) OnInboundLlmRequest(ctx context.Context, 
 }
 
 func (m *apiKeyModelMappingMiddleware) OnOutboundLlmResponse(ctx context.Context, response *llm.Response) (*llm.Response, error) {
-	m.inbound.state.ModelMapper.ReplaceResponseModel(response, m.RequestModel)
+	m.inbound.state.ModelMapper.ReplaceResponseModel(response, m.responseModel())
 	return response, nil
 }
 
@@ -91,7 +91,7 @@ func (m *apiKeyModelMappingMiddleware) OnOutboundLlmStream(ctx context.Context, 
 
 	// Wrap the stream to replace model in each response
 	return streams.Map(stream, func(response *llm.Response) *llm.Response {
-		m.inbound.state.ModelMapper.ReplaceResponseModel(response, m.RequestModel)
+		m.inbound.state.ModelMapper.ReplaceResponseModel(response, m.responseModel())
 		return response
 	}), nil
 }
@@ -170,4 +170,11 @@ func (m *ModelMapper) ReplaceResponseModel(response *llm.Response, requestModel 
 	if response != nil && response.Model != "" && response.Model != requestModel {
 		response.Model = requestModel
 	}
+}
+
+func (m *apiKeyModelMappingMiddleware) responseModel() string {
+	if m.inbound.state.Billing == nil {
+		return m.RequestModel
+	}
+	return m.inbound.state.publicResponseModel()
 }

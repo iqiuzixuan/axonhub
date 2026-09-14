@@ -339,7 +339,7 @@ func applyPassThroughResponse(outbound *PersistentOutboundTransformer, systemSer
 			log.String("api_format", outbound.state.RawProviderRequest.APIFormat),
 		)
 
-		return rawResp, nil
+		return outbound.state.publicRawResponse(rawResp), nil
 	})
 }
 
@@ -474,7 +474,7 @@ func applyPassThroughStream(outbound *PersistentOutboundTransformer, systemServi
 			stream.Close()
 		}()
 
-		return &passThroughChannelStream{ctx: ctx, ch: rawCh, errRef: errRef, cancel: cancel}, nil
+		return outbound.state.publicRawStream(&passThroughChannelStream{ctx: ctx, ch: rawCh, errRef: errRef, cancel: cancel}), nil
 	})
 }
 

@@ -45,6 +45,7 @@ func (m *persistRequestMiddleware) OnInboundLlmRequest(ctx context.Context, llmR
 		llmRequest,
 		m.inbound.state.RawRequest,
 		persistedRequestAPIFormat(ctx, llmRequest.APIFormat),
+		m.inbound.state.Billing,
 	)
 	if err != nil {
 		return nil, err
@@ -121,7 +122,7 @@ func (m *persistRequestMiddleware) injectUsageCost(ctx context.Context, resp *ll
 		}
 	}
 
-	state.UsageLogService.InjectUsageCost(ctx, state.RequestExec.ChannelID, state.RequestExec.ModelID, resp.Usage)
+	state.UsageLogService.InjectRequestUsageCost(ctx, state.Request, state.RequestExec, resp.Usage)
 }
 
 type usageCostStream struct {

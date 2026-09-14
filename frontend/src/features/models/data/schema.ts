@@ -1,3 +1,4 @@
+import { modelPriceSchema } from '@/features/channels/data/schema';
 import { z } from 'zod';
 import { pageInfoSchema } from '@/gql/pagination';
 
@@ -102,7 +103,10 @@ export type FilterCondition = {
 export const filterConditionSchema: z.ZodType<FilterCondition> = z.object({
   type: z.enum(['condition', 'group']).default('condition'),
   logic: z.string().optional(),
-  conditions: z.array(z.lazy(() => filterConditionSchema)).optional().default([]),
+  conditions: z
+    .array(z.lazy(() => filterConditionSchema))
+    .optional()
+    .default([]),
   field: z.string().optional(),
   operator: z.string().optional(),
   value: z.any().optional(),
@@ -137,6 +141,7 @@ export function normalizeModelRoutingPolicyValue(value?: string | null): string 
 }
 
 export const modelSettingsSchema = z.object({
+  billingPrice: modelPriceSchema.optional().nullable(),
   disableDeveloperSettingsInheritance: z.boolean().optional().default(false),
   associations: z.array(modelAssociationSchema).optional().default([]),
   loadBalancerStrategy: z.enum(['default', 'adaptive', 'failover', 'circuit-breaker', 'round-robin']).optional().default('default'),

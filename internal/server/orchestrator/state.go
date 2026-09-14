@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/looplj/axonhub/internal/ent"
+	"github.com/looplj/axonhub/internal/objects"
 	"github.com/looplj/axonhub/internal/server/biz"
 	"github.com/looplj/axonhub/llm"
 	"github.com/looplj/axonhub/llm/httpclient"
@@ -27,6 +28,8 @@ type PersistenceState struct {
 
 	// Request state
 	ModelMapper *ModelMapper
+	Billing     *objects.RequestBilling
+	ClientModel string
 	// Proxy config, will be used to override channel's default proxy config.
 	Proxy *httpclient.ProxyConfig
 

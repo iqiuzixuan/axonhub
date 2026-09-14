@@ -1,0 +1,17 @@
+{
+  "billing": {
+    "source": {
+      "title": "Billing model source",
+      "original": "Before redirect (requested model)",
+      "redirected": "After redirect (actual model)",
+      "description": "Controls billing and model display globally. Requested-model billing requires a configured price. Only administrators can inspect internal mappings. Historical charges are not recalculated."
+    },
+    "price": {
+      "title": "Requested model price",
+      "description": "Used for requested-model billing, independently of channel prices. Changes apply to subsequent requests only.",
+      "configured": "Billing price configured",
+      "free": "No billing items: this model will be free."
+    },
+    "routing": "Model mapping"
+  }
+}

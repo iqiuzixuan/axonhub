@@ -61,6 +61,14 @@ const (
 	FieldSource = "source"
 	// FieldFormat holds the string denoting the format field in the database.
 	FieldFormat = "format"
+	// FieldChannelCost holds the string denoting the channel_cost field in the database.
+	FieldChannelCost = "channel_cost"
+	// FieldChannelCostItems holds the string denoting the channel_cost_items field in the database.
+	FieldChannelCostItems = "channel_cost_items"
+	// FieldBillingModelID holds the string denoting the billing_model_id field in the database.
+	FieldBillingModelID = "billing_model_id"
+	// FieldBillingModelSource holds the string denoting the billing_model_source field in the database.
+	FieldBillingModelSource = "billing_model_source"
 	// FieldTotalCost holds the string denoting the total_cost field in the database.
 	FieldTotalCost = "total_cost"
 	// FieldCostItems holds the string denoting the cost_items field in the database.
@@ -122,6 +130,10 @@ var Columns = []string{
 	FieldCompletionRejectedPredictionTokens,
 	FieldSource,
 	FieldFormat,
+	FieldChannelCost,
+	FieldChannelCostItems,
+	FieldBillingModelID,
+	FieldBillingModelSource,
 	FieldTotalCost,
 	FieldCostItems,
 	FieldCostPriceReferenceID,
@@ -321,6 +333,21 @@ func BySource(opts ...sql.OrderTermOption) OrderOption {
 // ByFormat orders the results by the format field.
 func ByFormat(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFormat, opts...).ToFunc()
+}
+
+// ByChannelCost orders the results by the channel_cost field.
+func ByChannelCost(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldChannelCost, opts...).ToFunc()
+}
+
+// ByBillingModelID orders the results by the billing_model_id field.
+func ByBillingModelID(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBillingModelID, opts...).ToFunc()
+}
+
+// ByBillingModelSource orders the results by the billing_model_source field.
+func ByBillingModelSource(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBillingModelSource, opts...).ToFunc()
 }
 
 // ByTotalCost orders the results by the total_cost field.

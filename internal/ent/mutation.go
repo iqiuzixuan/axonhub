@@ -16381,6 +16381,8 @@ type RequestMutation struct {
 	updated_at                        *time.Time
 	source                            *request.Source
 	model_id                          *string
+	original_model_id                 *string
+	billing                           **objects.RequestBilling
 	reasoning_effort                  *string
 	format                            *string
 	request_headers                   *objects.JSONRawMessage
@@ -16851,6 +16853,104 @@ func (m *RequestMutation) OldModelID(ctx context.Context) (v string, err error) 
 // ResetModelID resets all changes to the "model_id" field.
 func (m *RequestMutation) ResetModelID() {
 	m.model_id = nil
+}
+
+// SetOriginalModelID sets the "original_model_id" field.
+func (m *RequestMutation) SetOriginalModelID(s string) {
+	m.original_model_id = &s
+}
+
+// OriginalModelID returns the value of the "original_model_id" field in the mutation.
+func (m *RequestMutation) OriginalModelID() (r string, exists bool) {
+	v := m.original_model_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldOriginalModelID returns the old "original_model_id" field's value of the Request entity.
+// If the Request object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestMutation) OldOriginalModelID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldOriginalModelID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldOriginalModelID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldOriginalModelID: %w", err)
+	}
+	return oldValue.OriginalModelID, nil
+}
+
+// ClearOriginalModelID clears the value of the "original_model_id" field.
+func (m *RequestMutation) ClearOriginalModelID() {
+	m.original_model_id = nil
+	m.clearedFields[request.FieldOriginalModelID] = struct{}{}
+}
+
+// OriginalModelIDCleared returns if the "original_model_id" field was cleared in this mutation.
+func (m *RequestMutation) OriginalModelIDCleared() bool {
+	_, ok := m.clearedFields[request.FieldOriginalModelID]
+	return ok
+}
+
+// ResetOriginalModelID resets all changes to the "original_model_id" field.
+func (m *RequestMutation) ResetOriginalModelID() {
+	m.original_model_id = nil
+	delete(m.clearedFields, request.FieldOriginalModelID)
+}
+
+// SetBilling sets the "billing" field.
+func (m *RequestMutation) SetBilling(ob *objects.RequestBilling) {
+	m.billing = &ob
+}
+
+// Billing returns the value of the "billing" field in the mutation.
+func (m *RequestMutation) Billing() (r *objects.RequestBilling, exists bool) {
+	v := m.billing
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBilling returns the old "billing" field's value of the Request entity.
+// If the Request object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestMutation) OldBilling(ctx context.Context) (v *objects.RequestBilling, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBilling is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBilling requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBilling: %w", err)
+	}
+	return oldValue.Billing, nil
+}
+
+// ClearBilling clears the value of the "billing" field.
+func (m *RequestMutation) ClearBilling() {
+	m.billing = nil
+	m.clearedFields[request.FieldBilling] = struct{}{}
+}
+
+// BillingCleared returns if the "billing" field was cleared in this mutation.
+func (m *RequestMutation) BillingCleared() bool {
+	_, ok := m.clearedFields[request.FieldBilling]
+	return ok
+}
+
+// ResetBilling resets all changes to the "billing" field.
+func (m *RequestMutation) ResetBilling() {
+	m.billing = nil
+	delete(m.clearedFields, request.FieldBilling)
 }
 
 // SetReasoningEffort sets the "reasoning_effort" field.
@@ -18081,7 +18181,7 @@ func (m *RequestMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RequestMutation) Fields() []string {
-	fields := make([]string, 0, 26)
+	fields := make([]string, 0, 28)
 	if m.created_at != nil {
 		fields = append(fields, request.FieldCreatedAt)
 	}
@@ -18105,6 +18205,12 @@ func (m *RequestMutation) Fields() []string {
 	}
 	if m.model_id != nil {
 		fields = append(fields, request.FieldModelID)
+	}
+	if m.original_model_id != nil {
+		fields = append(fields, request.FieldOriginalModelID)
+	}
+	if m.billing != nil {
+		fields = append(fields, request.FieldBilling)
 	}
 	if m.reasoning_effort != nil {
 		fields = append(fields, request.FieldReasoningEffort)
@@ -18184,6 +18290,10 @@ func (m *RequestMutation) Field(name string) (ent.Value, bool) {
 		return m.Source()
 	case request.FieldModelID:
 		return m.ModelID()
+	case request.FieldOriginalModelID:
+		return m.OriginalModelID()
+	case request.FieldBilling:
+		return m.Billing()
 	case request.FieldReasoningEffort:
 		return m.ReasoningEffort()
 	case request.FieldFormat:
@@ -18245,6 +18355,10 @@ func (m *RequestMutation) OldField(ctx context.Context, name string) (ent.Value,
 		return m.OldSource(ctx)
 	case request.FieldModelID:
 		return m.OldModelID(ctx)
+	case request.FieldOriginalModelID:
+		return m.OldOriginalModelID(ctx)
+	case request.FieldBilling:
+		return m.OldBilling(ctx)
 	case request.FieldReasoningEffort:
 		return m.OldReasoningEffort(ctx)
 	case request.FieldFormat:
@@ -18345,6 +18459,20 @@ func (m *RequestMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetModelID(v)
+		return nil
+	case request.FieldOriginalModelID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetOriginalModelID(v)
+		return nil
+	case request.FieldBilling:
+		v, ok := value.(*objects.RequestBilling)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBilling(v)
 		return nil
 	case request.FieldReasoningEffort:
 		v, ok := value.(string)
@@ -18562,6 +18690,12 @@ func (m *RequestMutation) ClearedFields() []string {
 	if m.FieldCleared(request.FieldDataStorageID) {
 		fields = append(fields, request.FieldDataStorageID)
 	}
+	if m.FieldCleared(request.FieldOriginalModelID) {
+		fields = append(fields, request.FieldOriginalModelID)
+	}
+	if m.FieldCleared(request.FieldBilling) {
+		fields = append(fields, request.FieldBilling)
+	}
 	if m.FieldCleared(request.FieldReasoningEffort) {
 		fields = append(fields, request.FieldReasoningEffort)
 	}
@@ -18620,6 +18754,12 @@ func (m *RequestMutation) ClearField(name string) error {
 		return nil
 	case request.FieldDataStorageID:
 		m.ClearDataStorageID()
+		return nil
+	case request.FieldOriginalModelID:
+		m.ClearOriginalModelID()
+		return nil
+	case request.FieldBilling:
+		m.ClearBilling()
 		return nil
 	case request.FieldReasoningEffort:
 		m.ClearReasoningEffort()
@@ -18688,6 +18828,12 @@ func (m *RequestMutation) ResetField(name string) error {
 		return nil
 	case request.FieldModelID:
 		m.ResetModelID()
+		return nil
+	case request.FieldOriginalModelID:
+		m.ResetOriginalModelID()
+		return nil
+	case request.FieldBilling:
+		m.ResetBilling()
 		return nil
 	case request.FieldReasoningEffort:
 		m.ResetReasoningEffort()
@@ -18959,6 +19105,7 @@ type RequestExecutionMutation struct {
 	addproject_id                     *int
 	external_id                       *string
 	model_id                          *string
+	cost_price                        **objects.RequestBilling
 	channel_api_key_masked            *string
 	format                            *string
 	reasoning_effort                  *string
@@ -19438,6 +19585,55 @@ func (m *RequestExecutionMutation) OldModelID(ctx context.Context) (v string, er
 // ResetModelID resets all changes to the "model_id" field.
 func (m *RequestExecutionMutation) ResetModelID() {
 	m.model_id = nil
+}
+
+// SetCostPrice sets the "cost_price" field.
+func (m *RequestExecutionMutation) SetCostPrice(ob *objects.RequestBilling) {
+	m.cost_price = &ob
+}
+
+// CostPrice returns the value of the "cost_price" field in the mutation.
+func (m *RequestExecutionMutation) CostPrice() (r *objects.RequestBilling, exists bool) {
+	v := m.cost_price
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCostPrice returns the old "cost_price" field's value of the RequestExecution entity.
+// If the RequestExecution object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestExecutionMutation) OldCostPrice(ctx context.Context) (v *objects.RequestBilling, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCostPrice is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCostPrice requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCostPrice: %w", err)
+	}
+	return oldValue.CostPrice, nil
+}
+
+// ClearCostPrice clears the value of the "cost_price" field.
+func (m *RequestExecutionMutation) ClearCostPrice() {
+	m.cost_price = nil
+	m.clearedFields[requestexecution.FieldCostPrice] = struct{}{}
+}
+
+// CostPriceCleared returns if the "cost_price" field was cleared in this mutation.
+func (m *RequestExecutionMutation) CostPriceCleared() bool {
+	_, ok := m.clearedFields[requestexecution.FieldCostPrice]
+	return ok
+}
+
+// ResetCostPrice resets all changes to the "cost_price" field.
+func (m *RequestExecutionMutation) ResetCostPrice() {
+	m.cost_price = nil
+	delete(m.clearedFields, requestexecution.FieldCostPrice)
 }
 
 // SetChannelAPIKeyMasked sets the "channel_api_key_masked" field.
@@ -20421,7 +20617,7 @@ func (m *RequestExecutionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RequestExecutionMutation) Fields() []string {
-	fields := make([]string, 0, 24)
+	fields := make([]string, 0, 25)
 	if m.created_at != nil {
 		fields = append(fields, requestexecution.FieldCreatedAt)
 	}
@@ -20445,6 +20641,9 @@ func (m *RequestExecutionMutation) Fields() []string {
 	}
 	if m.model_id != nil {
 		fields = append(fields, requestexecution.FieldModelID)
+	}
+	if m.cost_price != nil {
+		fields = append(fields, requestexecution.FieldCostPrice)
 	}
 	if m.channel_api_key_masked != nil {
 		fields = append(fields, requestexecution.FieldChannelAPIKeyMasked)
@@ -20518,6 +20717,8 @@ func (m *RequestExecutionMutation) Field(name string) (ent.Value, bool) {
 		return m.ExternalID()
 	case requestexecution.FieldModelID:
 		return m.ModelID()
+	case requestexecution.FieldCostPrice:
+		return m.CostPrice()
 	case requestexecution.FieldChannelAPIKeyMasked:
 		return m.ChannelAPIKeyMasked()
 	case requestexecution.FieldFormat:
@@ -20575,6 +20776,8 @@ func (m *RequestExecutionMutation) OldField(ctx context.Context, name string) (e
 		return m.OldExternalID(ctx)
 	case requestexecution.FieldModelID:
 		return m.OldModelID(ctx)
+	case requestexecution.FieldCostPrice:
+		return m.OldCostPrice(ctx)
 	case requestexecution.FieldChannelAPIKeyMasked:
 		return m.OldChannelAPIKeyMasked(ctx)
 	case requestexecution.FieldFormat:
@@ -20671,6 +20874,13 @@ func (m *RequestExecutionMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetModelID(v)
+		return nil
+	case requestexecution.FieldCostPrice:
+		v, ok := value.(*objects.RequestBilling)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCostPrice(v)
 		return nil
 	case requestexecution.FieldChannelAPIKeyMasked:
 		v, ok := value.(string)
@@ -20886,6 +21096,9 @@ func (m *RequestExecutionMutation) ClearedFields() []string {
 	if m.FieldCleared(requestexecution.FieldExternalID) {
 		fields = append(fields, requestexecution.FieldExternalID)
 	}
+	if m.FieldCleared(requestexecution.FieldCostPrice) {
+		fields = append(fields, requestexecution.FieldCostPrice)
+	}
 	if m.FieldCleared(requestexecution.FieldChannelAPIKeyMasked) {
 		fields = append(fields, requestexecution.FieldChannelAPIKeyMasked)
 	}
@@ -20941,6 +21154,9 @@ func (m *RequestExecutionMutation) ClearField(name string) error {
 		return nil
 	case requestexecution.FieldExternalID:
 		m.ClearExternalID()
+		return nil
+	case requestexecution.FieldCostPrice:
+		m.ClearCostPrice()
 		return nil
 	case requestexecution.FieldChannelAPIKeyMasked:
 		m.ClearChannelAPIKeyMasked()
@@ -21006,6 +21222,9 @@ func (m *RequestExecutionMutation) ResetField(name string) error {
 		return nil
 	case requestexecution.FieldModelID:
 		m.ResetModelID()
+		return nil
+	case requestexecution.FieldCostPrice:
+		m.ResetCostPrice()
 		return nil
 	case requestexecution.FieldChannelAPIKeyMasked:
 		m.ResetChannelAPIKeyMasked()
@@ -24240,6 +24459,12 @@ type UsageLogMutation struct {
 	addcompletion_rejected_prediction_tokens *int64
 	source                                   *usagelog.Source
 	format                                   *string
+	channel_cost                             *float64
+	addchannel_cost                          *float64
+	channel_cost_items                       *[]objects.CostItem
+	appendchannel_cost_items                 []objects.CostItem
+	billing_model_id                         *string
+	billing_model_source                     *string
 	total_cost                               *float64
 	addtotal_cost                            *float64
 	cost_items                               *[]objects.CostItem
@@ -25524,6 +25749,239 @@ func (m *UsageLogMutation) ResetFormat() {
 	m.format = nil
 }
 
+// SetChannelCost sets the "channel_cost" field.
+func (m *UsageLogMutation) SetChannelCost(f float64) {
+	m.channel_cost = &f
+	m.addchannel_cost = nil
+}
+
+// ChannelCost returns the value of the "channel_cost" field in the mutation.
+func (m *UsageLogMutation) ChannelCost() (r float64, exists bool) {
+	v := m.channel_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChannelCost returns the old "channel_cost" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldChannelCost(ctx context.Context) (v *float64, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChannelCost is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChannelCost requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChannelCost: %w", err)
+	}
+	return oldValue.ChannelCost, nil
+}
+
+// AddChannelCost adds f to the "channel_cost" field.
+func (m *UsageLogMutation) AddChannelCost(f float64) {
+	if m.addchannel_cost != nil {
+		*m.addchannel_cost += f
+	} else {
+		m.addchannel_cost = &f
+	}
+}
+
+// AddedChannelCost returns the value that was added to the "channel_cost" field in this mutation.
+func (m *UsageLogMutation) AddedChannelCost() (r float64, exists bool) {
+	v := m.addchannel_cost
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// ClearChannelCost clears the value of the "channel_cost" field.
+func (m *UsageLogMutation) ClearChannelCost() {
+	m.channel_cost = nil
+	m.addchannel_cost = nil
+	m.clearedFields[usagelog.FieldChannelCost] = struct{}{}
+}
+
+// ChannelCostCleared returns if the "channel_cost" field was cleared in this mutation.
+func (m *UsageLogMutation) ChannelCostCleared() bool {
+	_, ok := m.clearedFields[usagelog.FieldChannelCost]
+	return ok
+}
+
+// ResetChannelCost resets all changes to the "channel_cost" field.
+func (m *UsageLogMutation) ResetChannelCost() {
+	m.channel_cost = nil
+	m.addchannel_cost = nil
+	delete(m.clearedFields, usagelog.FieldChannelCost)
+}
+
+// SetChannelCostItems sets the "channel_cost_items" field.
+func (m *UsageLogMutation) SetChannelCostItems(oi []objects.CostItem) {
+	m.channel_cost_items = &oi
+	m.appendchannel_cost_items = nil
+}
+
+// ChannelCostItems returns the value of the "channel_cost_items" field in the mutation.
+func (m *UsageLogMutation) ChannelCostItems() (r []objects.CostItem, exists bool) {
+	v := m.channel_cost_items
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldChannelCostItems returns the old "channel_cost_items" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldChannelCostItems(ctx context.Context) (v []objects.CostItem, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldChannelCostItems is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldChannelCostItems requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldChannelCostItems: %w", err)
+	}
+	return oldValue.ChannelCostItems, nil
+}
+
+// AppendChannelCostItems adds oi to the "channel_cost_items" field.
+func (m *UsageLogMutation) AppendChannelCostItems(oi []objects.CostItem) {
+	m.appendchannel_cost_items = append(m.appendchannel_cost_items, oi...)
+}
+
+// AppendedChannelCostItems returns the list of values that were appended to the "channel_cost_items" field in this mutation.
+func (m *UsageLogMutation) AppendedChannelCostItems() ([]objects.CostItem, bool) {
+	if len(m.appendchannel_cost_items) == 0 {
+		return nil, false
+	}
+	return m.appendchannel_cost_items, true
+}
+
+// ClearChannelCostItems clears the value of the "channel_cost_items" field.
+func (m *UsageLogMutation) ClearChannelCostItems() {
+	m.channel_cost_items = nil
+	m.appendchannel_cost_items = nil
+	m.clearedFields[usagelog.FieldChannelCostItems] = struct{}{}
+}
+
+// ChannelCostItemsCleared returns if the "channel_cost_items" field was cleared in this mutation.
+func (m *UsageLogMutation) ChannelCostItemsCleared() bool {
+	_, ok := m.clearedFields[usagelog.FieldChannelCostItems]
+	return ok
+}
+
+// ResetChannelCostItems resets all changes to the "channel_cost_items" field.
+func (m *UsageLogMutation) ResetChannelCostItems() {
+	m.channel_cost_items = nil
+	m.appendchannel_cost_items = nil
+	delete(m.clearedFields, usagelog.FieldChannelCostItems)
+}
+
+// SetBillingModelID sets the "billing_model_id" field.
+func (m *UsageLogMutation) SetBillingModelID(s string) {
+	m.billing_model_id = &s
+}
+
+// BillingModelID returns the value of the "billing_model_id" field in the mutation.
+func (m *UsageLogMutation) BillingModelID() (r string, exists bool) {
+	v := m.billing_model_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBillingModelID returns the old "billing_model_id" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldBillingModelID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBillingModelID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBillingModelID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBillingModelID: %w", err)
+	}
+	return oldValue.BillingModelID, nil
+}
+
+// ClearBillingModelID clears the value of the "billing_model_id" field.
+func (m *UsageLogMutation) ClearBillingModelID() {
+	m.billing_model_id = nil
+	m.clearedFields[usagelog.FieldBillingModelID] = struct{}{}
+}
+
+// BillingModelIDCleared returns if the "billing_model_id" field was cleared in this mutation.
+func (m *UsageLogMutation) BillingModelIDCleared() bool {
+	_, ok := m.clearedFields[usagelog.FieldBillingModelID]
+	return ok
+}
+
+// ResetBillingModelID resets all changes to the "billing_model_id" field.
+func (m *UsageLogMutation) ResetBillingModelID() {
+	m.billing_model_id = nil
+	delete(m.clearedFields, usagelog.FieldBillingModelID)
+}
+
+// SetBillingModelSource sets the "billing_model_source" field.
+func (m *UsageLogMutation) SetBillingModelSource(s string) {
+	m.billing_model_source = &s
+}
+
+// BillingModelSource returns the value of the "billing_model_source" field in the mutation.
+func (m *UsageLogMutation) BillingModelSource() (r string, exists bool) {
+	v := m.billing_model_source
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBillingModelSource returns the old "billing_model_source" field's value of the UsageLog entity.
+// If the UsageLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *UsageLogMutation) OldBillingModelSource(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBillingModelSource is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBillingModelSource requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBillingModelSource: %w", err)
+	}
+	return oldValue.BillingModelSource, nil
+}
+
+// ClearBillingModelSource clears the value of the "billing_model_source" field.
+func (m *UsageLogMutation) ClearBillingModelSource() {
+	m.billing_model_source = nil
+	m.clearedFields[usagelog.FieldBillingModelSource] = struct{}{}
+}
+
+// BillingModelSourceCleared returns if the "billing_model_source" field was cleared in this mutation.
+func (m *UsageLogMutation) BillingModelSourceCleared() bool {
+	_, ok := m.clearedFields[usagelog.FieldBillingModelSource]
+	return ok
+}
+
+// ResetBillingModelSource resets all changes to the "billing_model_source" field.
+func (m *UsageLogMutation) ResetBillingModelSource() {
+	m.billing_model_source = nil
+	delete(m.clearedFields, usagelog.FieldBillingModelSource)
+}
+
 // SetTotalCost sets the "total_cost" field.
 func (m *UsageLogMutation) SetTotalCost(f float64) {
 	m.total_cost = &f
@@ -25823,7 +26281,7 @@ func (m *UsageLogMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *UsageLogMutation) Fields() []string {
-	fields := make([]string, 0, 24)
+	fields := make([]string, 0, 28)
 	if m.created_at != nil {
 		fields = append(fields, usagelog.FieldCreatedAt)
 	}
@@ -25887,6 +26345,18 @@ func (m *UsageLogMutation) Fields() []string {
 	if m.format != nil {
 		fields = append(fields, usagelog.FieldFormat)
 	}
+	if m.channel_cost != nil {
+		fields = append(fields, usagelog.FieldChannelCost)
+	}
+	if m.channel_cost_items != nil {
+		fields = append(fields, usagelog.FieldChannelCostItems)
+	}
+	if m.billing_model_id != nil {
+		fields = append(fields, usagelog.FieldBillingModelID)
+	}
+	if m.billing_model_source != nil {
+		fields = append(fields, usagelog.FieldBillingModelSource)
+	}
 	if m.total_cost != nil {
 		fields = append(fields, usagelog.FieldTotalCost)
 	}
@@ -25946,6 +26416,14 @@ func (m *UsageLogMutation) Field(name string) (ent.Value, bool) {
 		return m.Source()
 	case usagelog.FieldFormat:
 		return m.Format()
+	case usagelog.FieldChannelCost:
+		return m.ChannelCost()
+	case usagelog.FieldChannelCostItems:
+		return m.ChannelCostItems()
+	case usagelog.FieldBillingModelID:
+		return m.BillingModelID()
+	case usagelog.FieldBillingModelSource:
+		return m.BillingModelSource()
 	case usagelog.FieldTotalCost:
 		return m.TotalCost()
 	case usagelog.FieldCostItems:
@@ -26003,6 +26481,14 @@ func (m *UsageLogMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldSource(ctx)
 	case usagelog.FieldFormat:
 		return m.OldFormat(ctx)
+	case usagelog.FieldChannelCost:
+		return m.OldChannelCost(ctx)
+	case usagelog.FieldChannelCostItems:
+		return m.OldChannelCostItems(ctx)
+	case usagelog.FieldBillingModelID:
+		return m.OldBillingModelID(ctx)
+	case usagelog.FieldBillingModelSource:
+		return m.OldBillingModelSource(ctx)
 	case usagelog.FieldTotalCost:
 		return m.OldTotalCost(ctx)
 	case usagelog.FieldCostItems:
@@ -26165,6 +26651,34 @@ func (m *UsageLogMutation) SetField(name string, value ent.Value) error {
 		}
 		m.SetFormat(v)
 		return nil
+	case usagelog.FieldChannelCost:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChannelCost(v)
+		return nil
+	case usagelog.FieldChannelCostItems:
+		v, ok := value.([]objects.CostItem)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetChannelCostItems(v)
+		return nil
+	case usagelog.FieldBillingModelID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBillingModelID(v)
+		return nil
+	case usagelog.FieldBillingModelSource:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBillingModelSource(v)
+		return nil
 	case usagelog.FieldTotalCost:
 		v, ok := value.(float64)
 		if !ok {
@@ -26233,6 +26747,9 @@ func (m *UsageLogMutation) AddedFields() []string {
 	if m.addcompletion_rejected_prediction_tokens != nil {
 		fields = append(fields, usagelog.FieldCompletionRejectedPredictionTokens)
 	}
+	if m.addchannel_cost != nil {
+		fields = append(fields, usagelog.FieldChannelCost)
+	}
 	if m.addtotal_cost != nil {
 		fields = append(fields, usagelog.FieldTotalCost)
 	}
@@ -26270,6 +26787,8 @@ func (m *UsageLogMutation) AddedField(name string) (ent.Value, bool) {
 		return m.AddedCompletionAcceptedPredictionTokens()
 	case usagelog.FieldCompletionRejectedPredictionTokens:
 		return m.AddedCompletionRejectedPredictionTokens()
+	case usagelog.FieldChannelCost:
+		return m.AddedChannelCost()
 	case usagelog.FieldTotalCost:
 		return m.AddedTotalCost()
 	}
@@ -26372,6 +26891,13 @@ func (m *UsageLogMutation) AddField(name string, value ent.Value) error {
 		}
 		m.AddCompletionRejectedPredictionTokens(v)
 		return nil
+	case usagelog.FieldChannelCost:
+		v, ok := value.(float64)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.AddChannelCost(v)
+		return nil
 	case usagelog.FieldTotalCost:
 		v, ok := value.(float64)
 		if !ok {
@@ -26419,6 +26945,18 @@ func (m *UsageLogMutation) ClearedFields() []string {
 	}
 	if m.FieldCleared(usagelog.FieldCompletionRejectedPredictionTokens) {
 		fields = append(fields, usagelog.FieldCompletionRejectedPredictionTokens)
+	}
+	if m.FieldCleared(usagelog.FieldChannelCost) {
+		fields = append(fields, usagelog.FieldChannelCost)
+	}
+	if m.FieldCleared(usagelog.FieldChannelCostItems) {
+		fields = append(fields, usagelog.FieldChannelCostItems)
+	}
+	if m.FieldCleared(usagelog.FieldBillingModelID) {
+		fields = append(fields, usagelog.FieldBillingModelID)
+	}
+	if m.FieldCleared(usagelog.FieldBillingModelSource) {
+		fields = append(fields, usagelog.FieldBillingModelSource)
 	}
 	if m.FieldCleared(usagelog.FieldTotalCost) {
 		fields = append(fields, usagelog.FieldTotalCost)
@@ -26475,6 +27013,18 @@ func (m *UsageLogMutation) ClearField(name string) error {
 		return nil
 	case usagelog.FieldCompletionRejectedPredictionTokens:
 		m.ClearCompletionRejectedPredictionTokens()
+		return nil
+	case usagelog.FieldChannelCost:
+		m.ClearChannelCost()
+		return nil
+	case usagelog.FieldChannelCostItems:
+		m.ClearChannelCostItems()
+		return nil
+	case usagelog.FieldBillingModelID:
+		m.ClearBillingModelID()
+		return nil
+	case usagelog.FieldBillingModelSource:
+		m.ClearBillingModelSource()
 		return nil
 	case usagelog.FieldTotalCost:
 		m.ClearTotalCost()
@@ -26555,6 +27105,18 @@ func (m *UsageLogMutation) ResetField(name string) error {
 		return nil
 	case usagelog.FieldFormat:
 		m.ResetFormat()
+		return nil
+	case usagelog.FieldChannelCost:
+		m.ResetChannelCost()
+		return nil
+	case usagelog.FieldChannelCostItems:
+		m.ResetChannelCostItems()
+		return nil
+	case usagelog.FieldBillingModelID:
+		m.ResetBillingModelID()
+		return nil
+	case usagelog.FieldBillingModelSource:
+		m.ResetBillingModelSource()
 		return nil
 	case usagelog.FieldTotalCost:
 		m.ResetTotalCost()

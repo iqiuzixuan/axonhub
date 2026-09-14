@@ -115,3 +115,35 @@ test('project Admin scopes enable only that project; system administration enabl
   user = { scopes: ['write_users'], projects: [{ projectID: 'project-a', effectiveScopes: ['write_roles', 'read_requests'] }] };
   assert.equal(permissions().canViewDetails, false);
 });
+
+function renderModelCell(modelID, requestedModelID, actualModel) {
+  function Probe() {
+    const columns = useRequestsColumns();
+    const ModelCell = columns.find((column) => column.id === 'modelID').cell;
+    return React.createElement(ModelCell, { row: { original: {
+      modelID, requestedModelID, format: 'openai/chat_completions',
+      executions: { edges: [{ node: { modelID: actualModel, format: 'openai/chat_completions' } }] },
+    } } });
+  }
+  return renderToStaticMarkup(React.createElement(Probe));
+}
+
+test('ordinary users never render the execution-model tooltip, even with stale privileged data', () => {
+  user = { scopes: ['read_requests'], projects: [{ projectID: 'project-a', scopes: ['read_requests'], isOwner: false }] };
+  meData = undefined;
+  const html = renderModelCell('public-A', 'public-A', 'secret-C');
+  assert.ok(html.includes('public-A'));
+  assert.ok(!html.includes('secret-C'));
+  assert.ok(!html.includes('billing.routing'));
+});
+
+test('administrators can inspect mapping while the main model follows either policy', () => {
+  user = { isOwner: true, projects: [] };
+  meData = undefined;
+  for (const displayed of ['public-A', 'secret-C']) {
+    const html = renderModelCell(displayed, 'public-A', 'secret-C');
+    assert.ok(html.includes('public-A'));
+    assert.ok(html.includes('secret-C'));
+    assert.ok(html.includes('billing.routing'));
+  }
+});

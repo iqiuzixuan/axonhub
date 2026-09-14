@@ -194,3 +194,22 @@ func (r *queryResolver) QueryModelChannelConnections(ctx context.Context, associ
 func (r *queryResolver) QueryUnassociatedChannels(ctx context.Context) ([]*biz.UnassociatedChannel, error) {
 	return r.modelService.QueryUnassociatedChannels(ctx)
 }
+
+// RequestedModelID is the resolver for the requestedModelID field.
+func (r *requestResolver) RequestedModelID(ctx context.Context, obj *ent.Request) (*string, error) {
+	projectID, err := requestDetailsProjectID(ctx, obj)
+	if err != nil {
+		return nil, err
+	}
+	if !authz.CanReadRequestDetails(ctx, projectID) {
+		return nil, nil
+	}
+	row, err := r.client.Request.Get(ctx, obj.ID)
+	if err != nil {
+		return nil, err
+	}
+	if row.OriginalModelID == "" {
+		return nil, nil
+	}
+	return lo.ToPtr(row.OriginalModelID), nil
+}

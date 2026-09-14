@@ -89,6 +89,7 @@ var defaultRetryPolicy = RetryPolicy{
 }
 
 var defaultModelSettings = SystemModelSettings{
+	BillingModelSource:                objects.BillingModelSourceRedirected,
 	FallbackToChannelsOnModelNotFound: true,
 	QueryAllChannelModels:             true,
 	DefaultModelAPIIncludeAll:         false,

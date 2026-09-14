@@ -36,6 +36,7 @@ type ModelCardLimit {
 
 # ModelSettings represents model Association configuration
 type ModelSettings {
+  billingPrice: ModelPrice
   disableDeveloperSettingsInheritance: Boolean!
   associations: [ModelAssociation!]!
   loadBalancerStrategy: String!
@@ -133,6 +134,7 @@ input ModelCardLimitInput {
 }
 
 input ModelSettingsInput {
+  billingPrice: ModelPriceInput
   disableDeveloperSettingsInheritance: Boolean
   associations: [ModelAssociationInput!]!
   loadBalancerStrategy: String
@@ -233,4 +235,8 @@ extend type Mutation {
   bulkDisableModels(ids: [ID!]!): Boolean!
   bulkEnableModels(ids: [ID!]!): Boolean!
   bulkDeleteModels(ids: [ID!]!): Boolean!
+}
+
+extend type Request {
+  requestedModelID: String
 }

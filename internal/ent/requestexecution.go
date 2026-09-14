@@ -38,6 +38,8 @@ type RequestExecution struct {
 	ExternalID string `json:"external_id,omitempty"`
 	// ModelID holds the value of the "model_id" field.
 	ModelID string `json:"model_id,omitempty"`
+	// CostPrice holds the value of the "cost_price" field.
+	CostPrice *objects.RequestBilling `json:"cost_price,omitempty"`
 	// Masked channel API key selected for this execution attempt
 	ChannelAPIKeyMasked *string `json:"channel_api_key_masked,omitempty"`
 	// Format holds the value of the "format" field.
@@ -129,7 +131,7 @@ func (*RequestExecution) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case requestexecution.FieldRequestBody, requestexecution.FieldResponseBody, requestexecution.FieldResponseChunks, requestexecution.FieldRequestHeaders:
+		case requestexecution.FieldCostPrice, requestexecution.FieldRequestBody, requestexecution.FieldResponseBody, requestexecution.FieldResponseChunks, requestexecution.FieldRequestHeaders:
 			values[i] = new([]byte)
 		case requestexecution.FieldStream, requestexecution.FieldPassThroughApplied:
 			values[i] = new(sql.NullBool)
@@ -207,6 +209,14 @@ func (_m *RequestExecution) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field model_id", values[i])
 			} else if value.Valid {
 				_m.ModelID = value.String
+			}
+		case requestexecution.FieldCostPrice:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field cost_price", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.CostPrice); err != nil {
+					return fmt.Errorf("unmarshal field cost_price: %w", err)
+				}
 			}
 		case requestexecution.FieldChannelAPIKeyMasked:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -392,6 +402,9 @@ func (_m *RequestExecution) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("model_id=")
 	builder.WriteString(_m.ModelID)
+	builder.WriteString(", ")
+	builder.WriteString("cost_price=")
+	builder.WriteString(fmt.Sprintf("%v", _m.CostPrice))
 	builder.WriteString(", ")
 	if v := _m.ChannelAPIKeyMasked; v != nil {
 		builder.WriteString("channel_api_key_masked=")

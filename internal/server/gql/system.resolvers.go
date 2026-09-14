@@ -83,12 +83,17 @@ func (r *mutationResolver) UpdateSystemModelSettings(ctx context.Context, input 
 	// This still follows the existing last-writer-wins behavior for concurrent
 	// full settings updates; callers editing developer rules should send the
 	// complete developerSettings list.
-	if input.DeveloperSettings == nil {
+	if input.DeveloperSettings == nil || input.BillingModelSource == "" {
 		current, err := r.systemService.ModelSettings(ctx)
 		if err != nil {
 			return false, fmt.Errorf("failed to get current system model settings: %w", err)
 		}
-		input.DeveloperSettings = current.DeveloperSettings
+		if input.DeveloperSettings == nil {
+			input.DeveloperSettings = current.DeveloperSettings
+		}
+		if input.BillingModelSource == "" {
+			input.BillingModelSource = current.BillingModelSource
+		}
 	}
 
 	err := r.systemService.SetModelSettings(ctx, input)
@@ -534,6 +539,11 @@ func (r *queryResolver) SystemModelSettings(ctx context.Context) (*biz.SystemMod
 	}
 
 	return settings, nil
+}
+
+// BillingModelSource is the resolver for the billingModelSource field.
+func (r *queryResolver) BillingModelSource(ctx context.Context) (objects.BillingModelSource, error) {
+	return r.systemService.BillingModelSource(ctx)
 }
 
 // DefaultDataStorageID is the resolver for the defaultDataStorageID field.

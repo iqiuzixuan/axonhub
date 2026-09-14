@@ -103,6 +103,8 @@ type CreateUsageLogParams struct {
 	Source        usagelog.Source
 	Format        string
 	APIKeyID      *int
+	Billing       *objects.RequestBilling
+	ChannelPrice  *objects.RequestBilling
 }
 
 // CreateUsageLog creates a new usage log record from LLM response usage data.
@@ -156,8 +158,22 @@ func (s *UsageLogService) CreateUsageLog(ctx context.Context, params CreateUsage
 		priceReferenceID string
 	)
 
-	costItems, totalCost, priceReferenceID = s.computeUsageCost(ctx, params.ChannelID, params.ActualModelID, params.Usage)
+	if params.ChannelPrice != nil {
+		costItems, totalCost, priceReferenceID = requestBillingCost(params.ChannelPrice, params.Usage)
+	} else {
+		costItems, totalCost, priceReferenceID = s.computeUsageCost(ctx, params.ChannelID, params.ActualModelID, params.Usage)
+	}
 
+	mut.SetNillableChannelCost(totalCost).SetChannelCostItems(costItems)
+	if params.Billing != nil {
+		mut.SetBillingModelSource(string(params.Billing.Source))
+		billingModel := params.ActualModelID
+		if params.Billing.Source == objects.BillingModelSourceOriginal {
+			billingModel = params.Billing.OriginalModel
+			costItems, totalCost, priceReferenceID = requestBillingCost(params.Billing, params.Usage)
+		}
+		mut.SetBillingModelID(billingModel)
+	}
 	mut = mut.
 		SetNillableTotalCost(totalCost).
 		SetCostItems(costItems)
@@ -207,5 +223,7 @@ func (s *UsageLogService) CreateUsageLogFromRequest(
 		Source:        usagelog.Source(request.Source),
 		Format:        request.Format,
 		APIKeyID:      lo.ToPtr(request.APIKeyID),
+		Billing:       request.Billing,
+		ChannelPrice:  requestExec.CostPrice,
 	})
 }

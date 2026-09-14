@@ -204,7 +204,13 @@ input UpdateSecuritySettingsInput {
   showRequestLogIPBanIcon: Boolean
 }
 
+enum BillingModelSource {
+  original
+  redirected
+}
+
 type SystemModelSettings {
+  billingModelSource: BillingModelSource!
   fallbackToChannelsOnModelNotFound: Boolean!
   queryAllChannelModels: Boolean!
   defaultModelAPIIncludeAll: Boolean!
@@ -215,6 +221,7 @@ type SystemModelSettings {
 }
 
 input UpdateSystemModelSettingsInput {
+  billingModelSource: BillingModelSource
   fallbackToChannelsOnModelNotFound: Boolean
   queryAllChannelModels: Boolean
   defaultModelAPIIncludeAll: Boolean
@@ -486,6 +493,7 @@ extend type Query {
   retryPolicy: RetryPolicy!
   webhookNotifierConfig: WebhookNotifierConfig!
   systemModelSettings: SystemModelSettings!
+  billingModelSource: BillingModelSource!
   defaultDataStorageID: ID
   onboardingInfo: OnboardingInfo
   systemVersion: SystemVersion!

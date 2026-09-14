@@ -122,6 +122,12 @@ func (_c *RequestExecutionCreate) SetModelID(v string) *RequestExecutionCreate {
 	return _c
 }
 
+// SetCostPrice sets the "cost_price" field.
+func (_c *RequestExecutionCreate) SetCostPrice(v *objects.RequestBilling) *RequestExecutionCreate {
+	_c.mutation.SetCostPrice(v)
+	return _c
+}
+
 // SetChannelAPIKeyMasked sets the "channel_api_key_masked" field.
 func (_c *RequestExecutionCreate) SetChannelAPIKeyMasked(v string) *RequestExecutionCreate {
 	_c.mutation.SetChannelAPIKeyMasked(v)
@@ -467,6 +473,10 @@ func (_c *RequestExecutionCreate) createSpec() (*RequestExecution, *sqlgraph.Cre
 	if value, ok := _c.mutation.ModelID(); ok {
 		_spec.SetField(requestexecution.FieldModelID, field.TypeString, value)
 		_node.ModelID = value
+	}
+	if value, ok := _c.mutation.CostPrice(); ok {
+		_spec.SetField(requestexecution.FieldCostPrice, field.TypeJSON, value)
+		_node.CostPrice = value
 	}
 	if value, ok := _c.mutation.ChannelAPIKeyMasked(); ok {
 		_spec.SetField(requestexecution.FieldChannelAPIKeyMasked, field.TypeString, value)
@@ -903,6 +913,9 @@ func (u *RequestExecutionUpsertOne) UpdateNewValues() *RequestExecutionUpsertOne
 		}
 		if _, exists := u.create.mutation.ModelID(); exists {
 			s.SetIgnore(requestexecution.FieldModelID)
+		}
+		if _, exists := u.create.mutation.CostPrice(); exists {
+			s.SetIgnore(requestexecution.FieldCostPrice)
 		}
 		if _, exists := u.create.mutation.ChannelAPIKeyMasked(); exists {
 			s.SetIgnore(requestexecution.FieldChannelAPIKeyMasked)
@@ -1423,6 +1436,9 @@ func (u *RequestExecutionUpsertBulk) UpdateNewValues() *RequestExecutionUpsertBu
 			}
 			if _, exists := b.mutation.ModelID(); exists {
 				s.SetIgnore(requestexecution.FieldModelID)
+			}
+			if _, exists := b.mutation.CostPrice(); exists {
+				s.SetIgnore(requestexecution.FieldCostPrice)
 			}
 			if _, exists := b.mutation.ChannelAPIKeyMasked(); exists {
 				s.SetIgnore(requestexecution.FieldChannelAPIKeyMasked)

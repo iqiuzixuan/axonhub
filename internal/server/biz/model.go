@@ -55,6 +55,11 @@ func (svc *ModelService) validateModelSettings(settings *objects.ModelSettings) 
 }
 
 func validateModelSettings(settings *objects.ModelSettings) error {
+	if settings != nil && settings.BillingPrice != nil {
+		if err := settings.BillingPrice.Validate(); err != nil {
+			return fmt.Errorf("billing price: %w", err)
+		}
+	}
 	if settings == nil {
 		return nil
 	}
@@ -698,8 +703,11 @@ func (svc *ModelService) listEnabledModels(ctx context.Context, apiKey *ent.APIK
 		return nil, err
 	}
 
-	settings := svc.systemService.ModelSettingsOrDefault(ctx)
-	if !settings.QueryAllChannelModels {
+	settings, err := svc.systemService.ModelSettings(ctx)
+	if err != nil {
+		return nil, err
+	}
+	if settings.BillingModelSource == objects.BillingModelSourceOriginal || !settings.QueryAllChannelModels {
 		return configuredModels, nil
 	}
 
@@ -781,6 +789,9 @@ func (svc *ModelService) queryConfiguredModelFacades(ctx context.Context, allowe
 	systemSettings := svc.modelSettingsOrDefault(ctx)
 
 	for _, m := range enabledModels {
+		if systemSettings.BillingModelSource == objects.BillingModelSourceOriginal && (m.Settings == nil || m.Settings.BillingPrice == nil) {
+			continue
+		}
 		effectiveAssociations := EffectiveModelAssociations(systemSettings, m)
 		connections := MatchConnections(effectiveAssociations, channels)
 		if len(connections) == 0 {

@@ -1998,7 +1998,7 @@ input CreateUsageLogInput {
   """
   format: String
   """
-  Total cost calculated based on channel model price
+  Amount charged under the request billing policy
   """
   totalCost: Float
   """
@@ -2006,7 +2006,7 @@ input CreateUsageLogInput {
   """
   costItems: [CostItemInput!]
   """
-  Reference ID to the channel model price version used for cost calculation
+  Reference to the saved public or channel price used for billing
   """
   costPriceReferenceID: String
   requestID: ID!
@@ -6547,7 +6547,7 @@ input UpdateUsageLogInput {
   completionRejectedPredictionTokens: Int
   clearCompletionRejectedPredictionTokens: Boolean
   """
-  Total cost calculated based on channel model price
+  Amount charged under the request billing policy
   """
   totalCost: Float
   clearTotalCost: Boolean
@@ -6558,7 +6558,7 @@ input UpdateUsageLogInput {
   appendCostItems: [CostItemInput!]
   clearCostItems: Boolean
   """
-  Reference ID to the channel model price version used for cost calculation
+  Reference to the saved public or channel price used for billing
   """
   costPriceReferenceID: String
   clearCostPriceReferenceID: Boolean
@@ -6676,7 +6676,7 @@ type UsageLog implements Node {
   """
   format: String!
   """
-  Total cost calculated based on channel model price
+  Amount charged under the request billing policy
   """
   totalCost: Float
   """
@@ -6684,7 +6684,7 @@ type UsageLog implements Node {
   """
   costItems: [CostItem!]
   """
-  Reference ID to the channel model price version used for cost calculation
+  Reference to the saved public or channel price used for billing
   """
   costPriceReferenceID: String
   request: Request!

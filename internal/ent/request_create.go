@@ -134,6 +134,26 @@ func (_c *RequestCreate) SetModelID(v string) *RequestCreate {
 	return _c
 }
 
+// SetOriginalModelID sets the "original_model_id" field.
+func (_c *RequestCreate) SetOriginalModelID(v string) *RequestCreate {
+	_c.mutation.SetOriginalModelID(v)
+	return _c
+}
+
+// SetNillableOriginalModelID sets the "original_model_id" field if the given value is not nil.
+func (_c *RequestCreate) SetNillableOriginalModelID(v *string) *RequestCreate {
+	if v != nil {
+		_c.SetOriginalModelID(*v)
+	}
+	return _c
+}
+
+// SetBilling sets the "billing" field.
+func (_c *RequestCreate) SetBilling(v *objects.RequestBilling) *RequestCreate {
+	_c.mutation.SetBilling(v)
+	return _c
+}
+
 // SetReasoningEffort sets the "reasoning_effort" field.
 func (_c *RequestCreate) SetReasoningEffort(v string) *RequestCreate {
 	_c.mutation.SetReasoningEffort(v)
@@ -568,6 +588,14 @@ func (_c *RequestCreate) createSpec() (*Request, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.ModelID(); ok {
 		_spec.SetField(request.FieldModelID, field.TypeString, value)
 		_node.ModelID = value
+	}
+	if value, ok := _c.mutation.OriginalModelID(); ok {
+		_spec.SetField(request.FieldOriginalModelID, field.TypeString, value)
+		_node.OriginalModelID = value
+	}
+	if value, ok := _c.mutation.Billing(); ok {
+		_spec.SetField(request.FieldBilling, field.TypeJSON, value)
+		_node.Billing = value
 	}
 	if value, ok := _c.mutation.ReasoningEffort(); ok {
 		_spec.SetField(request.FieldReasoningEffort, field.TypeString, value)
@@ -1095,6 +1123,12 @@ func (u *RequestUpsertOne) UpdateNewValues() *RequestUpsertOne {
 		}
 		if _, exists := u.create.mutation.ModelID(); exists {
 			s.SetIgnore(request.FieldModelID)
+		}
+		if _, exists := u.create.mutation.OriginalModelID(); exists {
+			s.SetIgnore(request.FieldOriginalModelID)
+		}
+		if _, exists := u.create.mutation.Billing(); exists {
+			s.SetIgnore(request.FieldBilling)
 		}
 		if _, exists := u.create.mutation.ReasoningEffort(); exists {
 			s.SetIgnore(request.FieldReasoningEffort)
@@ -1639,6 +1673,12 @@ func (u *RequestUpsertBulk) UpdateNewValues() *RequestUpsertBulk {
 			}
 			if _, exists := b.mutation.ModelID(); exists {
 				s.SetIgnore(request.FieldModelID)
+			}
+			if _, exists := b.mutation.OriginalModelID(); exists {
+				s.SetIgnore(request.FieldOriginalModelID)
+			}
+			if _, exists := b.mutation.Billing(); exists {
+				s.SetIgnore(request.FieldBilling)
 			}
 			if _, exists := b.mutation.ReasoningEffort(); exists {
 				s.SetIgnore(request.FieldReasoningEffort)
