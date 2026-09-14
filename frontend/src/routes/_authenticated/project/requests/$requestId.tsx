@@ -6,7 +6,7 @@ import RequestDetailPage from '@/features/requests/components/request-detail-pag
 function ProtectedRequestDetail() {
   return (
     <ProjectGuard>
-      <RouteGuard requiredScopes={['read_requests']} scopeLevel="any">
+      <RouteGuard requiredScopes={['read_requests']} scopeLevel="any" requireRequestDetails>
         <RequestDetailPage />
       </RouteGuard>
     </ProjectGuard>

@@ -6,7 +6,7 @@ import TraceDetailPage from '@/features/traces/components/trace-detail-page';
 function ProtectedTraceDetail() {
   return (
     <ProjectGuard>
-      <RouteGuard requiredScopes={['read_requests']} scopeLevel="any">
+      <RouteGuard requiredScopes={['read_requests']} scopeLevel="any" requireRequestDetails>
         <TraceDetailPage />
       </RouteGuard>
     </ProjectGuard>

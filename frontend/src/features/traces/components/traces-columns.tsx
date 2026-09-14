@@ -7,6 +7,7 @@ import { zhCN, enUS } from 'date-fns/locale';
 import { FileText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { extractNumberID } from '@/lib/utils';
+import { useRequestPermissions } from '@/hooks/useRequestPermissions';
 import { usePaginationSearch } from '@/hooks/use-pagination-search';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -79,6 +80,7 @@ function TraceActionButtons({ trace }: { trace: Trace }) {
 
 export function useTracesColumns(): ColumnDef<Trace>[] {
   const { t, i18n } = useTranslation();
+  const { canViewDetails } = useRequestPermissions();
   const locale = i18n.language === 'zh' ? zhCN : enUS;
   const { navigateWithSearch } = usePaginationSearch({ defaultPageSize: 20 });
 
@@ -93,6 +95,8 @@ export function useTracesColumns(): ColumnDef<Trace>[] {
             params: { traceId: row.original.id },
           });
         }, [row.original.id, navigateWithSearch]);
+
+        if (!canViewDetails) return <span className='font-mono text-xs'>#{extractNumberID(row.getValue('id'))}</span>;
 
         return (
           <button onClick={handleClick} className='text-primary cursor-pointer font-mono text-xs hover:underline'>
@@ -155,6 +159,7 @@ export function useTracesColumns(): ColumnDef<Trace>[] {
             params: { threadId: thread.id },
           });
         };
+        if (!canViewDetails) return <span className='font-mono text-xs'>#{extractNumberID(thread.id)}</span>;
         return (
           <Button variant='link' size='sm' onClick={handleNavigate} className='hover:text-primary h-auto p-0 font-mono text-xs'>
             #{extractNumberID(thread.id)}
@@ -216,5 +221,7 @@ export function useTracesColumns(): ColumnDef<Trace>[] {
     },
   ];
 
-  return columns;
+  return canViewDetails
+    ? columns
+    : columns.filter((column) => column.id !== 'details' && !('accessorKey' in column && column.accessorKey === 'firstUserQuery'));
 }

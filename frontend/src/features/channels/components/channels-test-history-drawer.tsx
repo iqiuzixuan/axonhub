@@ -16,6 +16,7 @@ import {
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { copyTextToClipboard } from '@/lib/clipboard';
+import { useRequestPermissions } from '@/hooks/useRequestPermissions';
 import { extractNumberID } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -39,6 +40,7 @@ interface Props {
 export function ChannelsTestHistoryDrawer({ open, onOpenChange, channel }: Props) {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { canViewDetails } = useRequestPermissions(null);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('request');
   const [globalExpanded, setGlobalExpanded] = useState(false);
@@ -109,6 +111,8 @@ export function ChannelsTestHistoryDrawer({ open, onOpenChange, channel }: Props
       params: { requestId: selectedRequestId },
     });
   };
+
+  if (!canViewDetails) return null;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>

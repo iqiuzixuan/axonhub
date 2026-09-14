@@ -316,7 +316,7 @@ export function useRequests(variables?: {
 }, options?: { projectId?: string | null; scopeToSelectedProject?: boolean; enabled?: boolean }) {
   const { handleError } = useErrorHandler();
   const { t } = useTranslation();
-  const permissions = useRequestPermissions();
+  const permissions = useRequestPermissions(options?.projectId);
   const selectedProjectId = useSelectedProjectId();
   const scopeToSelectedProject = options?.scopeToSelectedProject ?? true;
   const projectId = options?.projectId !== undefined ? options.projectId : selectedProjectId;
@@ -360,7 +360,7 @@ export function useRequest(
 ) {
   const { handleError } = useErrorHandler();
   const { t } = useTranslation();
-  const permissions = useRequestPermissions();
+  const permissions = useRequestPermissions(options?.projectId);
   const selectedProjectId = useSelectedProjectId();
   const queryClient = useQueryClient();
   const projectId = options?.projectId !== undefined ? options.projectId : selectedProjectId;
@@ -413,7 +413,7 @@ export function useRequest(
         throw error;
       }
     },
-    enabled: enabled && !!id,
+    enabled: enabled && !!id && permissions.canViewDetails,
     refetchInterval: (query) => {
       if (options?.disableAutoRefresh) {
         return false;
@@ -468,7 +468,7 @@ export function useRequestExecutions(
 ) {
   const { handleError } = useErrorHandler();
   const { t } = useTranslation();
-  const permissions = useRequestPermissions();
+  const permissions = useRequestPermissions(options?.projectId);
   const selectedProjectId = useSelectedProjectId();
   const projectId = options?.projectId !== undefined ? options.projectId : selectedProjectId;
 
@@ -489,6 +489,6 @@ export function useRequestExecutions(
         throw error;
       }
     },
-    enabled: !!requestID,
+    enabled: permissions.canViewDetails && !!requestID,
   });
 }

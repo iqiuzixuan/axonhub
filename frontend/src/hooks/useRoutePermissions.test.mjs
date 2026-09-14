@@ -297,3 +297,34 @@ test('project owners see the menu and can open its page even without explicit sc
     /project-users-loaded/
   );
 });
+
+test('request details require administration while the request list remains readable', () => {
+  pathname = '/project/requests/42';
+  selectedProjectId = 'project-a';
+  authUser.projects[0].effectiveScopes = ['read_requests'];
+  const renderDetail = () => renderToStaticMarkup(React.createElement(RouteGuard, { requiredScopes: ['read_requests'], requireRequestDetails: true }, 'detail-content'));
+  assert.ok(!renderDetail().includes('detail-content'));
+  const list = renderToStaticMarkup(React.createElement(RouteGuard, { requiredScopes: ['read_requests'] }, 'request-list'));
+  assert.ok(list.includes('request-list'));
+  authUser.projects[0].isOwner = true;
+  assert.ok(renderDetail().includes('detail-content'));
+  authUser.projects[0].isOwner = false;
+  authUser.projects[0].effectiveScopes = ['read_requests', 'write_users', 'write_roles'];
+  assert.ok(renderDetail().includes('detail-content'));
+  selectedProjectId = 'project-b';
+  assert.ok(!renderDetail().includes('detail-content'));
+});
+
+test('global request detail guard does not accept project ownership or broad read scopes', () => {
+  pathname = '/requests/42';
+  selectedProjectId = 'project-a';
+  authUser.scopes = ['read_requests', '*'];
+  authUser.projects[0].isOwner = true;
+  const renderDetail = () => renderToStaticMarkup(React.createElement(RouteGuard, { requireRequestDetails: true, scopeLevel: 'system' }, 'global-detail'));
+  assert.ok(!renderDetail().includes('global-detail'));
+  authUser.isOwner = true;
+  assert.ok(renderDetail().includes('global-detail'));
+  authUser.isOwner = false;
+  authUser.scopes = ['read_requests', 'write_users', 'write_roles'];
+  assert.ok(renderDetail().includes('global-detail'));
+});

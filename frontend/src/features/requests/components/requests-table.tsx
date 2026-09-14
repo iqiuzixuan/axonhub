@@ -18,6 +18,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import type { DateTimeRangeValue } from '@/utils/date-range';
 import type { AutoRefreshInterval } from '@/hooks/use-auto-refresh-interval';
+import { useRequestPermissions } from '@/hooks/useRequestPermissions';
 import { useIsMobile, MOBILE_BREAKPOINT } from '@/hooks/use-mobile';
 import { useAnimatedList } from '@/hooks/useAnimatedList';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -116,6 +117,7 @@ export function RequestsTable({
   onAutoRefreshIntervalChange,
 }: RequestsTableProps) {
   const { t } = useTranslation();
+  const { canViewDetails } = useRequestPermissions();
 
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerInitialRequestId, setDrawerInitialRequestId] = useState<string | null>(null);
@@ -413,16 +415,18 @@ export function RequestsTable({
         />
       </div>
 
-      <RequestBodyDrawer
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
-        initialRequestId={drawerInitialRequestId}
-        initialIndex={drawerInitialIndex}
-        initialRequests={data}
-        pageInfo={pageInfo}
-        queryWhere={queryWhere}
-        onViewDetail={onViewDetail}
-      />
+      {canViewDetails && (
+        <RequestBodyDrawer
+          open={drawerOpen}
+          onOpenChange={setDrawerOpen}
+          initialRequestId={drawerInitialRequestId}
+          initialIndex={drawerInitialIndex}
+          initialRequests={data}
+          pageInfo={pageInfo}
+          queryWhere={queryWhere}
+          onViewDetail={onViewDetail}
+        />
+      )}
     </div>
   );
 }

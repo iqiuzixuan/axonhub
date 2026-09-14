@@ -6,7 +6,7 @@ import { ThreadDetailPage } from '@/features/threads/components';
 function ProtectedThreadDetail() {
   return (
     <ProjectGuard>
-      <RouteGuard requiredScopes={['read_requests']} scopeLevel="any">
+      <RouteGuard requiredScopes={['read_requests']} scopeLevel="any" requireRequestDetails>
         <ThreadDetailPage />
       </RouteGuard>
     </ProjectGuard>

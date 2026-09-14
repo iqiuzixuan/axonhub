@@ -13,6 +13,7 @@ interface RouteGuardProps {
   scopeLevel?: ScopeLevel;
   fallbackPath?: string;
   showForbidden?: boolean;
+  requireRequestDetails?: boolean;
   requireProjectOwner?: boolean; // 是否需要项目所有者权限
 }
 
@@ -23,6 +24,7 @@ export function RouteGuard({
   fallbackPath,
   showForbidden = true,
   requireProjectOwner = false,
+  requireRequestDetails = false,
 }: RouteGuardProps) {
   const router = useRouter();
   // During navigation the URL can change before this route unmounts.
@@ -32,7 +34,8 @@ export function RouteGuard({
   const accessibleFallback = fallbackPath && checkRouteAccess(fallbackPath).hasAccess ? fallbackPath : defaultPath;
   const returnPath = accessibleFallback === pathname ? '/settings/profile' : accessibleFallback;
   const hasAccess =
-    checkRouteAccess(pathname).hasAccess && hasRouteAccess({ path: pathname, requiredScopes, scopeLevel, requireProjectOwner });
+    checkRouteAccess(pathname).hasAccess &&
+    hasRouteAccess({ path: pathname, requiredScopes, scopeLevel, requireProjectOwner, requireRequestDetails });
 
   useEffect(() => {
     if (!hasAccess && !showForbidden) {

@@ -3,11 +3,12 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { graphqlRequest } from '@/gql/graphql';
 import { useSelectedProjectId } from '@/stores/projectStore';
+import { useRequestPermissions } from '@/hooks/useRequestPermissions';
 import { useErrorHandler } from '@/hooks/use-error-handler';
 import { Trace, TraceConnection, TraceDetail, traceConnectionSchema, traceDetailSchema } from './schema';
 
 // GraphQL query for traces
-function buildTracesQuery() {
+function buildTracesQuery(canViewDetails: boolean) {
   return `
     query GetTraces(
       $first: Int
@@ -20,7 +21,7 @@ function buildTracesQuery() {
           node {
             id
             traceID
-            firstUserQuery
+            ${canViewDetails ? 'firstUserQuery' : ''}
             status
             createdAt
             updatedAt
@@ -133,12 +134,13 @@ export function useTraces(variables?: {
   const { handleError } = useErrorHandler();
   const { t } = useTranslation();
   const selectedProjectId = useSelectedProjectId();
+  const { canViewDetails } = useRequestPermissions();
 
   return useQuery({
-    queryKey: ['traces', variables, selectedProjectId],
+    queryKey: ['traces', variables, selectedProjectId, canViewDetails],
     queryFn: async () => {
       try {
-        const query = buildTracesQuery();
+        const query = buildTracesQuery(canViewDetails);
         const headers = selectedProjectId ? { 'X-Project-ID': selectedProjectId } : undefined;
 
         // Add project filter if project is selected

@@ -3,6 +3,7 @@ import { graphqlRequest } from '@/gql/graphql';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { useSelectedProjectId } from '@/stores/projectStore';
+import { useRequestPermissions } from '@/hooks/useRequestPermissions';
 import { useErrorHandler } from '@/hooks/use-error-handler';
 import { ThreadConnection, ThreadDetail, threadConnectionSchema, threadDetailSchema } from './schema';
 
@@ -22,7 +23,7 @@ type ThreadWhereInput = {
   [key: string]: unknown;
 };
 
-function buildThreadsQuery() {
+function buildThreadsQuery(canViewDetails: boolean) {
   return `
     query GetThreads(
       $first: Int
@@ -46,7 +47,7 @@ function buildThreadsQuery() {
               totalCount
             }
             archivedTracesCount
-            firstUserQuery
+            ${canViewDetails ? 'firstUserQuery' : ''}
           }
           cursor
         }
@@ -136,12 +137,13 @@ export function useThreads(variables?: { first?: number; after?: string; orderBy
   const { t } = useTranslation();
   const { handleError } = useErrorHandler();
   const selectedProjectId = useSelectedProjectId();
+  const { canViewDetails } = useRequestPermissions();
 
   return useQuery<ThreadConnection>({
-    queryKey: ['threads', variables, selectedProjectId],
+    queryKey: ['threads', variables, selectedProjectId, canViewDetails],
     queryFn: async () => {
       try {
-        const query = buildThreadsQuery();
+        const query = buildThreadsQuery(canViewDetails);
         const headers = selectedProjectId ? { 'X-Project-ID': selectedProjectId } : undefined;
         const finalVariables = {
           ...variables,

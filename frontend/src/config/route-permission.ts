@@ -8,6 +8,7 @@ export interface RouteConfig {
   scopeLevel?: ScopeLevel; // 权限级别：system 只检查系统级权限，project 只检查项目级权限，any 检查两者
   mode?: 'hidden' | 'disabled'; // 当没有权限时的处理方式
   children?: RouteConfig[];
+  requireRequestDetails?: boolean;
   requireProjectOwner?: boolean; // 是否需要 project owner (或 system owner)
 }
 
@@ -195,9 +196,21 @@ export interface RoutePermissions {
   isProjectOwner: boolean;
 }
 
+// Full administrators manage both members and roles. Evaluate system and
+// project grants independently so permissions from different levels never mix.
+export function canReadRequestDetails(permissions: RoutePermissions, scopeLevel: ScopeLevel = 'any'): boolean {
+  const isAdmin = (scopes: string[]) => ['read_requests', 'write_users', 'write_roles'].every((scope) => scopes.includes(scope));
+  return (
+    permissions.isOwner ||
+    isAdmin(permissions.systemScopes) ||
+    (scopeLevel !== 'system' && (permissions.isProjectOwner || isAdmin(permissions.projectScopes)))
+  );
+}
+
 // 检查用户是否有访问路由的权限
 export function hasRouteAccess(permissions: RoutePermissions, routeConfig: RouteConfig): boolean {
   const { systemScopes, projectScopes, isOwner, isProjectOwner } = permissions;
+  if (routeConfig.requireRequestDetails && !canReadRequestDetails(permissions, routeConfig.scopeLevel)) return false;
   if (routeConfig.requireProjectOwner && !isOwner && !isProjectOwner) {
     return false;
   }
