@@ -78,6 +78,7 @@ export function useRequestsColumns(options?: UseRequestsColumnsOptions): ColumnD
   };
 
   const openDetail = (requestId: string) => {
+    if (!permissions.canViewDetails) return;
     if (options?.onViewDetail) {
       options.onViewDetail(requestId);
       return;
@@ -101,13 +102,17 @@ export function useRequestsColumns(options?: UseRequestsColumnsOptions): ColumnD
 
         return (
           <div className='flex min-w-[120px] flex-col gap-1.5'>
-            <button
-              type='button'
-              onClick={() => options?.onBodyClick?.(request.id, row.index)}
-              className='text-primary w-fit cursor-pointer font-mono text-xs hover:underline'
-            >
-              #{extractNumberID(request.id)}
-            </button>
+            {permissions.canViewDetails ? (
+              <button
+                type='button'
+                onClick={() => options?.onBodyClick?.(request.id, row.index)}
+                className='text-primary w-fit cursor-pointer font-mono text-xs hover:underline'
+              >
+                #{extractNumberID(request.id)}
+              </button>
+            ) : (
+              <span className='w-fit font-mono text-xs'>#{extractNumberID(request.id)}</span>
+            )}
             <div className='flex flex-wrap items-center gap-1.5'>
               <Badge className={`${getStatusColor(request.status)} w-fit`}>{t(`requests.status.${request.status}`)}</Badge>
               <Badge
@@ -632,5 +637,5 @@ export function useRequestsColumns(options?: UseRequestsColumnsOptions): ColumnD
     },
   ];
 
-  return columns;
+  return permissions.canViewDetails ? columns : columns.filter((column) => column.id !== 'details');
 }

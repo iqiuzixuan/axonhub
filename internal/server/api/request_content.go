@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.uber.org/fx"
 
+	"github.com/looplj/axonhub/internal/authz"
 	"github.com/looplj/axonhub/internal/contexts"
 	"github.com/looplj/axonhub/internal/ent"
 	"github.com/looplj/axonhub/internal/ent/datastorage"
@@ -59,6 +60,11 @@ func (h *RequestContentHandlers) DownloadRequestContent(c *gin.Context) {
 			return
 		}
 		JSONError(c, http.StatusInternalServerError, errors.New("Failed to load request"))
+		return
+	}
+
+	if err := authz.RequireRequestDetails(ctx, req.ProjectID); err != nil {
+		JSONError(c, http.StatusForbidden, err)
 		return
 	}
 

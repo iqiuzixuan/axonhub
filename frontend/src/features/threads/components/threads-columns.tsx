@@ -7,6 +7,7 @@ import { zhCN, enUS } from 'date-fns/locale';
 import { FileText } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { extractNumberID } from '@/lib/utils';
+import { useRequestPermissions } from '@/hooks/useRequestPermissions';
 import { usePaginationSearch } from '@/hooks/use-pagination-search';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -79,6 +80,7 @@ function ThreadActionButtons({ thread }: { thread: Thread }) {
 
 export function useThreadsColumns(): ColumnDef<Thread>[] {
   const { t, i18n } = useTranslation();
+  const { canViewDetails } = useRequestPermissions();
   const locale = i18n.language === 'zh' ? zhCN : enUS;
   const { navigateWithSearch } = usePaginationSearch({ defaultPageSize: 20 });
 
@@ -93,6 +95,8 @@ export function useThreadsColumns(): ColumnDef<Thread>[] {
             params: { threadId: row.original.id },
           });
         }, [row.original.id, navigateWithSearch]);
+
+        if (!canViewDetails) return <span className='font-mono text-xs'>#{extractNumberID(row.getValue('id'))}</span>;
 
         return (
           <button onClick={handleClick} className='text-primary cursor-pointer font-mono text-xs hover:underline'>
@@ -193,5 +197,7 @@ export function useThreadsColumns(): ColumnDef<Thread>[] {
     },
   ];
 
-  return columns;
+  return canViewDetails
+    ? columns
+    : columns.filter((column) => column.id !== 'details' && !('accessorKey' in column && column.accessorKey === 'firstUserQuery'));
 }

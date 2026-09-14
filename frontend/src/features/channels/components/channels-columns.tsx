@@ -27,6 +27,7 @@ import {
 } from '@tabler/icons-react';
 import { useTranslation } from 'react-i18next';
 import { cn } from '@/lib/utils';
+import { useRequestPermissions } from '@/hooks/useRequestPermissions';
 import { usePermissions } from '@/hooks/usePermissions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -126,6 +127,7 @@ const ActionCell = memo(({ row }: { row: Row<Channel> }) => {
   const channel = row.original;
   const { setOpen, setCurrentRow } = useChannels();
   const { channelPermissions } = usePermissions();
+  const { canViewDetails } = useRequestPermissions(null);
   const testChannel = useTestChannel();
   const isArchived = channel.status === 'archived';
   const hasError = channel.errorMessage != null;
@@ -167,15 +169,17 @@ const ActionCell = memo(({ row }: { row: Row<Channel> }) => {
             <IconPlayerPlay size={16} className='mr-2' />
             {t('channels.actions.test')}
           </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={() => {
-              setCurrentRow(channel);
-              setOpen('testHistory');
-            }}
-          >
-            <IconHistory size={16} className='mr-2' />
-            {t('channels.actions.testHistory')}
-          </DropdownMenuItem>
+          {canViewDetails && (
+            <DropdownMenuItem
+              onClick={() => {
+                setCurrentRow(channel);
+                setOpen('testHistory');
+              }}
+            >
+              <IconHistory size={16} className='mr-2' />
+              {t('channels.actions.testHistory')}
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
 
           <DropdownMenuItem
