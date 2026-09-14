@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSelectedProjectId } from '@/stores/projectStore';
 import { useErrorHandler } from '@/hooks/use-error-handler';
 import { useRequestPermissions } from '../../../hooks/useRequestPermissions';
+import { buildAPIKeySearchFilter } from './search-filter';
 import type {
   ApiKey,
   ApiKeyConnection,
@@ -502,7 +503,7 @@ export function useApiKeyOptions(options?: { search?: string; includeArchived?: 
             where: {
               typeNotIn: [NOAUTH_API_KEY_TYPE],
               statusIn: includeArchived ? ['enabled', 'disabled', 'archived'] : ['enabled', 'disabled'],
-              ...(search ? { nameContainsFold: search } : {}),
+              ...buildAPIKeySearchFilter(search, { canViewUsers }),
             },
           },
           canViewUsers

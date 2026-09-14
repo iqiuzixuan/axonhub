@@ -15,6 +15,7 @@ import { ApiKeysTable } from './components/apikeys-table';
 import ApiKeysProvider from './context/apikeys-context';
 import { useApiKeys } from './data/apikeys';
 import { ApiKeyType } from './data/schema';
+import { buildAPIKeySearchFilter } from './data/search-filter';
 
 type ApiKeyTabKey = ApiKeyType | 'all' | 'mine';
 
@@ -88,15 +89,10 @@ function ApiKeysContent() {
 
   // Build where clause for API filtering
   const whereClause = (() => {
-    const where: Record<string, unknown> = {};
-    
-    // Use OR condition for searching both name and key
-    if (debouncedSearchFilter) {
-      where.or = [
-        { nameContainsFold: debouncedSearchFilter },
-        { keyContainsFold: debouncedSearchFilter },
-      ];
-    }
+    const where: Record<string, unknown> = buildAPIKeySearchFilter(debouncedSearchFilter, {
+      canViewUsers: userPermissions.canRead,
+      includeKey: true,
+    });
     
     if (activeTab === 'mine') {
       where.userID = user?.id;
@@ -160,7 +156,7 @@ function ApiKeysContent() {
   React.useEffect(() => {
     resetCursor();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearchFilter, activeTab, statusFilter, userFilter, dateRange]);
+  }, [debouncedSearchFilter, activeTab, statusFilter, userFilter, dateRange, userPermissions.canRead]);
 
   const handleNextPage = () => {
     if (data?.pageInfo?.hasNextPage && data?.pageInfo?.endCursor) {

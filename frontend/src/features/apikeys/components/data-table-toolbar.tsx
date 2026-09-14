@@ -61,7 +61,7 @@ export function DataTableToolbar<TData>({
     <div className='flex flex-wrap items-center justify-between gap-2'>
       <div className='flex flex-1 flex-wrap items-center gap-2'>
         <Input
-          placeholder={t('apikeys.filters.filterName')}
+          placeholder={t(canViewCreators ? 'apikeys.filters.filterNameKeyOrUser' : 'apikeys.filters.filterName')}
           value={(table.getColumn('name')?.getFilterValue() as string) ?? ''}
           onChange={(event) => table.getColumn('name')?.setFilterValue(event.target.value)}
           className='h-8 w-[150px] lg:w-[250px]'

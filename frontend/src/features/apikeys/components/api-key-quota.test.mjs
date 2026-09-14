@@ -289,6 +289,7 @@ test('quota queries are scoped, cancellable, silent on row errors, and invalidat
       }),
     },
     '../../../hooks/useRequestPermissions': { useRequestPermissions: () => ({ canViewUsers: false }) },
+    './search-filter': load('../data/search-filter.ts'),
     './schema': schema,
     sonner: { toast: { success() {} } },
   });
