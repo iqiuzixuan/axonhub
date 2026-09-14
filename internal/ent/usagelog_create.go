@@ -304,6 +304,54 @@ func (_c *UsageLogCreate) SetNillableFormat(v *string) *UsageLogCreate {
 	return _c
 }
 
+// SetChannelCost sets the "channel_cost" field.
+func (_c *UsageLogCreate) SetChannelCost(v float64) *UsageLogCreate {
+	_c.mutation.SetChannelCost(v)
+	return _c
+}
+
+// SetNillableChannelCost sets the "channel_cost" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableChannelCost(v *float64) *UsageLogCreate {
+	if v != nil {
+		_c.SetChannelCost(*v)
+	}
+	return _c
+}
+
+// SetChannelCostItems sets the "channel_cost_items" field.
+func (_c *UsageLogCreate) SetChannelCostItems(v []objects.CostItem) *UsageLogCreate {
+	_c.mutation.SetChannelCostItems(v)
+	return _c
+}
+
+// SetBillingModelID sets the "billing_model_id" field.
+func (_c *UsageLogCreate) SetBillingModelID(v string) *UsageLogCreate {
+	_c.mutation.SetBillingModelID(v)
+	return _c
+}
+
+// SetNillableBillingModelID sets the "billing_model_id" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableBillingModelID(v *string) *UsageLogCreate {
+	if v != nil {
+		_c.SetBillingModelID(*v)
+	}
+	return _c
+}
+
+// SetBillingModelSource sets the "billing_model_source" field.
+func (_c *UsageLogCreate) SetBillingModelSource(v string) *UsageLogCreate {
+	_c.mutation.SetBillingModelSource(v)
+	return _c
+}
+
+// SetNillableBillingModelSource sets the "billing_model_source" field if the given value is not nil.
+func (_c *UsageLogCreate) SetNillableBillingModelSource(v *string) *UsageLogCreate {
+	if v != nil {
+		_c.SetBillingModelSource(*v)
+	}
+	return _c
+}
+
 // SetTotalCost sets the "total_cost" field.
 func (_c *UsageLogCreate) SetTotalCost(v float64) *UsageLogCreate {
 	_c.mutation.SetTotalCost(v)
@@ -606,6 +654,22 @@ func (_c *UsageLogCreate) createSpec() (*UsageLog, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Format(); ok {
 		_spec.SetField(usagelog.FieldFormat, field.TypeString, value)
 		_node.Format = value
+	}
+	if value, ok := _c.mutation.ChannelCost(); ok {
+		_spec.SetField(usagelog.FieldChannelCost, field.TypeFloat64, value)
+		_node.ChannelCost = &value
+	}
+	if value, ok := _c.mutation.ChannelCostItems(); ok {
+		_spec.SetField(usagelog.FieldChannelCostItems, field.TypeJSON, value)
+		_node.ChannelCostItems = value
+	}
+	if value, ok := _c.mutation.BillingModelID(); ok {
+		_spec.SetField(usagelog.FieldBillingModelID, field.TypeString, value)
+		_node.BillingModelID = value
+	}
+	if value, ok := _c.mutation.BillingModelSource(); ok {
+		_spec.SetField(usagelog.FieldBillingModelSource, field.TypeString, value)
+		_node.BillingModelSource = value
 	}
 	if value, ok := _c.mutation.TotalCost(); ok {
 		_spec.SetField(usagelog.FieldTotalCost, field.TypeFloat64, value)
@@ -1004,6 +1068,48 @@ func (u *UsageLogUpsert) ClearCompletionRejectedPredictionTokens() *UsageLogUpse
 	return u
 }
 
+// SetChannelCost sets the "channel_cost" field.
+func (u *UsageLogUpsert) SetChannelCost(v float64) *UsageLogUpsert {
+	u.Set(usagelog.FieldChannelCost, v)
+	return u
+}
+
+// UpdateChannelCost sets the "channel_cost" field to the value that was provided on create.
+func (u *UsageLogUpsert) UpdateChannelCost() *UsageLogUpsert {
+	u.SetExcluded(usagelog.FieldChannelCost)
+	return u
+}
+
+// AddChannelCost adds v to the "channel_cost" field.
+func (u *UsageLogUpsert) AddChannelCost(v float64) *UsageLogUpsert {
+	u.Add(usagelog.FieldChannelCost, v)
+	return u
+}
+
+// ClearChannelCost clears the value of the "channel_cost" field.
+func (u *UsageLogUpsert) ClearChannelCost() *UsageLogUpsert {
+	u.SetNull(usagelog.FieldChannelCost)
+	return u
+}
+
+// SetChannelCostItems sets the "channel_cost_items" field.
+func (u *UsageLogUpsert) SetChannelCostItems(v []objects.CostItem) *UsageLogUpsert {
+	u.Set(usagelog.FieldChannelCostItems, v)
+	return u
+}
+
+// UpdateChannelCostItems sets the "channel_cost_items" field to the value that was provided on create.
+func (u *UsageLogUpsert) UpdateChannelCostItems() *UsageLogUpsert {
+	u.SetExcluded(usagelog.FieldChannelCostItems)
+	return u
+}
+
+// ClearChannelCostItems clears the value of the "channel_cost_items" field.
+func (u *UsageLogUpsert) ClearChannelCostItems() *UsageLogUpsert {
+	u.SetNull(usagelog.FieldChannelCostItems)
+	return u
+}
+
 // SetTotalCost sets the "total_cost" field.
 func (u *UsageLogUpsert) SetTotalCost(v float64) *UsageLogUpsert {
 	u.Set(usagelog.FieldTotalCost, v)
@@ -1098,6 +1204,12 @@ func (u *UsageLogUpsertOne) UpdateNewValues() *UsageLogUpsertOne {
 		}
 		if _, exists := u.create.mutation.Format(); exists {
 			s.SetIgnore(usagelog.FieldFormat)
+		}
+		if _, exists := u.create.mutation.BillingModelID(); exists {
+			s.SetIgnore(usagelog.FieldBillingModelID)
+		}
+		if _, exists := u.create.mutation.BillingModelSource(); exists {
+			s.SetIgnore(usagelog.FieldBillingModelSource)
 		}
 	}))
 	return u
@@ -1459,6 +1571,55 @@ func (u *UsageLogUpsertOne) ClearCompletionRejectedPredictionTokens() *UsageLogU
 	})
 }
 
+// SetChannelCost sets the "channel_cost" field.
+func (u *UsageLogUpsertOne) SetChannelCost(v float64) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetChannelCost(v)
+	})
+}
+
+// AddChannelCost adds v to the "channel_cost" field.
+func (u *UsageLogUpsertOne) AddChannelCost(v float64) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.AddChannelCost(v)
+	})
+}
+
+// UpdateChannelCost sets the "channel_cost" field to the value that was provided on create.
+func (u *UsageLogUpsertOne) UpdateChannelCost() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateChannelCost()
+	})
+}
+
+// ClearChannelCost clears the value of the "channel_cost" field.
+func (u *UsageLogUpsertOne) ClearChannelCost() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearChannelCost()
+	})
+}
+
+// SetChannelCostItems sets the "channel_cost_items" field.
+func (u *UsageLogUpsertOne) SetChannelCostItems(v []objects.CostItem) *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetChannelCostItems(v)
+	})
+}
+
+// UpdateChannelCostItems sets the "channel_cost_items" field to the value that was provided on create.
+func (u *UsageLogUpsertOne) UpdateChannelCostItems() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateChannelCostItems()
+	})
+}
+
+// ClearChannelCostItems clears the value of the "channel_cost_items" field.
+func (u *UsageLogUpsertOne) ClearChannelCostItems() *UsageLogUpsertOne {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearChannelCostItems()
+	})
+}
+
 // SetTotalCost sets the "total_cost" field.
 func (u *UsageLogUpsertOne) SetTotalCost(v float64) *UsageLogUpsertOne {
 	return u.Update(func(s *UsageLogUpsert) {
@@ -1728,6 +1889,12 @@ func (u *UsageLogUpsertBulk) UpdateNewValues() *UsageLogUpsertBulk {
 			}
 			if _, exists := b.mutation.Format(); exists {
 				s.SetIgnore(usagelog.FieldFormat)
+			}
+			if _, exists := b.mutation.BillingModelID(); exists {
+				s.SetIgnore(usagelog.FieldBillingModelID)
+			}
+			if _, exists := b.mutation.BillingModelSource(); exists {
+				s.SetIgnore(usagelog.FieldBillingModelSource)
 			}
 		}
 	}))
@@ -2087,6 +2254,55 @@ func (u *UsageLogUpsertBulk) UpdateCompletionRejectedPredictionTokens() *UsageLo
 func (u *UsageLogUpsertBulk) ClearCompletionRejectedPredictionTokens() *UsageLogUpsertBulk {
 	return u.Update(func(s *UsageLogUpsert) {
 		s.ClearCompletionRejectedPredictionTokens()
+	})
+}
+
+// SetChannelCost sets the "channel_cost" field.
+func (u *UsageLogUpsertBulk) SetChannelCost(v float64) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetChannelCost(v)
+	})
+}
+
+// AddChannelCost adds v to the "channel_cost" field.
+func (u *UsageLogUpsertBulk) AddChannelCost(v float64) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.AddChannelCost(v)
+	})
+}
+
+// UpdateChannelCost sets the "channel_cost" field to the value that was provided on create.
+func (u *UsageLogUpsertBulk) UpdateChannelCost() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateChannelCost()
+	})
+}
+
+// ClearChannelCost clears the value of the "channel_cost" field.
+func (u *UsageLogUpsertBulk) ClearChannelCost() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearChannelCost()
+	})
+}
+
+// SetChannelCostItems sets the "channel_cost_items" field.
+func (u *UsageLogUpsertBulk) SetChannelCostItems(v []objects.CostItem) *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.SetChannelCostItems(v)
+	})
+}
+
+// UpdateChannelCostItems sets the "channel_cost_items" field to the value that was provided on create.
+func (u *UsageLogUpsertBulk) UpdateChannelCostItems() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.UpdateChannelCostItems()
+	})
+}
+
+// ClearChannelCostItems clears the value of the "channel_cost_items" field.
+func (u *UsageLogUpsertBulk) ClearChannelCostItems() *UsageLogUpsertBulk {
+	return u.Update(func(s *UsageLogUpsert) {
+		s.ClearChannelCostItems()
 	})
 }
 

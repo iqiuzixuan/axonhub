@@ -250,6 +250,7 @@ func (processor *ChatCompletionOrchestrator) Process(ctx context.Context, reques
 		enforceQuota(inbound, processor.QuotaService),
 		applyAutoReasoningEffort(processor.SystemService),
 		checkApiKeyModelAccess(inbound),
+		prepareRequestBilling(inbound),
 		applyModelMapping(inbound),
 		selectCandidates(inbound, processor.quotaProvider, processor.SystemService),
 		injectPrompts(inbound),

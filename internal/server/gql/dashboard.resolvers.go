@@ -1094,6 +1094,7 @@ func (r *queryResolver) FastestChannels(ctx context.Context, input FastestChanne
 		queryArgs = []any{since.UTC()}
 	}
 
+	query = applyModelDisplaySQL(ctx, query)
 	rows, err := sqlDB.DB().QueryContext(ctx, query, queryArgs...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query fastest channels: %w", err)
@@ -1235,6 +1236,7 @@ func (r *queryResolver) FastestModels(ctx context.Context, input FastestChannels
 		queryArgs = []any{since.UTC()}
 	}
 
+	query = applyModelDisplaySQL(ctx, query)
 	rows, err := sqlDB.DB().QueryContext(ctx, query, queryArgs...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query fastest models: %w", err)
@@ -1344,6 +1346,7 @@ func (r *queryResolver) ModelPerformanceStats(ctx context.Context) ([]*ModelPerf
 		return nil, fmt.Errorf("context canceled: %w", err)
 	}
 
+	query = applyModelDisplaySQL(ctx, query)
 	rows, err := sqlDB.DB().QueryContext(ctx, query, startDateUTC)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query model performance stats: %w", err)

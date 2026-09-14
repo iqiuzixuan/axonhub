@@ -343,6 +343,51 @@ func (_u *UsageLogUpdate) ClearCompletionRejectedPredictionTokens() *UsageLogUpd
 	return _u
 }
 
+// SetChannelCost sets the "channel_cost" field.
+func (_u *UsageLogUpdate) SetChannelCost(v float64) *UsageLogUpdate {
+	_u.mutation.ResetChannelCost()
+	_u.mutation.SetChannelCost(v)
+	return _u
+}
+
+// SetNillableChannelCost sets the "channel_cost" field if the given value is not nil.
+func (_u *UsageLogUpdate) SetNillableChannelCost(v *float64) *UsageLogUpdate {
+	if v != nil {
+		_u.SetChannelCost(*v)
+	}
+	return _u
+}
+
+// AddChannelCost adds value to the "channel_cost" field.
+func (_u *UsageLogUpdate) AddChannelCost(v float64) *UsageLogUpdate {
+	_u.mutation.AddChannelCost(v)
+	return _u
+}
+
+// ClearChannelCost clears the value of the "channel_cost" field.
+func (_u *UsageLogUpdate) ClearChannelCost() *UsageLogUpdate {
+	_u.mutation.ClearChannelCost()
+	return _u
+}
+
+// SetChannelCostItems sets the "channel_cost_items" field.
+func (_u *UsageLogUpdate) SetChannelCostItems(v []objects.CostItem) *UsageLogUpdate {
+	_u.mutation.SetChannelCostItems(v)
+	return _u
+}
+
+// AppendChannelCostItems appends value to the "channel_cost_items" field.
+func (_u *UsageLogUpdate) AppendChannelCostItems(v []objects.CostItem) *UsageLogUpdate {
+	_u.mutation.AppendChannelCostItems(v)
+	return _u
+}
+
+// ClearChannelCostItems clears the value of the "channel_cost_items" field.
+func (_u *UsageLogUpdate) ClearChannelCostItems() *UsageLogUpdate {
+	_u.mutation.ClearChannelCostItems()
+	return _u
+}
+
 // SetTotalCost sets the "total_cost" field.
 func (_u *UsageLogUpdate) SetTotalCost(v float64) *UsageLogUpdate {
 	_u.mutation.ResetTotalCost()
@@ -588,6 +633,32 @@ func (_u *UsageLogUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	}
 	if _u.mutation.CompletionRejectedPredictionTokensCleared() {
 		_spec.ClearField(usagelog.FieldCompletionRejectedPredictionTokens, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.ChannelCost(); ok {
+		_spec.SetField(usagelog.FieldChannelCost, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedChannelCost(); ok {
+		_spec.AddField(usagelog.FieldChannelCost, field.TypeFloat64, value)
+	}
+	if _u.mutation.ChannelCostCleared() {
+		_spec.ClearField(usagelog.FieldChannelCost, field.TypeFloat64)
+	}
+	if value, ok := _u.mutation.ChannelCostItems(); ok {
+		_spec.SetField(usagelog.FieldChannelCostItems, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedChannelCostItems(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, usagelog.FieldChannelCostItems, value)
+		})
+	}
+	if _u.mutation.ChannelCostItemsCleared() {
+		_spec.ClearField(usagelog.FieldChannelCostItems, field.TypeJSON)
+	}
+	if _u.mutation.BillingModelIDCleared() {
+		_spec.ClearField(usagelog.FieldBillingModelID, field.TypeString)
+	}
+	if _u.mutation.BillingModelSourceCleared() {
+		_spec.ClearField(usagelog.FieldBillingModelSource, field.TypeString)
 	}
 	if value, ok := _u.mutation.TotalCost(); ok {
 		_spec.SetField(usagelog.FieldTotalCost, field.TypeFloat64, value)
@@ -949,6 +1020,51 @@ func (_u *UsageLogUpdateOne) ClearCompletionRejectedPredictionTokens() *UsageLog
 	return _u
 }
 
+// SetChannelCost sets the "channel_cost" field.
+func (_u *UsageLogUpdateOne) SetChannelCost(v float64) *UsageLogUpdateOne {
+	_u.mutation.ResetChannelCost()
+	_u.mutation.SetChannelCost(v)
+	return _u
+}
+
+// SetNillableChannelCost sets the "channel_cost" field if the given value is not nil.
+func (_u *UsageLogUpdateOne) SetNillableChannelCost(v *float64) *UsageLogUpdateOne {
+	if v != nil {
+		_u.SetChannelCost(*v)
+	}
+	return _u
+}
+
+// AddChannelCost adds value to the "channel_cost" field.
+func (_u *UsageLogUpdateOne) AddChannelCost(v float64) *UsageLogUpdateOne {
+	_u.mutation.AddChannelCost(v)
+	return _u
+}
+
+// ClearChannelCost clears the value of the "channel_cost" field.
+func (_u *UsageLogUpdateOne) ClearChannelCost() *UsageLogUpdateOne {
+	_u.mutation.ClearChannelCost()
+	return _u
+}
+
+// SetChannelCostItems sets the "channel_cost_items" field.
+func (_u *UsageLogUpdateOne) SetChannelCostItems(v []objects.CostItem) *UsageLogUpdateOne {
+	_u.mutation.SetChannelCostItems(v)
+	return _u
+}
+
+// AppendChannelCostItems appends value to the "channel_cost_items" field.
+func (_u *UsageLogUpdateOne) AppendChannelCostItems(v []objects.CostItem) *UsageLogUpdateOne {
+	_u.mutation.AppendChannelCostItems(v)
+	return _u
+}
+
+// ClearChannelCostItems clears the value of the "channel_cost_items" field.
+func (_u *UsageLogUpdateOne) ClearChannelCostItems() *UsageLogUpdateOne {
+	_u.mutation.ClearChannelCostItems()
+	return _u
+}
+
 // SetTotalCost sets the "total_cost" field.
 func (_u *UsageLogUpdateOne) SetTotalCost(v float64) *UsageLogUpdateOne {
 	_u.mutation.ResetTotalCost()
@@ -1224,6 +1340,32 @@ func (_u *UsageLogUpdateOne) sqlSave(ctx context.Context) (_node *UsageLog, err 
 	}
 	if _u.mutation.CompletionRejectedPredictionTokensCleared() {
 		_spec.ClearField(usagelog.FieldCompletionRejectedPredictionTokens, field.TypeInt64)
+	}
+	if value, ok := _u.mutation.ChannelCost(); ok {
+		_spec.SetField(usagelog.FieldChannelCost, field.TypeFloat64, value)
+	}
+	if value, ok := _u.mutation.AddedChannelCost(); ok {
+		_spec.AddField(usagelog.FieldChannelCost, field.TypeFloat64, value)
+	}
+	if _u.mutation.ChannelCostCleared() {
+		_spec.ClearField(usagelog.FieldChannelCost, field.TypeFloat64)
+	}
+	if value, ok := _u.mutation.ChannelCostItems(); ok {
+		_spec.SetField(usagelog.FieldChannelCostItems, field.TypeJSON, value)
+	}
+	if value, ok := _u.mutation.AppendedChannelCostItems(); ok {
+		_spec.AddModifier(func(u *sql.UpdateBuilder) {
+			sqljson.Append(u, usagelog.FieldChannelCostItems, value)
+		})
+	}
+	if _u.mutation.ChannelCostItemsCleared() {
+		_spec.ClearField(usagelog.FieldChannelCostItems, field.TypeJSON)
+	}
+	if _u.mutation.BillingModelIDCleared() {
+		_spec.ClearField(usagelog.FieldBillingModelID, field.TypeString)
+	}
+	if _u.mutation.BillingModelSourceCleared() {
+		_spec.ClearField(usagelog.FieldBillingModelSource, field.TypeString)
 	}
 	if value, ok := _u.mutation.TotalCost(); ok {
 		_spec.SetField(usagelog.FieldTotalCost, field.TypeFloat64, value)

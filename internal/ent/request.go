@@ -40,6 +40,10 @@ type Request struct {
 	Source request.Source `json:"source,omitempty"`
 	// ModelID holds the value of the "model_id" field.
 	ModelID string `json:"model_id,omitempty"`
+	// OriginalModelID holds the value of the "original_model_id" field.
+	OriginalModelID string `json:"original_model_id,omitempty"`
+	// Billing holds the value of the "billing" field.
+	Billing *objects.RequestBilling `json:"billing,omitempty"`
 	// Reasoning effort used for reasoning models
 	ReasoningEffort string `json:"reasoning_effort,omitempty"`
 	// Format holds the value of the "format" field.
@@ -186,13 +190,13 @@ func (*Request) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case request.FieldRequestHeaders, request.FieldRequestBody, request.FieldResponseBody, request.FieldResponseChunks:
+		case request.FieldBilling, request.FieldRequestHeaders, request.FieldRequestBody, request.FieldResponseBody, request.FieldResponseChunks:
 			values[i] = new([]byte)
 		case request.FieldStream, request.FieldContentSaved:
 			values[i] = new(sql.NullBool)
 		case request.FieldID, request.FieldAPIKeyID, request.FieldProjectID, request.FieldTraceID, request.FieldDataStorageID, request.FieldChannelID, request.FieldMetricsLatencyMs, request.FieldMetricsFirstTokenLatencyMs, request.FieldMetricsReasoningDurationMs, request.FieldContentStorageID:
 			values[i] = new(sql.NullInt64)
-		case request.FieldSource, request.FieldModelID, request.FieldReasoningEffort, request.FieldFormat, request.FieldExternalID, request.FieldStatus, request.FieldClientIP, request.FieldContentStorageKey:
+		case request.FieldSource, request.FieldModelID, request.FieldOriginalModelID, request.FieldReasoningEffort, request.FieldFormat, request.FieldExternalID, request.FieldStatus, request.FieldClientIP, request.FieldContentStorageKey:
 			values[i] = new(sql.NullString)
 		case request.FieldCreatedAt, request.FieldUpdatedAt, request.FieldContentSavedAt:
 			values[i] = new(sql.NullTime)
@@ -264,6 +268,20 @@ func (_m *Request) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field model_id", values[i])
 			} else if value.Valid {
 				_m.ModelID = value.String
+			}
+		case request.FieldOriginalModelID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field original_model_id", values[i])
+			} else if value.Valid {
+				_m.OriginalModelID = value.String
+			}
+		case request.FieldBilling:
+			if value, ok := values[i].(*[]byte); !ok {
+				return fmt.Errorf("unexpected type %T for field billing", values[i])
+			} else if value != nil && len(*value) > 0 {
+				if err := json.Unmarshal(*value, &_m.Billing); err != nil {
+					return fmt.Errorf("unmarshal field billing: %w", err)
+				}
 			}
 		case request.FieldReasoningEffort:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -481,6 +499,12 @@ func (_m *Request) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("model_id=")
 	builder.WriteString(_m.ModelID)
+	builder.WriteString(", ")
+	builder.WriteString("original_model_id=")
+	builder.WriteString(_m.OriginalModelID)
+	builder.WriteString(", ")
+	builder.WriteString("billing=")
+	builder.WriteString(fmt.Sprintf("%v", _m.Billing))
 	builder.WriteString(", ")
 	builder.WriteString("reasoning_effort=")
 	builder.WriteString(_m.ReasoningEffort)

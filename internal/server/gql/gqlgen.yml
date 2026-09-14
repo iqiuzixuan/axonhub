@@ -656,6 +656,9 @@ models:
   SystemVersion:
     model:
       - github.com/looplj/axonhub/internal/build.Info
+  BillingModelSource:
+    model:
+      - github.com/looplj/axonhub/internal/objects.BillingModelSource
   SystemModelSettings:
     model:
       - github.com/looplj/axonhub/internal/server/biz.SystemModelSettings

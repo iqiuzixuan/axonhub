@@ -820,6 +820,7 @@ const MODEL_SETTINGS_QUERY = `
       queryAllChannelModels
       defaultModelAPIIncludeAll
       autoReasoningEffort
+      billingModelSource
       modelBlacklistRegex
       hideUnroutableModelsInList
       developerSettings {
@@ -966,6 +967,7 @@ const UPDATE_SECURITY_SETTINGS_MUTATION = `
 `;
 
 export interface ModelSettings {
+  billingModelSource: 'original' | 'redirected';
   fallbackToChannelsOnModelNotFound: boolean;
   queryAllChannelModels: boolean;
   defaultModelAPIIncludeAll: boolean;
@@ -976,6 +978,7 @@ export interface ModelSettings {
 }
 
 export interface UpdateModelSettingsInput {
+  billingModelSource?: 'original' | 'redirected';
   fallbackToChannelsOnModelNotFound?: boolean;
   queryAllChannelModels?: boolean;
   defaultModelAPIIncludeAll?: boolean;
@@ -1018,8 +1021,8 @@ export function useUpdateModelSettings() {
       return data.updateSystemModelSettings;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['modelSettings'] });
-      queryClient.invalidateQueries({ queryKey: ['models'] });
+      // The global policy also changes request lists, usage and dashboard grouping.
+      queryClient.invalidateQueries();
       toast.success(i18n.t('common.success.systemUpdated'));
     },
     onError: () => {

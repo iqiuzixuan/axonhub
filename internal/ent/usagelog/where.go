@@ -155,6 +155,21 @@ func Format(v string) predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldEQ(FieldFormat, v))
 }
 
+// ChannelCost applies equality check predicate on the "channel_cost" field. It's identical to ChannelCostEQ.
+func ChannelCost(v float64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldChannelCost, v))
+}
+
+// BillingModelID applies equality check predicate on the "billing_model_id" field. It's identical to BillingModelIDEQ.
+func BillingModelID(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldBillingModelID, v))
+}
+
+// BillingModelSource applies equality check predicate on the "billing_model_source" field. It's identical to BillingModelSourceEQ.
+func BillingModelSource(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldBillingModelSource, v))
+}
+
 // TotalCost applies equality check predicate on the "total_cost" field. It's identical to TotalCostEQ.
 func TotalCost(v float64) predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldEQ(FieldTotalCost, v))
@@ -1083,6 +1098,216 @@ func FormatEqualFold(v string) predicate.UsageLog {
 // FormatContainsFold applies the ContainsFold predicate on the "format" field.
 func FormatContainsFold(v string) predicate.UsageLog {
 	return predicate.UsageLog(sql.FieldContainsFold(FieldFormat, v))
+}
+
+// ChannelCostEQ applies the EQ predicate on the "channel_cost" field.
+func ChannelCostEQ(v float64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldChannelCost, v))
+}
+
+// ChannelCostNEQ applies the NEQ predicate on the "channel_cost" field.
+func ChannelCostNEQ(v float64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNEQ(FieldChannelCost, v))
+}
+
+// ChannelCostIn applies the In predicate on the "channel_cost" field.
+func ChannelCostIn(vs ...float64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIn(FieldChannelCost, vs...))
+}
+
+// ChannelCostNotIn applies the NotIn predicate on the "channel_cost" field.
+func ChannelCostNotIn(vs ...float64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotIn(FieldChannelCost, vs...))
+}
+
+// ChannelCostGT applies the GT predicate on the "channel_cost" field.
+func ChannelCostGT(v float64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGT(FieldChannelCost, v))
+}
+
+// ChannelCostGTE applies the GTE predicate on the "channel_cost" field.
+func ChannelCostGTE(v float64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGTE(FieldChannelCost, v))
+}
+
+// ChannelCostLT applies the LT predicate on the "channel_cost" field.
+func ChannelCostLT(v float64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLT(FieldChannelCost, v))
+}
+
+// ChannelCostLTE applies the LTE predicate on the "channel_cost" field.
+func ChannelCostLTE(v float64) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLTE(FieldChannelCost, v))
+}
+
+// ChannelCostIsNil applies the IsNil predicate on the "channel_cost" field.
+func ChannelCostIsNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIsNull(FieldChannelCost))
+}
+
+// ChannelCostNotNil applies the NotNil predicate on the "channel_cost" field.
+func ChannelCostNotNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotNull(FieldChannelCost))
+}
+
+// ChannelCostItemsIsNil applies the IsNil predicate on the "channel_cost_items" field.
+func ChannelCostItemsIsNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIsNull(FieldChannelCostItems))
+}
+
+// ChannelCostItemsNotNil applies the NotNil predicate on the "channel_cost_items" field.
+func ChannelCostItemsNotNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotNull(FieldChannelCostItems))
+}
+
+// BillingModelIDEQ applies the EQ predicate on the "billing_model_id" field.
+func BillingModelIDEQ(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldBillingModelID, v))
+}
+
+// BillingModelIDNEQ applies the NEQ predicate on the "billing_model_id" field.
+func BillingModelIDNEQ(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNEQ(FieldBillingModelID, v))
+}
+
+// BillingModelIDIn applies the In predicate on the "billing_model_id" field.
+func BillingModelIDIn(vs ...string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIn(FieldBillingModelID, vs...))
+}
+
+// BillingModelIDNotIn applies the NotIn predicate on the "billing_model_id" field.
+func BillingModelIDNotIn(vs ...string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotIn(FieldBillingModelID, vs...))
+}
+
+// BillingModelIDGT applies the GT predicate on the "billing_model_id" field.
+func BillingModelIDGT(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGT(FieldBillingModelID, v))
+}
+
+// BillingModelIDGTE applies the GTE predicate on the "billing_model_id" field.
+func BillingModelIDGTE(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGTE(FieldBillingModelID, v))
+}
+
+// BillingModelIDLT applies the LT predicate on the "billing_model_id" field.
+func BillingModelIDLT(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLT(FieldBillingModelID, v))
+}
+
+// BillingModelIDLTE applies the LTE predicate on the "billing_model_id" field.
+func BillingModelIDLTE(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLTE(FieldBillingModelID, v))
+}
+
+// BillingModelIDContains applies the Contains predicate on the "billing_model_id" field.
+func BillingModelIDContains(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldContains(FieldBillingModelID, v))
+}
+
+// BillingModelIDHasPrefix applies the HasPrefix predicate on the "billing_model_id" field.
+func BillingModelIDHasPrefix(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldHasPrefix(FieldBillingModelID, v))
+}
+
+// BillingModelIDHasSuffix applies the HasSuffix predicate on the "billing_model_id" field.
+func BillingModelIDHasSuffix(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldHasSuffix(FieldBillingModelID, v))
+}
+
+// BillingModelIDIsNil applies the IsNil predicate on the "billing_model_id" field.
+func BillingModelIDIsNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIsNull(FieldBillingModelID))
+}
+
+// BillingModelIDNotNil applies the NotNil predicate on the "billing_model_id" field.
+func BillingModelIDNotNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotNull(FieldBillingModelID))
+}
+
+// BillingModelIDEqualFold applies the EqualFold predicate on the "billing_model_id" field.
+func BillingModelIDEqualFold(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEqualFold(FieldBillingModelID, v))
+}
+
+// BillingModelIDContainsFold applies the ContainsFold predicate on the "billing_model_id" field.
+func BillingModelIDContainsFold(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldContainsFold(FieldBillingModelID, v))
+}
+
+// BillingModelSourceEQ applies the EQ predicate on the "billing_model_source" field.
+func BillingModelSourceEQ(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEQ(FieldBillingModelSource, v))
+}
+
+// BillingModelSourceNEQ applies the NEQ predicate on the "billing_model_source" field.
+func BillingModelSourceNEQ(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNEQ(FieldBillingModelSource, v))
+}
+
+// BillingModelSourceIn applies the In predicate on the "billing_model_source" field.
+func BillingModelSourceIn(vs ...string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIn(FieldBillingModelSource, vs...))
+}
+
+// BillingModelSourceNotIn applies the NotIn predicate on the "billing_model_source" field.
+func BillingModelSourceNotIn(vs ...string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotIn(FieldBillingModelSource, vs...))
+}
+
+// BillingModelSourceGT applies the GT predicate on the "billing_model_source" field.
+func BillingModelSourceGT(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGT(FieldBillingModelSource, v))
+}
+
+// BillingModelSourceGTE applies the GTE predicate on the "billing_model_source" field.
+func BillingModelSourceGTE(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldGTE(FieldBillingModelSource, v))
+}
+
+// BillingModelSourceLT applies the LT predicate on the "billing_model_source" field.
+func BillingModelSourceLT(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLT(FieldBillingModelSource, v))
+}
+
+// BillingModelSourceLTE applies the LTE predicate on the "billing_model_source" field.
+func BillingModelSourceLTE(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldLTE(FieldBillingModelSource, v))
+}
+
+// BillingModelSourceContains applies the Contains predicate on the "billing_model_source" field.
+func BillingModelSourceContains(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldContains(FieldBillingModelSource, v))
+}
+
+// BillingModelSourceHasPrefix applies the HasPrefix predicate on the "billing_model_source" field.
+func BillingModelSourceHasPrefix(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldHasPrefix(FieldBillingModelSource, v))
+}
+
+// BillingModelSourceHasSuffix applies the HasSuffix predicate on the "billing_model_source" field.
+func BillingModelSourceHasSuffix(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldHasSuffix(FieldBillingModelSource, v))
+}
+
+// BillingModelSourceIsNil applies the IsNil predicate on the "billing_model_source" field.
+func BillingModelSourceIsNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldIsNull(FieldBillingModelSource))
+}
+
+// BillingModelSourceNotNil applies the NotNil predicate on the "billing_model_source" field.
+func BillingModelSourceNotNil() predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldNotNull(FieldBillingModelSource))
+}
+
+// BillingModelSourceEqualFold applies the EqualFold predicate on the "billing_model_source" field.
+func BillingModelSourceEqualFold(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldEqualFold(FieldBillingModelSource, v))
+}
+
+// BillingModelSourceContainsFold applies the ContainsFold predicate on the "billing_model_source" field.
+func BillingModelSourceContainsFold(v string) predicate.UsageLog {
+	return predicate.UsageLog(sql.FieldContainsFold(FieldBillingModelSource, v))
 }
 
 // TotalCostEQ applies the EQ predicate on the "total_cost" field.

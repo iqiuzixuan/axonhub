@@ -490,6 +490,16 @@ func ModelIDContainsFold(v string) predicate.RequestExecution {
 	return predicate.RequestExecution(sql.FieldContainsFold(FieldModelID, v))
 }
 
+// CostPriceIsNil applies the IsNil predicate on the "cost_price" field.
+func CostPriceIsNil() predicate.RequestExecution {
+	return predicate.RequestExecution(sql.FieldIsNull(FieldCostPrice))
+}
+
+// CostPriceNotNil applies the NotNil predicate on the "cost_price" field.
+func CostPriceNotNil() predicate.RequestExecution {
+	return predicate.RequestExecution(sql.FieldNotNull(FieldCostPrice))
+}
+
 // ChannelAPIKeyMaskedEQ applies the EQ predicate on the "channel_api_key_masked" field.
 func ChannelAPIKeyMaskedEQ(v string) predicate.RequestExecution {
 	return predicate.RequestExecution(sql.FieldEQ(FieldChannelAPIKeyMasked, v))

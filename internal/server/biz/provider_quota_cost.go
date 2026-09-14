@@ -2,6 +2,7 @@ package biz
 
 import (
 	"context"
+	"entgo.io/ent/dialect/sql"
 	"fmt"
 	"math"
 	"time"
@@ -85,16 +86,23 @@ func (svc *ProviderQuotaService) channelCostSince(
 	// Manual checks run from a GraphQL mutation, whose context carries a user
 	// principal that cannot read usage logs across projects; the scheduled path
 	// already runs under a system bypass.
-	metadata, err := authz.RunWithSystemBypass(ctx, "provider-quota-period-cost", func(ctx context.Context) (*UsageMetadata, error) {
-		return aggregateUsageMetadata(ctx, svc.db.UsageLog.Query().Where(
-			usagelog.ChannelIDEQ(channelID),
-			usagelog.CreatedAtGTE(since),
-			usagelog.CreatedAtLT(until),
-		))
+	amount, err := authz.RunWithSystemBypass(ctx, "provider-quota-period-cost", func(ctx context.Context) (float64, error) {
+		var rows []struct {
+			Cost float64 `json:"cost"`
+		}
+		err := svc.db.UsageLog.Query().Where(usagelog.ChannelIDEQ(channelID), usagelog.CreatedAtGTE(since), usagelog.CreatedAtLT(until)).Modify(func(q *sql.Selector) {
+			q.Select(sql.As("COALESCE(SUM(CASE WHEN "+q.C(usagelog.FieldBillingModelSource)+" = 'original' THEN "+q.C(usagelog.FieldChannelCost)+" ELSE COALESCE("+q.C(usagelog.FieldChannelCost)+", "+q.C(usagelog.FieldTotalCost)+") END), 0)", "cost"))
+		}).Scan(ctx, &rows)
+		if err != nil {
+			return 0, err
+		}
+		if len(rows) == 0 {
+			return 0, nil
+		}
+		return rows[0].Cost, nil
 	})
 	if err != nil {
 		return 0, fmt.Errorf("failed to aggregate channel period cost: %w", err)
 	}
-
-	return metadata.TotalCost.InexactFloat64(), nil
+	return amount, nil
 }

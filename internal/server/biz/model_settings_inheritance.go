@@ -10,6 +10,9 @@ import (
 )
 
 func normalizeSystemModelSettings(settings *SystemModelSettings) {
+	if settings.BillingModelSource == "" {
+		settings.BillingModelSource = objects.BillingModelSourceRedirected
+	}
 	if settings == nil {
 		return
 	}
@@ -32,6 +35,9 @@ func normalizeSystemModelSettings(settings *SystemModelSettings) {
 }
 
 func validateSystemModelSettings(settings *SystemModelSettings) error {
+	if settings.BillingModelSource != "" && !settings.BillingModelSource.Valid() {
+		return fmt.Errorf("invalid billing model source")
+	}
 	if settings == nil {
 		return nil
 	}

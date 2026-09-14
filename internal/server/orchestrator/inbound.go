@@ -3,6 +3,7 @@ package orchestrator
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 
 	"github.com/tidwall/gjson"
@@ -11,6 +12,7 @@ import (
 	"github.com/looplj/axonhub/internal/ent"
 	"github.com/looplj/axonhub/internal/ent/request"
 	"github.com/looplj/axonhub/internal/log"
+	"github.com/looplj/axonhub/internal/objects"
 	"github.com/looplj/axonhub/internal/server/biz"
 	"github.com/looplj/axonhub/llm"
 	"github.com/looplj/axonhub/llm/httpclient"
@@ -431,7 +433,16 @@ type PersistentInboundTransformer struct {
 }
 
 func (p *PersistentInboundTransformer) TransformError(ctx context.Context, rawErr error) *httpclient.Error {
-	return p.wrapped.TransformError(ctx, rawErr)
+	response := p.wrapped.TransformError(ctx, rawErr)
+	if response != nil && p.state.Billing != nil && p.state.Billing.Source == objects.BillingModelSourceOriginal {
+		response.Body = publicResponseJSON(response.Body, p.state.publicResponseModel(), true)
+		if !json.Valid(response.Body) {
+			response.Body = []byte(`{"error":{"type":"upstream_error","message":"Upstream request failed"}}`)
+		}
+		response.URL = ""
+		response.Headers = p.state.publicResponseHeaders(response.Headers)
+	}
+	return response
 }
 
 func (p *PersistentInboundTransformer) TransformRequest(ctx context.Context, request *httpclient.Request) (*llm.Request, error) {
@@ -443,6 +454,9 @@ func (p *PersistentInboundTransformer) TransformRequest(ctx context.Context, req
 	llmRequest.RawRequest = request
 	p.state.RawRequest = request
 	p.state.LlmRequest = llmRequest
+	if p.state.ClientModel == "" {
+		p.state.ClientModel = llmRequest.Model
+	}
 	p.state.OriginalRequestStream = llmRequest.Stream
 
 	return llmRequest, nil

@@ -950,6 +950,7 @@ type ComplexityRoot struct {
 
 	ModelSettings struct {
 		Associations                        func(childComplexity int) int
+		BillingPrice                        func(childComplexity int) int
 		DisableDeveloperSettingsInheritance func(childComplexity int) int
 		LoadBalancerStrategy                func(childComplexity int) int
 		TraceStickyMode                     func(childComplexity int) int
@@ -1476,6 +1477,7 @@ type ComplexityRoot struct {
 		AnalyticsMetadata               func(childComplexity int) int
 		AnalyticsOverview               func(childComplexity int, filter *AnalyticsFilter) int
 		AutoBackupSettings              func(childComplexity int) int
+		BillingModelSource              func(childComplexity int) int
 		BrandSettings                   func(childComplexity int) int
 		CatalogSettings                 func(childComplexity int) int
 		ChannelOverrideTemplates        func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.ChannelOverrideTemplateOrder, where *ent.ChannelOverrideTemplateWhereInput) int
@@ -1591,6 +1593,7 @@ type ComplexityRoot struct {
 		ReasoningEffort            func(childComplexity int) int
 		RequestBody                func(childComplexity int) int
 		RequestHeaders             func(childComplexity int) int
+		RequestedModelID           func(childComplexity int) int
 		ResponseBody               func(childComplexity int) int
 		ResponseChunks             func(childComplexity int) int
 		Source                     func(childComplexity int) int
@@ -1883,6 +1886,7 @@ type ComplexityRoot struct {
 
 	SystemModelSettings struct {
 		AutoReasoningEffort               func(childComplexity int) int
+		BillingModelSource                func(childComplexity int) int
 		DefaultModelAPIIncludeAll         func(childComplexity int) int
 		DeveloperSettings                 func(childComplexity int) int
 		FallbackToChannelsOnModelNotFound func(childComplexity int) int
@@ -2536,6 +2540,7 @@ type QueryResolver interface {
 	RetryPolicy(ctx context.Context) (*biz.RetryPolicy, error)
 	WebhookNotifierConfig(ctx context.Context) (*biz.WebhookNotifierConfig, error)
 	SystemModelSettings(ctx context.Context) (*biz.SystemModelSettings, error)
+	BillingModelSource(ctx context.Context) (objects.BillingModelSource, error)
 	DefaultDataStorageID(ctx context.Context) (*objects.GUID, error)
 	OnboardingInfo(ctx context.Context) (*OnboardingInfo, error)
 	SystemVersion(ctx context.Context) (*build.Info, error)
@@ -2576,6 +2581,8 @@ type RequestResolver interface {
 	ChannelID(ctx context.Context, obj *ent.Request) (*objects.GUID, error)
 
 	Channel(ctx context.Context, obj *ent.Request) (*ent.Channel, error)
+
+	RequestedModelID(ctx context.Context, obj *ent.Request) (*string, error)
 }
 type RequestExecutionResolver interface {
 	ID(ctx context.Context, obj *ent.RequestExecution) (*objects.GUID, error)
@@ -5827,6 +5834,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ModelSettings.Associations(childComplexity), true
+	case "ModelSettings.billingPrice":
+		if e.complexity.ModelSettings.BillingPrice == nil {
+			break
+		}
+
+		return e.complexity.ModelSettings.BillingPrice(childComplexity), true
 	case "ModelSettings.disableDeveloperSettingsInheritance":
 		if e.complexity.ModelSettings.DisableDeveloperSettingsInheritance == nil {
 			break
@@ -8797,6 +8810,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Query.AutoBackupSettings(childComplexity), true
+	case "Query.billingModelSource":
+		if e.complexity.Query.BillingModelSource == nil {
+			break
+		}
+
+		return e.complexity.Query.BillingModelSource(childComplexity), true
 	case "Query.brandSettings":
 		if e.complexity.Query.BrandSettings == nil {
 			break
@@ -9639,6 +9658,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.Request.RequestHeaders(childComplexity), true
+	case "Request.requestedModelID":
+		if e.complexity.Request.RequestedModelID == nil {
+			break
+		}
+
+		return e.complexity.Request.RequestedModelID(childComplexity), true
 	case "Request.responseBody":
 		if e.complexity.Request.ResponseBody == nil {
 			break
@@ -10704,6 +10729,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.SystemModelSettings.AutoReasoningEffort(childComplexity), true
+	case "SystemModelSettings.billingModelSource":
+		if e.complexity.SystemModelSettings.BillingModelSource == nil {
+			break
+		}
+
+		return e.complexity.SystemModelSettings.BillingModelSource(childComplexity), true
 	case "SystemModelSettings.defaultModelAPIIncludeAll":
 		if e.complexity.SystemModelSettings.DefaultModelAPIIncludeAll == nil {
 			break
@@ -30555,6 +30586,8 @@ func (ec *executionContext) fieldContext_Model_settings(_ context.Context, field
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "billingPrice":
+				return ec.fieldContext_ModelSettings_billingPrice(ctx, field)
 			case "disableDeveloperSettingsInheritance":
 				return ec.fieldContext_ModelSettings_disableDeveloperSettingsInheritance(ctx, field)
 			case "associations":
@@ -32634,6 +32667,41 @@ func (ec *executionContext) fieldContext_ModelProtocol_enabled(_ context.Context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _ModelSettings_billingPrice(ctx context.Context, field graphql.CollectedField, obj *objects.ModelSettings) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ModelSettings_billingPrice,
+		func(ctx context.Context) (any, error) {
+			return obj.BillingPrice, nil
+		},
+		nil,
+		ec.marshalOModelPrice2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐModelPrice,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ModelSettings_billingPrice(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ModelSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "items":
+				return ec.fieldContext_ModelPrice_items(ctx, field)
+			case "schedule":
+				return ec.fieldContext_ModelPrice_schedule(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type ModelPrice", field.Name)
 		},
 	}
 	return fc, nil
@@ -49722,6 +49790,8 @@ func (ec *executionContext) fieldContext_Query_systemModelSettings(_ context.Con
 		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
+			case "billingModelSource":
+				return ec.fieldContext_SystemModelSettings_billingModelSource(ctx, field)
 			case "fallbackToChannelsOnModelNotFound":
 				return ec.fieldContext_SystemModelSettings_fallbackToChannelsOnModelNotFound(ctx, field)
 			case "queryAllChannelModels":
@@ -49738,6 +49808,35 @@ func (ec *executionContext) fieldContext_Query_systemModelSettings(_ context.Con
 				return ec.fieldContext_SystemModelSettings_developerSettings(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type SystemModelSettings", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _Query_billingModelSource(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Query_billingModelSource,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Query().BillingModelSource(ctx)
+		},
+		nil,
+		ec.marshalNBillingModelSource2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐBillingModelSource,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_Query_billingModelSource(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type BillingModelSource does not have child fields")
 		},
 	}
 	return fc, nil
@@ -52277,6 +52376,35 @@ func (ec *executionContext) fieldContext_Request_usageLogs(ctx context.Context, 
 	return fc, nil
 }
 
+func (ec *executionContext) _Request_requestedModelID(ctx context.Context, field graphql.CollectedField, obj *ent.Request) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_Request_requestedModelID,
+		func(ctx context.Context) (any, error) {
+			return ec.resolvers.Request().RequestedModelID(ctx, obj)
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_Request_requestedModelID(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "Request",
+		Field:      field,
+		IsMethod:   true,
+		IsResolver: true,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _RequestConnection_edges(ctx context.Context, field graphql.CollectedField, obj *ent.RequestConnection) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -52472,6 +52600,8 @@ func (ec *executionContext) fieldContext_RequestEdge_node(_ context.Context, fie
 				return ec.fieldContext_Request_channel(ctx, field)
 			case "usageLogs":
 				return ec.fieldContext_Request_usageLogs(ctx, field)
+			case "requestedModelID":
+				return ec.fieldContext_Request_requestedModelID(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Request", field.Name)
 		},
@@ -53325,6 +53455,8 @@ func (ec *executionContext) fieldContext_RequestExecution_request(_ context.Cont
 				return ec.fieldContext_Request_channel(ctx, field)
 			case "usageLogs":
 				return ec.fieldContext_Request_usageLogs(ctx, field)
+			case "requestedModelID":
+				return ec.fieldContext_Request_requestedModelID(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Request", field.Name)
 		},
@@ -57523,6 +57655,35 @@ func (ec *executionContext) fieldContext_SystemModelSettingOnboarding_completedA
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _SystemModelSettings_billingModelSource(ctx context.Context, field graphql.CollectedField, obj *biz.SystemModelSettings) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_SystemModelSettings_billingModelSource,
+		func(ctx context.Context) (any, error) {
+			return obj.BillingModelSource, nil
+		},
+		nil,
+		ec.marshalNBillingModelSource2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐBillingModelSource,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_SystemModelSettings_billingModelSource(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "SystemModelSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type BillingModelSource does not have child fields")
 		},
 	}
 	return fc, nil
@@ -62118,6 +62279,8 @@ func (ec *executionContext) fieldContext_UsageLog_request(_ context.Context, fie
 				return ec.fieldContext_Request_channel(ctx, field)
 			case "usageLogs":
 				return ec.fieldContext_Request_usageLogs(ctx, field)
+			case "requestedModelID":
+				return ec.fieldContext_Request_requestedModelID(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type Request", field.Name)
 		},
@@ -76577,13 +76740,20 @@ func (ec *executionContext) unmarshalInputModelSettingsInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"disableDeveloperSettingsInheritance", "associations", "loadBalancerStrategy", "traceStickyMode"}
+	fieldsInOrder := [...]string{"billingPrice", "disableDeveloperSettingsInheritance", "associations", "loadBalancerStrategy", "traceStickyMode"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "billingPrice":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("billingPrice"))
+			data, err := ec.unmarshalOModelPriceInput2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐModelPrice(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BillingPrice = data
 		case "disableDeveloperSettingsInheritance":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disableDeveloperSettingsInheritance"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
@@ -89870,13 +90040,20 @@ func (ec *executionContext) unmarshalInputUpdateSystemModelSettingsInput(ctx con
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"fallbackToChannelsOnModelNotFound", "queryAllChannelModels", "defaultModelAPIIncludeAll", "autoReasoningEffort", "modelBlacklistRegex", "hideUnroutableModelsInList", "developerSettings"}
+	fieldsInOrder := [...]string{"billingModelSource", "fallbackToChannelsOnModelNotFound", "queryAllChannelModels", "defaultModelAPIIncludeAll", "autoReasoningEffort", "modelBlacklistRegex", "hideUnroutableModelsInList", "developerSettings"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
+		case "billingModelSource":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("billingModelSource"))
+			data, err := ec.unmarshalOBillingModelSource2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐBillingModelSource(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.BillingModelSource = data
 		case "fallbackToChannelsOnModelNotFound":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("fallbackToChannelsOnModelNotFound"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
@@ -101376,6 +101553,8 @@ func (ec *executionContext) _ModelSettings(ctx context.Context, sel ast.Selectio
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ModelSettings")
+		case "billingPrice":
+			out.Values[i] = ec._ModelSettings_billingPrice(ctx, field, obj)
 		case "disableDeveloperSettingsInheritance":
 			out.Values[i] = ec._ModelSettings_disableDeveloperSettingsInheritance(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -107028,6 +107207,28 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
+		case "billingModelSource":
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_billingModelSource(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
+			}
+
+			rrm := func(ctx context.Context) graphql.Marshaler {
+				return ec.OperationContext.RootResolverMiddleware(ctx,
+					func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return rrm(innerCtx) })
 		case "defaultDataStorageID":
 			field := field
 
@@ -108324,6 +108525,39 @@ func (ec *executionContext) _Request(ctx context.Context, sel ast.SelectionSet, 
 				if res == graphql.Null {
 					atomic.AddUint32(&fs.Invalids, 1)
 				}
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "requestedModelID":
+			field := field
+
+			innerFunc := func(ctx context.Context, _ *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Request_requestedModelID(ctx, field, obj)
 				return res
 			}
 
@@ -110911,6 +111145,11 @@ func (ec *executionContext) _SystemModelSettings(ctx context.Context, sel ast.Se
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("SystemModelSettings")
+		case "billingModelSource":
+			out.Values[i] = ec._SystemModelSettings_billingModelSource(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		case "fallbackToChannelsOnModelNotFound":
 			out.Values[i] = ec._SystemModelSettings_fallbackToChannelsOnModelNotFound(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -115790,6 +116029,16 @@ func (ec *executionContext) marshalNBackupPayload2ᚖgithubᚗcomᚋloopljᚋaxo
 		return graphql.Null
 	}
 	return ec._BackupPayload(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNBillingModelSource2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐBillingModelSource(ctx context.Context, v any) (objects.BillingModelSource, error) {
+	var res objects.BillingModelSource
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNBillingModelSource2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐBillingModelSource(ctx context.Context, sel ast.SelectionSet, v objects.BillingModelSource) graphql.Marshaler {
+	return v
 }
 
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v any) (bool, error) {
@@ -122642,6 +122891,16 @@ func (ec *executionContext) marshalOBackupFrequency2ᚖgithubᚗcomᚋloopljᚋa
 	return res
 }
 
+func (ec *executionContext) unmarshalOBillingModelSource2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐBillingModelSource(ctx context.Context, v any) (objects.BillingModelSource, error) {
+	var res objects.BillingModelSource
+	err := res.UnmarshalGQL(v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOBillingModelSource2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐBillingModelSource(ctx context.Context, sel ast.SelectionSet, v objects.BillingModelSource) graphql.Marshaler {
+	return v
+}
+
 func (ec *executionContext) unmarshalOBoolean2bool(ctx context.Context, v any) (bool, error) {
 	res, err := graphql.UnmarshalBoolean(v)
 	return res, graphql.ErrorOnPath(ctx, err)
@@ -124979,6 +125238,21 @@ func (ec *executionContext) unmarshalOModelOrder2ᚖgithubᚗcomᚋloopljᚋaxon
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputModelOrder(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOModelPrice2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐModelPrice(ctx context.Context, sel ast.SelectionSet, v *objects.ModelPrice) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._ModelPrice(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOModelPriceInput2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐModelPrice(ctx context.Context, v any) (*objects.ModelPrice, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputModelPriceInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

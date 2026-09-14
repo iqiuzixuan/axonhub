@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useModelSettings, useUpdateModelSettings, type UpdateModelSettingsInput } from '@/features/system/data/system';
 import { useModels } from '../context/models-context';
@@ -19,6 +20,7 @@ export function ModelSettingsDialog() {
 
   const isOpen = open === 'settings';
 
+  const [billingModelSource, setBillingModelSource] = React.useState<'original' | 'redirected'>('redirected');
   const [fallbackEnabled, setFallbackEnabled] = React.useState(false);
   const [queryAllChannelModels, setQueryAllChannelModels] = React.useState(false);
   const [defaultModelAPIIncludeAll, setDefaultModelAPIIncludeAll] = React.useState(false);
@@ -28,6 +30,7 @@ export function ModelSettingsDialog() {
 
   React.useEffect(() => {
     if (settings) {
+      setBillingModelSource(settings.billingModelSource ?? 'redirected');
       setFallbackEnabled(settings.fallbackToChannelsOnModelNotFound);
       setQueryAllChannelModels(settings.queryAllChannelModels);
       setDefaultModelAPIIncludeAll(settings.defaultModelAPIIncludeAll);
@@ -39,6 +42,7 @@ export function ModelSettingsDialog() {
 
   const handleSave = useCallback(async () => {
     const input: UpdateModelSettingsInput = {
+      billingModelSource,
       fallbackToChannelsOnModelNotFound: fallbackEnabled,
       queryAllChannelModels: queryAllChannelModels,
       defaultModelAPIIncludeAll: defaultModelAPIIncludeAll,
@@ -49,7 +53,18 @@ export function ModelSettingsDialog() {
     };
     await updateModelSettings.mutateAsync(input);
     setOpen(null);
-  }, [updateModelSettings, fallbackEnabled, queryAllChannelModels, defaultModelAPIIncludeAll, autoReasoningEffort, modelBlacklistRegex, hideUnroutableModelsInList, settings?.developerSettings, setOpen]);
+  }, [
+    updateModelSettings,
+    billingModelSource,
+    fallbackEnabled,
+    queryAllChannelModels,
+    defaultModelAPIIncludeAll,
+    autoReasoningEffort,
+    modelBlacklistRegex,
+    hideUnroutableModelsInList,
+    settings?.developerSettings,
+    setOpen,
+  ]);
 
   const handleClose = useCallback(() => {
     setOpen(null);
@@ -72,6 +87,23 @@ export function ModelSettingsDialog() {
           </div>
         ) : (
           <div className='min-h-0 flex-1 space-y-4 overflow-y-auto pr-1'>
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('billing.source.title')}</CardTitle>
+              </CardHeader>
+              <CardContent className='space-y-2'>
+                <Select value={billingModelSource} onValueChange={(value: 'original' | 'redirected') => setBillingModelSource(value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value='original'>{t('billing.source.original')}</SelectItem>
+                    <SelectItem value='redirected'>{t('billing.source.redirected')}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className='text-muted-foreground text-sm'>{t('billing.source.description')}</p>
+              </CardContent>
+            </Card>
             <Card>
               <CardHeader className='pb-0'>
                 <CardTitle className='flex items-center gap-2 text-sm sm:text-base'>
@@ -163,7 +195,9 @@ export function ModelSettingsDialog() {
               </CardHeader>
               <CardContent className='pt-1'>
                 <div className='flex items-center justify-between'>
-                  <p className='text-muted-foreground pr-4 text-sm'>{t('models.dialogs.settings.hideUnroutableModelsInList.description')}</p>
+                  <p className='text-muted-foreground pr-4 text-sm'>
+                    {t('models.dialogs.settings.hideUnroutableModelsInList.description')}
+                  </p>
                   <Switch
                     id='hide-unroutable-models-in-list'
                     checked={hideUnroutableModelsInList}

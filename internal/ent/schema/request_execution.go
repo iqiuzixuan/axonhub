@@ -48,6 +48,7 @@ func (RequestExecution) Fields() []ent.Field {
 			Optional().
 			MaxLen(512),
 		field.String("model_id").Immutable(),
+		field.JSON("cost_price", &objects.RequestBilling{}).Optional().Immutable().Annotations(entgql.Skip(entgql.SkipAll)),
 		field.String("channel_api_key_masked").
 			Optional().
 			Nillable().

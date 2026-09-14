@@ -373,6 +373,9 @@ func (_u *RequestExecutionUpdate) sqlSave(ctx context.Context) (_node int, err e
 	if _u.mutation.ExternalIDCleared() {
 		_spec.ClearField(requestexecution.FieldExternalID, field.TypeString)
 	}
+	if _u.mutation.CostPriceCleared() {
+		_spec.ClearField(requestexecution.FieldCostPrice, field.TypeJSON)
+	}
 	if _u.mutation.ChannelAPIKeyMaskedCleared() {
 		_spec.ClearField(requestexecution.FieldChannelAPIKeyMasked, field.TypeString)
 	}
@@ -859,6 +862,9 @@ func (_u *RequestExecutionUpdateOne) sqlSave(ctx context.Context) (_node *Reques
 	}
 	if _u.mutation.ExternalIDCleared() {
 		_spec.ClearField(requestexecution.FieldExternalID, field.TypeString)
+	}
+	if _u.mutation.CostPriceCleared() {
+		_spec.ClearField(requestexecution.FieldCostPrice, field.TypeJSON)
 	}
 	if _u.mutation.ChannelAPIKeyMaskedCleared() {
 		_spec.ClearField(requestexecution.FieldChannelAPIKeyMasked, field.TypeString)

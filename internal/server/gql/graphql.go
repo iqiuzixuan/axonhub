@@ -139,6 +139,16 @@ func NewGraphqlHandlers(deps Dependencies) *GraphqlHandler {
 	})
 	gqlSrv.Use(&loggingTracer{})
 	gqlSrv.AroundFields(requestDetailsMiddleware)
+	gqlSrv.AroundFields(modelRoutingMiddleware)
+	if deps.SystemService != nil {
+		gqlSrv.AroundOperations(func(ctx context.Context, next graphql.OperationHandler) graphql.ResponseHandler {
+			source, err := deps.SystemService.BillingModelSource(ctx)
+			if err != nil {
+				return graphql.OneShot(graphql.ErrorResponse(ctx, "unable to load model display policy"))
+			}
+			return next(biz.WithModelDisplay(ctx, source))
+		})
+	}
 	skipTestChannelTransaction := entgql.SkipOperations("TestChannel", "TestChannelAPIKeys")
 	skipBulkImportTransaction := entgql.SkipIfHasFields("bulkImportChannels")
 	gqlSrv.Use(entgql.Transactioner{

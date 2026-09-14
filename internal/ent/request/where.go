@@ -90,6 +90,11 @@ func ModelID(v string) predicate.Request {
 	return predicate.Request(sql.FieldEQ(FieldModelID, v))
 }
 
+// OriginalModelID applies equality check predicate on the "original_model_id" field. It's identical to OriginalModelIDEQ.
+func OriginalModelID(v string) predicate.Request {
+	return predicate.Request(sql.FieldEQ(FieldOriginalModelID, v))
+}
+
 // ReasoningEffort applies equality check predicate on the "reasoning_effort" field. It's identical to ReasoningEffortEQ.
 func ReasoningEffort(v string) predicate.Request {
 	return predicate.Request(sql.FieldEQ(FieldReasoningEffort, v))
@@ -428,6 +433,91 @@ func ModelIDEqualFold(v string) predicate.Request {
 // ModelIDContainsFold applies the ContainsFold predicate on the "model_id" field.
 func ModelIDContainsFold(v string) predicate.Request {
 	return predicate.Request(sql.FieldContainsFold(FieldModelID, v))
+}
+
+// OriginalModelIDEQ applies the EQ predicate on the "original_model_id" field.
+func OriginalModelIDEQ(v string) predicate.Request {
+	return predicate.Request(sql.FieldEQ(FieldOriginalModelID, v))
+}
+
+// OriginalModelIDNEQ applies the NEQ predicate on the "original_model_id" field.
+func OriginalModelIDNEQ(v string) predicate.Request {
+	return predicate.Request(sql.FieldNEQ(FieldOriginalModelID, v))
+}
+
+// OriginalModelIDIn applies the In predicate on the "original_model_id" field.
+func OriginalModelIDIn(vs ...string) predicate.Request {
+	return predicate.Request(sql.FieldIn(FieldOriginalModelID, vs...))
+}
+
+// OriginalModelIDNotIn applies the NotIn predicate on the "original_model_id" field.
+func OriginalModelIDNotIn(vs ...string) predicate.Request {
+	return predicate.Request(sql.FieldNotIn(FieldOriginalModelID, vs...))
+}
+
+// OriginalModelIDGT applies the GT predicate on the "original_model_id" field.
+func OriginalModelIDGT(v string) predicate.Request {
+	return predicate.Request(sql.FieldGT(FieldOriginalModelID, v))
+}
+
+// OriginalModelIDGTE applies the GTE predicate on the "original_model_id" field.
+func OriginalModelIDGTE(v string) predicate.Request {
+	return predicate.Request(sql.FieldGTE(FieldOriginalModelID, v))
+}
+
+// OriginalModelIDLT applies the LT predicate on the "original_model_id" field.
+func OriginalModelIDLT(v string) predicate.Request {
+	return predicate.Request(sql.FieldLT(FieldOriginalModelID, v))
+}
+
+// OriginalModelIDLTE applies the LTE predicate on the "original_model_id" field.
+func OriginalModelIDLTE(v string) predicate.Request {
+	return predicate.Request(sql.FieldLTE(FieldOriginalModelID, v))
+}
+
+// OriginalModelIDContains applies the Contains predicate on the "original_model_id" field.
+func OriginalModelIDContains(v string) predicate.Request {
+	return predicate.Request(sql.FieldContains(FieldOriginalModelID, v))
+}
+
+// OriginalModelIDHasPrefix applies the HasPrefix predicate on the "original_model_id" field.
+func OriginalModelIDHasPrefix(v string) predicate.Request {
+	return predicate.Request(sql.FieldHasPrefix(FieldOriginalModelID, v))
+}
+
+// OriginalModelIDHasSuffix applies the HasSuffix predicate on the "original_model_id" field.
+func OriginalModelIDHasSuffix(v string) predicate.Request {
+	return predicate.Request(sql.FieldHasSuffix(FieldOriginalModelID, v))
+}
+
+// OriginalModelIDIsNil applies the IsNil predicate on the "original_model_id" field.
+func OriginalModelIDIsNil() predicate.Request {
+	return predicate.Request(sql.FieldIsNull(FieldOriginalModelID))
+}
+
+// OriginalModelIDNotNil applies the NotNil predicate on the "original_model_id" field.
+func OriginalModelIDNotNil() predicate.Request {
+	return predicate.Request(sql.FieldNotNull(FieldOriginalModelID))
+}
+
+// OriginalModelIDEqualFold applies the EqualFold predicate on the "original_model_id" field.
+func OriginalModelIDEqualFold(v string) predicate.Request {
+	return predicate.Request(sql.FieldEqualFold(FieldOriginalModelID, v))
+}
+
+// OriginalModelIDContainsFold applies the ContainsFold predicate on the "original_model_id" field.
+func OriginalModelIDContainsFold(v string) predicate.Request {
+	return predicate.Request(sql.FieldContainsFold(FieldOriginalModelID, v))
+}
+
+// BillingIsNil applies the IsNil predicate on the "billing" field.
+func BillingIsNil() predicate.Request {
+	return predicate.Request(sql.FieldIsNull(FieldBilling))
+}
+
+// BillingNotNil applies the NotNil predicate on the "billing" field.
+func BillingNotNil() predicate.Request {
+	return predicate.Request(sql.FieldNotNull(FieldBilling))
 }
 
 // ReasoningEffortEQ applies the EQ predicate on the "reasoning_effort" field.

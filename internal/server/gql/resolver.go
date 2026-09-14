@@ -93,6 +93,7 @@ func NewSchema(
 ) graphql.ExecutableSchema {
 	modelFetcher := biz.NewModelFetcher(httpClient, channelService)
 
+	biz.InstallModelDisplay(client)
 	return NewExecutableSchema(Config{
 		Resolvers: &Resolver{
 			client:                         client,

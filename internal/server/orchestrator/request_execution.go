@@ -90,6 +90,10 @@ func (m *persistRequestExecutionMiddleware) OnOutboundRawRequest(ctx context.Con
 		format = llm.APIFormat(request.APIFormat)
 	}
 
+	costPrice, err := state.UsageLogService.SnapshotChannelPrice(channel.ID, entry.ActualModel)
+	if err != nil {
+		return nil, err
+	}
 	requestExec, err := state.RequestService.CreateRequestExecution(
 		ctx,
 		channel,
@@ -98,6 +102,7 @@ func (m *persistRequestExecutionMiddleware) OnOutboundRawRequest(ctx context.Con
 		*request,
 		format,
 		state.PassThroughApplied,
+		costPrice,
 	)
 	if err != nil {
 		return nil, err

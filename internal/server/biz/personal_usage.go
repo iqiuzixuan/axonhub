@@ -180,7 +180,7 @@ func (s *PersonalService) Dashboard(ctx context.Context, input PersonalUsageInpu
 		return client.UsageLog.Query().
 			Where(usagelog.APIKeyIDIn(keyIDs...), usagelog.ProjectIDIn(projectIDs...), usagelog.CreatedAtGTE(start), usagelog.CreatedAtLT(end)).
 			Modify(func(q *sql.Selector) {
-				r := sql.Table(request.Table)
+				r := ModelDisplaySelector(ctx, request.Table)
 				q.Join(r).On(q.C(usagelog.FieldRequestID), r.C(request.FieldID))
 				q.Where(sql.ColumnsEQ(q.C(usagelog.FieldAPIKeyID), r.C(request.FieldAPIKeyID)))
 				q.Where(sql.ColumnsEQ(q.C(usagelog.FieldProjectID), r.C(request.FieldProjectID)))
