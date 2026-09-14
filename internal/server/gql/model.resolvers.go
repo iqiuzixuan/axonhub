@@ -13,6 +13,7 @@ import (
 	"github.com/looplj/axonhub/internal/contexts"
 	"github.com/looplj/axonhub/internal/ent"
 	"github.com/looplj/axonhub/internal/ent/model"
+	"github.com/looplj/axonhub/internal/ent/request"
 	"github.com/looplj/axonhub/internal/objects"
 	"github.com/looplj/axonhub/internal/scopes"
 	"github.com/looplj/axonhub/internal/server/biz"
@@ -197,18 +198,14 @@ func (r *queryResolver) QueryUnassociatedChannels(ctx context.Context) ([]*biz.U
 
 // RequestedModelID is the resolver for the requestedModelID field.
 func (r *requestResolver) RequestedModelID(ctx context.Context, obj *ent.Request) (*string, error) {
-	projectID, err := requestDetailsProjectID(ctx, obj)
+	// Mapping hints need no request/response payloads. Keep the project on the
+	// same permission-checked query, including when Ent selected only the ID.
+	row, err := r.client.Request.Query().Where(request.ID(obj.ID)).
+		Select(request.FieldProjectID, request.FieldOriginalModelID).Only(ctx)
 	if err != nil {
 		return nil, err
 	}
-	if !authz.CanReadRequestDetails(ctx, projectID) {
-		return nil, nil
-	}
-	row, err := r.client.Request.Get(ctx, obj.ID)
-	if err != nil {
-		return nil, err
-	}
-	if row.OriginalModelID == "" {
+	if !authz.CanReadRequestDetails(ctx, row.ProjectID) || row.OriginalModelID == "" {
 		return nil, nil
 	}
 	return lo.ToPtr(row.OriginalModelID), nil
