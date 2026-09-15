@@ -1,6 +1,7 @@
 'use client';
 
 
+import { formatModelLabel } from '@/utils/model-label';
 import { useTranslation } from 'react-i18next';
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis, type TooltipProps } from 'recharts';
 import { Loader2 } from 'lucide-react';
@@ -38,7 +39,7 @@ export function TokensByModelChart({ timePeriod }: TokensByModelChartProps) {
 
   const chartData = tokenData
     ?.map((item) => ({
-      name: item.modelId,
+      name: formatModelLabel(item.modelId, t),
       inputTokens: item.inputTokens,
       outputTokens: item.outputTokens,
       cachedTokens: item.cachedTokens,

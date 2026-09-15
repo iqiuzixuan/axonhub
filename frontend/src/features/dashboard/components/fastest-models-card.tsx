@@ -1,5 +1,6 @@
 'use client';
 
+import { formatModelLabel } from '@/utils/model-label';
 import { useTranslation } from 'react-i18next';
 import { formatNumber } from '@/utils/format-number';
 import { FastestPerformersCard } from './fastest-performers-card';
@@ -15,7 +16,7 @@ export function FastestModelsCard() {
       description={(totalRequests) => t('dashboard.cards.fastestPerformers.description', { type: t('dashboard.cards.fastestPerformers.modelType'), count: formatNumber(totalRequests) })}
       noDataLabel={t('dashboard.cards.fastestPerformers.noData')}
       useData={useFastestModels}
-      getName={(item) => item.modelName}
+      getName={(item) => formatModelLabel(item.modelName, t)}
     />
   );
 }

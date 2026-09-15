@@ -27,8 +27,9 @@ func (s *SystemService) BillingModelSource(ctx context.Context) (objects.Billing
 	return settings.BillingModelSource, nil
 }
 
-// PrepareBilling fails closed on missing prices; it never falls back to a
-// different model's price. An explicit empty price is a free public model.
+// PrepareBilling allows unpriced requests, just like redirected billing. A nil
+// price records no charge; an explicit empty price records a free request.
+// Never substitute a different model's price for the requested model's price.
 func (s *UsageLogService) PrepareBilling(ctx context.Context, original string) (*objects.RequestBilling, error) {
 	source, err := s.SystemService.BillingModelSource(ctx)
 	if err != nil {
@@ -46,7 +47,7 @@ func (s *UsageLogService) PrepareBilling(ctx context.Context, original string) (
 		return nil, fmt.Errorf("load request model price: %w", err)
 	}
 	if entity == nil || entity.Settings == nil || entity.Settings.BillingPrice == nil {
-		return nil, xerrors.ValidationError("request model has no billing price configured")
+		return snapshot, nil
 	}
 	if err := entity.Settings.BillingPrice.Validate(); err != nil {
 		return nil, xerrors.ValidationError("request model billing price is invalid")

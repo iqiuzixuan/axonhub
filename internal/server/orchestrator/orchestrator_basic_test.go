@@ -532,6 +532,15 @@ func TestChatCompletionOrchestrator_Process_NonStreamingRequireStreamCandidate_D
 
 // TestChatCompletionOrchestrator_Process_WithModelMapping tests model mapping from API key.
 func TestChatCompletionOrchestrator_Process_WithModelMapping(t *testing.T) {
+	testUnpricedModelMapping(t, objects.BillingModelSourceRedirected, "my-custom-model")
+}
+
+func TestChatCompletionOrchestrator_Process_UnpricedOriginalModel(t *testing.T) {
+	testUnpricedModelMapping(t, objects.BillingModelSourceOriginal, "codex-auto-review")
+}
+
+func testUnpricedModelMapping(t *testing.T, source objects.BillingModelSource, clientModel string) {
+	t.Helper()
 	ctx := context.Background()
 	ctx = authz.WithTestBypass(ctx)
 
@@ -544,6 +553,7 @@ func TestChatCompletionOrchestrator_Process_WithModelMapping(t *testing.T) {
 	project := createTestProject(t, ctx, client)
 	ch := createTestChannel(t, ctx, client)
 	channelService, requestService, systemService, usageLogService := setupTestServices(t, client)
+	require.NoError(t, systemService.SetModelSettings(ctx, biz.SystemModelSettings{BillingModelSource: source}))
 
 	// Create a user for the API key
 	user, err := client.User.Create().
@@ -564,7 +574,7 @@ func TestChatCompletionOrchestrator_Process_WithModelMapping(t *testing.T) {
 				{
 					Name: "default",
 					ModelMappings: []objects.ModelMapping{
-						{From: "my-custom-model", To: "gpt-4"},
+						{From: clientModel, To: "gpt-4"},
 					},
 				},
 			},
@@ -611,7 +621,7 @@ func TestChatCompletionOrchestrator_Process_WithModelMapping(t *testing.T) {
 	}
 
 	// Build request with custom model name
-	httpRequest := buildTestRequest("my-custom-model", "Test mapping", false)
+	httpRequest := buildTestRequest(clientModel, "Test mapping", false)
 
 	// Set context with API key and project
 	ctx = contexts.WithProjectID(ctx, project.ID)
@@ -633,6 +643,21 @@ func TestChatCompletionOrchestrator_Process_WithModelMapping(t *testing.T) {
 	// The stored model should be the mapped model (gpt-4) since that's what was actually used
 	dbRequest := requests[0]
 	assert.Equal(t, "gpt-4", dbRequest.ModelID)
+	require.Equal(t, clientModel, dbRequest.OriginalModelID)
+	require.Equal(t, source, dbRequest.Billing.Source)
+	require.Nil(t, dbRequest.Billing.Price)
+	var response openai.Response
+	require.NoError(t, json.Unmarshal(result.ChatCompletion.Body, &response))
+	if source == objects.BillingModelSourceOriginal {
+		require.Equal(t, clientModel, response.Model)
+	} else {
+		require.Equal(t, "gpt-4", response.Model)
+	}
+	logs, err := client.UsageLog.Query().All(ctx)
+	require.NoError(t, err)
+	require.Len(t, logs, 1)
+	require.Nil(t, logs[0].TotalCost)
+	require.Equal(t, request.StatusCompleted, dbRequest.Status)
 }
 
 // TestChatCompletionOrchestrator_Process_WithOverrideParameters tests channel override parameters.

@@ -1,3 +1,4 @@
+import { formatModelLabel } from '@/utils/model-label';
 import { formatApiKeyLabel } from '@/lib/utils';
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -160,7 +161,7 @@ export function ApiKeyTokenChartDialog({ apiKey, open, onOpenChange }: ApiKeyTok
                           <div className="bg-muted/30 px-4 py-2">
                             <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                               <span className="font-medium text-sm break-all">
-                                #{index + 1} {model.modelId}
+                                #{index + 1} {formatModelLabel(model.modelId, t)}
                               </span>
                               <span className="text-sm text-muted-foreground whitespace-nowrap">
                                 {t('apikeys.tokenUsageChart.totalTokens')}: {formatNumber(modelTotal)}

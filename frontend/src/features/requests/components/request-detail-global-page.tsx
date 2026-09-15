@@ -1,3 +1,4 @@
+import { formatModelLabel } from '@/utils/model-label';
 import { format } from 'date-fns';
 import { useParams, useRouter } from '@tanstack/react-router';
 import { ArrowLeft, Copy, FileText } from 'lucide-react';
@@ -57,7 +58,7 @@ export default function RequestDetailGlobalPage() {
               </div>
               {request && (
                 <div className='mt-1 flex items-center gap-2'>
-                  <p className='text-muted-foreground text-sm'>{request.modelID || t('requests.columns.unknown')}</p>
+                  <p className='text-muted-foreground text-sm'>{formatModelLabel(request.modelID, t)}</p>
                   <span className='text-muted-foreground text-xs'>•</span>
                   <p className='text-muted-foreground text-xs'>{format(new Date(request.createdAt), 'yyyy-MM-dd HH:mm:ss')}</p>
                 </div>

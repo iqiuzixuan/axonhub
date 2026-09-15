@@ -29,8 +29,9 @@ func TestRequestModelBillingSnapshotsAndChannelCost(t *testing.T) {
 	system := NewSystemService(SystemServiceParams{Ent: db})
 	service := NewUsageLogService(db, system, NewChannelServiceForTest(db))
 	require.NoError(t, system.SetModelSettings(ctx, SystemModelSettings{BillingModelSource: objects.BillingModelSourceOriginal}))
-	_, err := service.PrepareBilling(ctx, "missing")
-	require.ErrorContains(t, err, "no billing price")
+	unpriced, err := service.PrepareBilling(ctx, "missing")
+	require.NoError(t, err)
+	require.Nil(t, unpriced.Price)
 	model := db.Model.Create().SetModelID("public-A").SetName("Public A").SetDeveloper("custom").SetIcon("").SetGroup("").SetStatus("enabled").SetModelCard(&objects.ModelCard{}).SetSettings(&objects.ModelSettings{BillingPrice: billingTestPrice(10)}).SaveX(ctx)
 	snapshot, err := service.PrepareBilling(ctx, "public-A")
 	require.NoError(t, err)
@@ -69,4 +70,51 @@ func TestRequestModelBillingSnapshotsAndChannelCost(t *testing.T) {
 	amount, err = quota.channelCostSince(ctx, 2, time.Now().UTC().Add(-time.Hour), time.Now().UTC().Add(time.Hour))
 	require.NoError(t, err)
 	require.Zero(t, amount)
+}
+
+func TestOriginalBillingWithoutPriceAllowsUsageWithoutCharge(t *testing.T) {
+	db := enttest.NewEntClient(t, "sqlite3", "file:unpriced-original-billing?mode=memory&_fk=0")
+	defer db.Close()
+	ctx := authz.WithTestBypass(ent.NewContext(t.Context(), db))
+	system := NewSystemService(SystemServiceParams{Ent: db})
+	service := NewUsageLogService(db, system, NewChannelServiceForTest(db))
+	require.NoError(t, system.SetModelSettings(ctx, SystemModelSettings{BillingModelSource: objects.BillingModelSourceOriginal}))
+	// Channel-only models such as codex-auto-review need no Model row or tariff.
+	snapshot, err := service.PrepareBilling(ctx, "codex-auto-review")
+	require.NoError(t, err)
+	require.Equal(t, "codex-auto-review", snapshot.OriginalModel)
+	require.Equal(t, objects.BillingModelSourceOriginal, snapshot.Source)
+	require.Nil(t, snapshot.Price)
+	require.Empty(t, snapshot.PriceReference)
+	entity := db.Model.Create().SetModelID("codex-auto-review").SetName("Review").SetDeveloper("custom").SetIcon("").SetGroup("").
+		SetStatus("enabled").SetModelCard(&objects.ModelCard{}).SetSettings(&objects.ModelSettings{}).SaveX(ctx)
+	unpriced, err := service.PrepareBilling(ctx, entity.ModelID)
+	require.NoError(t, err)
+	require.Nil(t, unpriced.Price)
+	// Configuring a price later must not change an already accepted request.
+	db.Model.UpdateOne(entity).SetSettings(&objects.ModelSettings{BillingPrice: billingTestPrice(10)}).SaveX(ctx)
+	req := db.Request.Create().SetProjectID(1).SetModelID("internal-route").SetOriginalModelID(snapshot.OriginalModel).
+		SetBilling(snapshot).SetStatus("completed").SetRequestBody([]byte(`{}`)).SaveX(ctx)
+	execution := db.RequestExecution.Create().SetProjectID(1).SetRequestID(req.ID).SetChannelID(1).SetModelID("internal-actual").
+		SetCostPrice(&objects.RequestBilling{Price: billingTestPrice(1), At: time.Now(), PriceReference: "channel-price"}).
+		SetStatus("completed").SetFormat("openai/chat_completions").SetRequestBody([]byte(`{}`)).SaveX(ctx)
+	usage := &llm.Usage{PromptTokens: 1_000_000, TotalTokens: 1_000_000, Cost: lo.ToPtr(999.0)}
+	saved, err := service.CreateUsageLogFromRequest(ctx, req, execution, usage)
+	require.NoError(t, err)
+	require.Nil(t, saved.TotalCost, "unpriced is unknown, not zero or the channel cost")
+	require.Empty(t, saved.CostItems)
+	require.Empty(t, saved.CostPriceReferenceID)
+	require.Equal(t, "original", saved.BillingModelSource)
+	require.Equal(t, "codex-auto-review", saved.BillingModelID)
+	require.Equal(t, 1.0, *saved.ChannelCost, "channel accounting remains independent")
+	require.EqualValues(t, 1_000_000, saved.TotalTokens)
+	service.InjectRequestUsageCost(ctx, req, execution, usage)
+	require.Nil(t, usage.Cost, "never return upstream cost as user charge")
+	priced, err := service.PrepareBilling(ctx, entity.ModelID)
+	require.NoError(t, err)
+	require.NotNil(t, priced.Price)
+	// Invalid configured pricing is still an error, not an unpriced model.
+	db.Model.UpdateOne(entity).SetSettings(&objects.ModelSettings{BillingPrice: &objects.ModelPrice{Items: []objects.ModelPriceItem{{ItemCode: objects.PriceItemCodeUsage, Pricing: objects.Pricing{Mode: "invalid"}}}}}).SaveX(ctx)
+	_, err = service.PrepareBilling(ctx, entity.ModelID)
+	require.ErrorContains(t, err, "billing price is invalid")
 }

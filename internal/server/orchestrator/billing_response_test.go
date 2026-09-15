@@ -1,6 +1,7 @@
 package orchestrator
 
 import (
+	"github.com/looplj/axonhub/internal/ent"
 	"github.com/looplj/axonhub/internal/objects"
 	"github.com/looplj/axonhub/llm"
 	"github.com/samber/lo"
@@ -34,4 +35,19 @@ func TestPublicResponseStreamCostAccumulates(t *testing.T) {
 	require.Equal(t, float64(10), gjson.GetBytes(start, "message.usage.cost").Float())
 	end := s.publicResponseWithCost([]byte(`{"type":"message_delta","usage":{"output_tokens":100000}}`), usage)
 	require.Equal(t, float64(12), gjson.GetBytes(end, "usage.cost").Float())
+}
+
+func TestUnpricedOriginalResponseKeepsPublicModelWithoutCost(t *testing.T) {
+	s := &PersistenceState{Billing: &objects.RequestBilling{
+		Source: objects.BillingModelSourceOriginal, OriginalModel: "codex-auto-review", InjectCost: true,
+	}, RequestExec: &ent.RequestExecution{CostPrice: &objects.RequestBilling{Price: &objects.ModelPrice{}}}}
+	for _, payload := range []struct{ body, modelPath, costPath string }{
+		{`{"model":"internal-actual","usage":{"prompt_tokens":10,"cost":9}}`, "model", "usage.cost"},
+		{`{"type":"response.completed","response":{"model":"internal-actual","usage":{"input_tokens":10,"cost":9}}}`, "response.model", "response.usage.cost"},
+		{`{"type":"message_start","message":{"model":"internal-actual","usage":{"input_tokens":10,"cost":9}}}`, "message.model", "message.usage.cost"},
+	} {
+		got := s.publicResponseWithCost([]byte(payload.body), &llm.Usage{})
+		require.Equal(t, "codex-auto-review", gjson.GetBytes(got, payload.modelPath).String())
+		require.False(t, gjson.GetBytes(got, payload.costPath).Exists())
+	}
 }

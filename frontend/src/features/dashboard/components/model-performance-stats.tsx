@@ -1,3 +1,4 @@
+import { formatModelLabel } from '@/utils/model-label';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PerformanceChart, PerformanceDataPoint } from './performance-chart';
@@ -14,13 +15,13 @@ export function ModelPerformanceStats({ onTotalRequestsChange }: ModelPerformanc
   const mappedData: PerformanceDataPoint[] | undefined = useMemo(() =>
     performanceStats?.map((stat: ModelPerformanceStat) => ({
       id: stat.modelId,
-      name: stat.modelId,
+      name: formatModelLabel(stat.modelId, t),
       throughput: stat.throughput,
       ttftMs: stat.ttftMs,
       requestCount: stat.requestCount,
       date: stat.date,
     })),
-    [performanceStats]
+    [performanceStats, t]
   );
 
   return (
