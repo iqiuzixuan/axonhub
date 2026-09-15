@@ -55,11 +55,6 @@ func (svc *ModelService) validateModelSettings(settings *objects.ModelSettings) 
 }
 
 func validateModelSettings(settings *objects.ModelSettings) error {
-	if settings != nil && settings.BillingPrice != nil {
-		if err := settings.BillingPrice.Validate(); err != nil {
-			return fmt.Errorf("billing price: %w", err)
-		}
-	}
 	if settings == nil {
 		return nil
 	}

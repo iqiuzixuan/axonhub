@@ -950,7 +950,6 @@ type ComplexityRoot struct {
 
 	ModelSettings struct {
 		Associations                        func(childComplexity int) int
-		BillingPrice                        func(childComplexity int) int
 		DisableDeveloperSettingsInheritance func(childComplexity int) int
 		LoadBalancerStrategy                func(childComplexity int) int
 		TraceStickyMode                     func(childComplexity int) int
@@ -5834,12 +5833,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ModelSettings.Associations(childComplexity), true
-	case "ModelSettings.billingPrice":
-		if e.complexity.ModelSettings.BillingPrice == nil {
-			break
-		}
-
-		return e.complexity.ModelSettings.BillingPrice(childComplexity), true
 	case "ModelSettings.disableDeveloperSettingsInheritance":
 		if e.complexity.ModelSettings.DisableDeveloperSettingsInheritance == nil {
 			break
@@ -30586,8 +30579,6 @@ func (ec *executionContext) fieldContext_Model_settings(_ context.Context, field
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
-			case "billingPrice":
-				return ec.fieldContext_ModelSettings_billingPrice(ctx, field)
 			case "disableDeveloperSettingsInheritance":
 				return ec.fieldContext_ModelSettings_disableDeveloperSettingsInheritance(ctx, field)
 			case "associations":
@@ -32667,41 +32658,6 @@ func (ec *executionContext) fieldContext_ModelProtocol_enabled(_ context.Context
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Boolean does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
-func (ec *executionContext) _ModelSettings_billingPrice(ctx context.Context, field graphql.CollectedField, obj *objects.ModelSettings) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ModelSettings_billingPrice,
-		func(ctx context.Context) (any, error) {
-			return obj.BillingPrice, nil
-		},
-		nil,
-		ec.marshalOModelPrice2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐModelPrice,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_ModelSettings_billingPrice(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ModelSettings",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "items":
-				return ec.fieldContext_ModelPrice_items(ctx, field)
-			case "schedule":
-				return ec.fieldContext_ModelPrice_schedule(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type ModelPrice", field.Name)
 		},
 	}
 	return fc, nil
@@ -76740,20 +76696,13 @@ func (ec *executionContext) unmarshalInputModelSettingsInput(ctx context.Context
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"billingPrice", "disableDeveloperSettingsInheritance", "associations", "loadBalancerStrategy", "traceStickyMode"}
+	fieldsInOrder := [...]string{"disableDeveloperSettingsInheritance", "associations", "loadBalancerStrategy", "traceStickyMode"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
 			continue
 		}
 		switch k {
-		case "billingPrice":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("billingPrice"))
-			data, err := ec.unmarshalOModelPriceInput2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐModelPrice(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.BillingPrice = data
 		case "disableDeveloperSettingsInheritance":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("disableDeveloperSettingsInheritance"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
@@ -101553,8 +101502,6 @@ func (ec *executionContext) _ModelSettings(ctx context.Context, sel ast.Selectio
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("ModelSettings")
-		case "billingPrice":
-			out.Values[i] = ec._ModelSettings_billingPrice(ctx, field, obj)
 		case "disableDeveloperSettingsInheritance":
 			out.Values[i] = ec._ModelSettings_disableDeveloperSettingsInheritance(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -125238,21 +125185,6 @@ func (ec *executionContext) unmarshalOModelOrder2ᚖgithubᚗcomᚋloopljᚋaxon
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputModelOrder(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOModelPrice2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐModelPrice(ctx context.Context, sel ast.SelectionSet, v *objects.ModelPrice) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._ModelPrice(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOModelPriceInput2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐModelPrice(ctx context.Context, v any) (*objects.ModelPrice, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputModelPriceInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

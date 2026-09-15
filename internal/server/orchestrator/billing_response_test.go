@@ -25,16 +25,25 @@ func TestPublicResponseModelMetadata(t *testing.T) {
 }
 
 func TestPublicResponseStreamCostAccumulates(t *testing.T) {
-	s := &PersistenceState{Billing: &objects.RequestBilling{Source: objects.BillingModelSourceOriginal, OriginalModel: "A", InjectCost: true, At: time.Now(), Price: &objects.ModelPrice{Items: []objects.ModelPriceItem{
-		{ItemCode: objects.PriceItemCodeUsage, Pricing: objects.Pricing{Mode: objects.PricingModeUsagePerUnit, UsagePerUnit: lo.ToPtr(decimal.NewFromInt(10))}},
-		{ItemCode: objects.PriceItemCodeCompletion, Pricing: objects.Pricing{Mode: objects.PricingModeUsagePerUnit, UsagePerUnit: lo.ToPtr(decimal.NewFromInt(20))}},
-	}}}}
-	usage := &llm.Usage{}
-	start := s.publicResponseWithCost([]byte(`{"type":"message_start","message":{"model":"C","usage":{"input_tokens":1000000,"output_tokens":0}}}`), usage)
-	require.Equal(t, "A", gjson.GetBytes(start, "message.model").String())
-	require.Equal(t, float64(10), gjson.GetBytes(start, "message.usage.cost").Float())
-	end := s.publicResponseWithCost([]byte(`{"type":"message_delta","usage":{"output_tokens":100000}}`), usage)
-	require.Equal(t, float64(12), gjson.GetBytes(end, "usage.cost").Float())
+	for _, source := range []objects.BillingModelSource{objects.BillingModelSourceOriginal, objects.BillingModelSourceRedirected} {
+		t.Run(string(source), func(t *testing.T) {
+			s := &PersistenceState{Billing: &objects.RequestBilling{Source: source, OriginalModel: "A", InjectCost: true, At: time.Now(), Price: &objects.ModelPrice{Items: []objects.ModelPriceItem{
+				{ItemCode: objects.PriceItemCodeUsage, Pricing: objects.Pricing{Mode: objects.PricingModeUsagePerUnit, UsagePerUnit: lo.ToPtr(decimal.NewFromInt(10))}},
+				{ItemCode: objects.PriceItemCodeCompletion, Pricing: objects.Pricing{Mode: objects.PricingModeUsagePerUnit, UsagePerUnit: lo.ToPtr(decimal.NewFromInt(20))}},
+			}}}}
+			s.RequestExec = &ent.RequestExecution{ModelID: "C"}
+			wantModel := "A"
+			if source == objects.BillingModelSourceRedirected {
+				wantModel = "C"
+			}
+			usage := &llm.Usage{}
+			start := s.publicResponseWithCost([]byte(`{"type":"message_start","message":{"model":"C","usage":{"input_tokens":1000000,"output_tokens":0}}}`), usage)
+			require.Equal(t, wantModel, gjson.GetBytes(start, "message.model").String())
+			require.Equal(t, float64(10), gjson.GetBytes(start, "message.usage.cost").Float())
+			end := s.publicResponseWithCost([]byte(`{"type":"message_delta","usage":{"output_tokens":100000}}`), usage)
+			require.Equal(t, float64(12), gjson.GetBytes(end, "usage.cost").Float())
+		})
+	}
 }
 
 func TestUnpricedOriginalResponseKeepsPublicModelWithoutCost(t *testing.T) {

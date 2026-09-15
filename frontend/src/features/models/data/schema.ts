@@ -1,4 +1,3 @@
-import { modelPriceSchema } from '@/features/channels/data/schema';
 import { z } from 'zod';
 import { pageInfoSchema } from '@/gql/pagination';
 
@@ -141,7 +140,6 @@ export function normalizeModelRoutingPolicyValue(value?: string | null): string 
 }
 
 export const modelSettingsSchema = z.object({
-  billingPrice: modelPriceSchema.optional().nullable(),
   disableDeveloperSettingsInheritance: z.boolean().optional().default(false),
   associations: z.array(modelAssociationSchema).optional().default([]),
   loadBalancerStrategy: z.enum(['default', 'adaptive', 'failover', 'circuit-breaker', 'round-robin']).optional().default('default'),

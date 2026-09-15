@@ -90,7 +90,7 @@ func (m *persistRequestExecutionMiddleware) OnOutboundRawRequest(ctx context.Con
 		format = llm.APIFormat(request.APIFormat)
 	}
 
-	costPrice, err := state.UsageLogService.SnapshotChannelPrice(channel.ID, entry.ActualModel)
+	billing, costPrice, err := state.UsageLogService.SnapshotRequestPrices(state.Billing, channel.ID, entry.ActualModel)
 	if err != nil {
 		return nil, err
 	}
@@ -108,14 +108,16 @@ func (m *persistRequestExecutionMiddleware) OnOutboundRawRequest(ctx context.Con
 		return nil, err
 	}
 
-	// Update request with channel ID after channel selection
-	if state.Request != nil && state.Request.ChannelID != channel.ID {
-		err := state.RequestService.UpdateRequestChannelID(ctx, state.Request.ID, channel.ID)
+	// Refresh the billing snapshot on every attempt, including same-channel retries.
+	if state.Request != nil {
+		err := state.RequestService.UpdateRequestChannelID(ctx, state.Request.ID, channel.ID, billing)
 		if err != nil {
 			return nil, err
 		}
-		// Update the in-memory state to prevent duplicate updates and ensure consistency
+		// Response injection and usage logging must use this attempt's snapshot.
 		state.Request.ChannelID = channel.ID
+		state.Request.Billing = billing
+		state.Billing = billing
 	}
 
 	state.RequestExec = requestExec

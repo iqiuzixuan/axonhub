@@ -2,16 +2,12 @@ package biz
 
 import (
 	"context"
-	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"time"
 
-	"github.com/looplj/axonhub/internal/authz"
 	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/model"
 	"github.com/looplj/axonhub/internal/objects"
-	"github.com/looplj/axonhub/internal/pkg/xerrors"
 	"github.com/looplj/axonhub/llm"
 	"github.com/samber/lo"
 )
@@ -27,9 +23,8 @@ func (s *SystemService) BillingModelSource(ctx context.Context) (objects.Billing
 	return settings.BillingModelSource, nil
 }
 
-// PrepareBilling allows unpriced requests, just like redirected billing. A nil
-// price records no charge; an explicit empty price records a free request.
-// Never substitute a different model's price for the requested model's price.
+// PrepareBilling freezes the policy before routing. Prices are captured from the
+// selected channel immediately before each outbound attempt.
 func (s *UsageLogService) PrepareBilling(ctx context.Context, original string) (*objects.RequestBilling, error) {
 	source, err := s.SystemService.BillingModelSource(ctx)
 	if err != nil {
@@ -37,31 +32,29 @@ func (s *UsageLogService) PrepareBilling(ctx context.Context, original string) (
 	}
 	snapshot := &objects.RequestBilling{Source: source, OriginalModel: original, At: time.Now()}
 	snapshot.InjectCost, _ = s.SystemService.InjectUsageCostEnabled(ctx)
-	if source != objects.BillingModelSourceOriginal {
-		return snapshot, nil
-	}
-	entity, err := authz.RunWithSystemBypass(ctx, "request-model-billing-price", func(ctx context.Context) (*ent.Model, error) {
-		return s.entFromContext(ctx).Model.Query().Where(model.ModelIDEQ(original), model.StatusEQ(model.StatusEnabled)).Only(ctx)
-	})
-	if err != nil && !ent.IsNotFound(err) {
-		return nil, fmt.Errorf("load request model price: %w", err)
-	}
-	if entity == nil || entity.Settings == nil || entity.Settings.BillingPrice == nil {
-		return snapshot, nil
-	}
-	if err := entity.Settings.BillingPrice.Validate(); err != nil {
-		return nil, xerrors.ValidationError("request model billing price is invalid")
-	}
-	raw, err := json.Marshal(entity.Settings.BillingPrice)
-	if err != nil {
-		return nil, err
-	}
-	// Copy out of the model object so later configuration edits cannot mutate it.
-	if err := json.Unmarshal(raw, &snapshot.Price); err != nil {
-		return nil, err
-	}
-	snapshot.PriceReference = fmt.Sprintf("model:%d:%x", entity.ID, sha256.Sum256(raw))
 	return snapshot, nil
+}
+
+// SnapshotRequestPrices uses the same channel lookup for both billing modes.
+// Missing prices stay missing; neither another channel nor another model is used.
+// The actual model's price is retained separately for provider cost accounting.
+func (s *UsageLogService) SnapshotRequestPrices(policy *objects.RequestBilling, channelID int, actual string) (*objects.RequestBilling, *objects.RequestBilling, error) {
+	cost, err := s.SnapshotChannelPrice(channelID, actual)
+	if err != nil || policy == nil {
+		return nil, cost, err
+	}
+	price := cost
+	if policy.Source == objects.BillingModelSourceOriginal && policy.OriginalModel != actual {
+		price, err = s.SnapshotChannelPrice(channelID, policy.OriginalModel)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+	billing := *price
+	billing.Source = policy.Source
+	billing.OriginalModel = policy.OriginalModel
+	billing.InjectCost = policy.InjectCost
+	return &billing, cost, nil
 }
 
 func requestBillingCost(snapshot *objects.RequestBilling, usage *llm.Usage) ([]objects.CostItem, *float64, string) {
@@ -76,7 +69,7 @@ func (s *UsageLogService) InjectRequestUsageCost(ctx context.Context, req *ent.R
 	if usage == nil || req == nil || execution == nil {
 		return
 	}
-	if req.Billing != nil && req.Billing.Source == objects.BillingModelSourceOriginal {
+	if req.Billing != nil {
 		_, usage.Cost, _ = requestBillingCost(req.Billing, usage)
 		return
 	}
@@ -87,14 +80,14 @@ func (s *UsageLogService) InjectRequestUsageCost(ctx context.Context, req *ent.R
 	s.InjectUsageCost(ctx, execution.ChannelID, execution.ModelID, usage)
 }
 
-// SnapshotChannelPrice freezes one outbound attempt's cost and redirected price.
-func (s *UsageLogService) SnapshotChannelPrice(channelID int, actual string) (*objects.RequestBilling, error) {
-	snapshot := &objects.RequestBilling{Source: objects.BillingModelSourceRedirected, OriginalModel: actual, At: time.Now()}
+// SnapshotChannelPrice freezes the selected channel's price for an exact model ID.
+func (s *UsageLogService) SnapshotChannelPrice(channelID int, modelID string) (*objects.RequestBilling, error) {
+	snapshot := &objects.RequestBilling{Source: objects.BillingModelSourceRedirected, OriginalModel: modelID, At: time.Now()}
 	ch := s.ChannelService.GetEnabledChannel(channelID)
 	if ch == nil {
 		return snapshot, nil
 	}
-	if price, ok := ch.cachedModelPrices[actual]; ok {
+	if price, ok := ch.cachedModelPrices[modelID]; ok {
 		raw, err := json.Marshal(price.Price)
 		if err != nil {
 			return nil, err

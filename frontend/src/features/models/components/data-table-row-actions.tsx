@@ -66,7 +66,6 @@ export function DataTableRowActions({ row }: DataTableRowActionsProps) {
                 {t('common.actions.edit')}
               </DropdownMenuItem>
 
-              <DropdownMenuItem onClick={() => openRowDialog('billingPrice')}>{t('billing.price.title')}</DropdownMenuItem>
               <DropdownMenuItem onClick={() => openRowDialog('association')}>
                 <IconNote size={16} className='mr-2' />
                 {t('models.actions.manageAssociation')}

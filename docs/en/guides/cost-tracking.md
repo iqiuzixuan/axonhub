@@ -105,6 +105,21 @@ For Anthropic models, you can configure TTL variants for cache writes:
 - **5 minutes** (`five_min`): Short-term cache
 - **1 hour** (`one_hour`): Long-term cache
 
+### Billing model source
+
+Select the model ID used for price lookup in **Models → Settings → Billing model source**:
+
+| Mode | Price source | Model ID |
+|------|--------------|----------|
+| Before redirect | Model prices on the executing channel | The client's original model ID |
+| After redirect | Model prices on the executing channel | The actual model ID after redirect |
+
+Both modes calculate charges from the request's actual usage. There is no separate requested-model tariff. Prices in **Edit model → Model card → Cost** are for display only and do not determine charges.
+
+If the executing channel has no price for that model, the request can still proceed and record usage, but the charge is displayed as `-`. Prices from other channels or models are not substituted. An explicitly configured empty list of billing items means free usage, recorded as `0`.
+
+Prices are captured before each outbound attempt. Retries resolve prices again for their channel and model; later configuration edits do not change an attempt's snapshot. Provider costs always use the actual model. Changing the billing source or prices does not recalculate historical charges.
+
 ### Cost Calculation Logic
 
 1. **Input Token Calculation**: `PromptTokens - CachedTokens - WriteCachedTokens`

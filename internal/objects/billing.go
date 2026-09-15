@@ -18,7 +18,7 @@ func (s BillingModelSource) Valid() bool {
 	return s == BillingModelSourceOriginal || s == BillingModelSourceRedirected
 }
 
-// RequestBilling freezes the policy and public price before routing/retries.
+// RequestBilling freezes the policy at reception and channel price per attempt.
 // This internal snapshot is never exposed as a GraphQL input or output.
 type RequestBilling struct {
 	Source         BillingModelSource `json:"source"`

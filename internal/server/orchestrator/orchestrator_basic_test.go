@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/samber/lo"
+	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -532,14 +533,22 @@ func TestChatCompletionOrchestrator_Process_NonStreamingRequireStreamCandidate_D
 
 // TestChatCompletionOrchestrator_Process_WithModelMapping tests model mapping from API key.
 func TestChatCompletionOrchestrator_Process_WithModelMapping(t *testing.T) {
-	testUnpricedModelMapping(t, objects.BillingModelSourceRedirected, "my-custom-model")
+	testModelMappingBilling(t, objects.BillingModelSourceRedirected, "my-custom-model", false)
 }
 
 func TestChatCompletionOrchestrator_Process_UnpricedOriginalModel(t *testing.T) {
-	testUnpricedModelMapping(t, objects.BillingModelSourceOriginal, "codex-auto-review")
+	testModelMappingBilling(t, objects.BillingModelSourceOriginal, "codex-auto-review", false)
 }
 
-func testUnpricedModelMapping(t *testing.T, source objects.BillingModelSource, clientModel string) {
+func TestChatCompletionOrchestrator_Process_ChannelBilling(t *testing.T) {
+	for _, source := range []objects.BillingModelSource{objects.BillingModelSourceOriginal, objects.BillingModelSourceRedirected} {
+		t.Run(string(source), func(t *testing.T) {
+			testModelMappingBilling(t, source, "public-model", true)
+		})
+	}
+}
+
+func testModelMappingBilling(t *testing.T, source objects.BillingModelSource, clientModel string, priced bool) {
 	t.Helper()
 	ctx := context.Background()
 	ctx = authz.WithTestBypass(ctx)
@@ -554,6 +563,17 @@ func testUnpricedModelMapping(t *testing.T, source objects.BillingModelSource, c
 	ch := createTestChannel(t, ctx, client)
 	channelService, requestService, systemService, usageLogService := setupTestServices(t, client)
 	require.NoError(t, systemService.SetModelSettings(ctx, biz.SystemModelSettings{BillingModelSource: source}))
+
+	require.NoError(t, systemService.SetInjectUsageCostEnabled(ctx, true))
+	if priced {
+		// Original ID has no Model row, but does have a price on the selected channel.
+		for modelID, rate := range map[string]int64{clientModel: 10, "gpt-4": 1} {
+			client.ChannelModelPrice.Create().SetChannelID(ch.ID).SetModelID(modelID).
+				SetReferenceID(modelID).SetPrice(objects.ModelPrice{Items: []objects.ModelPriceItem{
+				{ItemCode: objects.PriceItemCodeUsage, Pricing: objects.Pricing{Mode: objects.PricingModeUsagePerUnit, UsagePerUnit: lo.ToPtr(decimal.NewFromInt(rate))}},
+			}}).SaveX(ctx)
+		}
+	}
 
 	// Create a user for the API key
 	user, err := client.User.Create().
@@ -601,6 +621,10 @@ func testUnpricedModelMapping(t *testing.T, source objects.BillingModelSource, c
 		Outbound: outbound,
 	}
 
+	usageLogService.ChannelService = channelService
+	channelService.PreloadModelPricesForTest(ctx, bizChannel)
+	channelService.SetEnabledChannelsForTest([]*biz.Channel{bizChannel})
+
 	channelSelector := &staticChannelSelector{candidates: channelsToTestCandidates([]*biz.Channel{bizChannel}, "gpt-4")}
 
 	orchestrator := &ChatCompletionOrchestrator{
@@ -645,7 +669,9 @@ func testUnpricedModelMapping(t *testing.T, source objects.BillingModelSource, c
 	assert.Equal(t, "gpt-4", dbRequest.ModelID)
 	require.Equal(t, clientModel, dbRequest.OriginalModelID)
 	require.Equal(t, source, dbRequest.Billing.Source)
-	require.Nil(t, dbRequest.Billing.Price)
+	if !priced {
+		require.Nil(t, dbRequest.Billing.Price)
+	}
 	var response openai.Response
 	require.NoError(t, json.Unmarshal(result.ChatCompletion.Body, &response))
 	if source == objects.BillingModelSourceOriginal {
@@ -656,7 +682,21 @@ func testUnpricedModelMapping(t *testing.T, source objects.BillingModelSource, c
 	logs, err := client.UsageLog.Query().All(ctx)
 	require.NoError(t, err)
 	require.Len(t, logs, 1)
-	require.Nil(t, logs[0].TotalCost)
+	if priced {
+		want := 15.0 / 1_000_000
+		if source == objects.BillingModelSourceOriginal {
+			want *= 10
+		}
+		require.NotNil(t, logs[0].TotalCost)
+		require.InDelta(t, want, *logs[0].TotalCost, 1e-12)
+		require.NotNil(t, response.Usage.Cost)
+		require.InDelta(t, want, *response.Usage.Cost, 1e-12)
+		require.InDelta(t, 15.0/1_000_000, *logs[0].ChannelCost, 1e-12)
+		require.NotNil(t, dbRequest.Billing.Price)
+	} else {
+		require.Nil(t, logs[0].TotalCost)
+		require.Nil(t, response.Usage.Cost)
+	}
 	require.Equal(t, request.StatusCompleted, dbRequest.Status)
 }
 

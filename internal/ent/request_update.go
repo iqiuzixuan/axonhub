@@ -40,6 +40,18 @@ func (_u *RequestUpdate) SetUpdatedAt(v time.Time) *RequestUpdate {
 	return _u
 }
 
+// SetBilling sets the "billing" field.
+func (_u *RequestUpdate) SetBilling(v *objects.RequestBilling) *RequestUpdate {
+	_u.mutation.SetBilling(v)
+	return _u
+}
+
+// ClearBilling clears the value of the "billing" field.
+func (_u *RequestUpdate) ClearBilling() *RequestUpdate {
+	_u.mutation.ClearBilling()
+	return _u
+}
+
 // SetRequestHeaders sets the "request_headers" field.
 func (_u *RequestUpdate) SetRequestHeaders(v objects.JSONRawMessage) *RequestUpdate {
 	_u.mutation.SetRequestHeaders(v)
@@ -482,6 +494,9 @@ func (_u *RequestUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 	if _u.mutation.OriginalModelIDCleared() {
 		_spec.ClearField(request.FieldOriginalModelID, field.TypeString)
 	}
+	if value, ok := _u.mutation.Billing(); ok {
+		_spec.SetField(request.FieldBilling, field.TypeJSON, value)
+	}
 	if _u.mutation.BillingCleared() {
 		_spec.ClearField(request.FieldBilling, field.TypeJSON)
 	}
@@ -725,6 +740,18 @@ type RequestUpdateOne struct {
 // SetUpdatedAt sets the "updated_at" field.
 func (_u *RequestUpdateOne) SetUpdatedAt(v time.Time) *RequestUpdateOne {
 	_u.mutation.SetUpdatedAt(v)
+	return _u
+}
+
+// SetBilling sets the "billing" field.
+func (_u *RequestUpdateOne) SetBilling(v *objects.RequestBilling) *RequestUpdateOne {
+	_u.mutation.SetBilling(v)
+	return _u
+}
+
+// ClearBilling clears the value of the "billing" field.
+func (_u *RequestUpdateOne) ClearBilling() *RequestUpdateOne {
+	_u.mutation.ClearBilling()
 	return _u
 }
 
@@ -1199,6 +1226,9 @@ func (_u *RequestUpdateOne) sqlSave(ctx context.Context) (_node *Request, err er
 	}
 	if _u.mutation.OriginalModelIDCleared() {
 		_spec.ClearField(request.FieldOriginalModelID, field.TypeString)
+	}
+	if value, ok := _u.mutation.Billing(); ok {
+		_spec.SetField(request.FieldBilling, field.TypeJSON, value)
 	}
 	if _u.mutation.BillingCleared() {
 		_spec.ClearField(request.FieldBilling, field.TypeJSON)

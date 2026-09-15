@@ -10,7 +10,6 @@ type DialogType =
   | 'association'
   | 'developerAssociation'
   | 'settings'
-  | 'billingPrice'
   | 'bulkEnable'
   | 'bulkDisable'
   | 'unassociated'

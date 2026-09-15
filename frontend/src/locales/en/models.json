@@ -226,7 +226,7 @@
   "models.modelCard.input": "Input",
   "models.modelCard.output": "Output",
   "models.modelCard.cost": "Cost",
-  "models.modelCard.costHint": "These prices are for display purposes only. Actual billing uses the channel's model prices.",
+  "models.modelCard.costHint": "For display only. Billing uses the executing channel’s price for the requested or actual model, according to the billing model source.",
   "models.modelCard.cacheRead": "Cache Read",
   "models.modelCard.cacheWrite": "Cache Write",
   "models.modelCard.limit": "Limits",

@@ -37,7 +37,6 @@ type ModelCard struct {
 }
 
 type ModelSettings struct {
-	BillingPrice                        *ModelPrice         `json:"billingPrice,omitempty"`
 	DisableDeveloperSettingsInheritance bool                `json:"disableDeveloperSettingsInheritance"`
 	Associations                        []*ModelAssociation `json:"associations"`
 	LoadBalancerStrategy                string              `json:"loadBalancerStrategy"`

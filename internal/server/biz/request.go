@@ -1304,13 +1304,15 @@ func (s *RequestService) ClearStaleProcessingOnStartup(ctx context.Context) erro
 	return nil
 }
 
-// UpdateRequestChannelID updates request with channel ID after channel selection.
-func (s *RequestService) UpdateRequestChannelID(ctx context.Context, requestID int, channelID int) error {
+// UpdateRequestChannelID records the selected channel and optional attempt billing snapshot.
+func (s *RequestService) UpdateRequestChannelID(ctx context.Context, requestID int, channelID int, billing ...*objects.RequestBilling) error {
 	client := s.entFromContext(ctx)
 
-	req, err := client.Request.UpdateOneID(requestID).
-		SetChannelID(channelID).
-		Save(ctx)
+	mut := client.Request.UpdateOneID(requestID).SetChannelID(channelID)
+	if len(billing) > 0 && billing[0] != nil {
+		mut.SetBilling(billing[0])
+	}
+	req, err := mut.Save(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to update request channel ID: %w", err)
 	}
