@@ -170,8 +170,8 @@ func (s *UsageLogService) CreateUsageLog(ctx context.Context, params CreateUsage
 		billingModel := params.ActualModelID
 		if params.Billing.Source == objects.BillingModelSourceOriginal {
 			billingModel = params.Billing.OriginalModel
-			costItems, totalCost, priceReferenceID = requestBillingCost(params.Billing, params.Usage)
 		}
+		costItems, totalCost, priceReferenceID = requestBillingCost(params.Billing, params.Usage)
 		mut.SetBillingModelID(billingModel)
 	}
 	mut = mut.

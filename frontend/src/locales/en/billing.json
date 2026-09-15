@@ -4,13 +4,7 @@
       "title": "Billing model source",
       "original": "Before redirect (requested model)",
       "redirected": "After redirect (actual model)",
-      "description": "Controls billing and model display globally. Requests without a configured price are allowed, but user charges are not recorded. Only administrators can inspect internal mappings. Historical charges are not recalculated."
-    },
-    "price": {
-      "title": "Requested model price",
-      "description": "Used for requested-model billing, independently of channel prices. Unpriced requests are allowed without recording user charges. Changes apply to subsequent requests only.",
-      "configured": "Billing price configured",
-      "free": "No billing items: this model will be free."
+      "description": "Controls billing and model display globally. Both modes use prices from the executing channel, looked up by the requested or actual model ID. Missing prices allow requests without recording charges; prices from other channels are not used. Historical charges are not recalculated."
     },
     "routing": "Model mapping",
     "originalModelNotRecorded": "Original model not recorded"

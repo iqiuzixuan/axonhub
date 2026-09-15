@@ -1,6 +1,7 @@
 package biz
 
 import (
+	"encoding/json"
 	"testing"
 	"time"
 
@@ -22,99 +23,114 @@ func billingTestPrice(rate int64) *objects.ModelPrice {
 	}}
 }
 
-func TestRequestModelBillingSnapshotsAndChannelCost(t *testing.T) {
-	db := enttest.NewEntClient(t, "sqlite3", "file:billing-snapshot?mode=memory&_fk=0")
-	defer db.Close()
-	ctx := authz.WithTestBypass(ent.NewContext(t.Context(), db))
-	system := NewSystemService(SystemServiceParams{Ent: db})
-	service := NewUsageLogService(db, system, NewChannelServiceForTest(db))
-	require.NoError(t, system.SetModelSettings(ctx, SystemModelSettings{BillingModelSource: objects.BillingModelSourceOriginal}))
-	unpriced, err := service.PrepareBilling(ctx, "missing")
-	require.NoError(t, err)
-	require.Nil(t, unpriced.Price)
-	model := db.Model.Create().SetModelID("public-A").SetName("Public A").SetDeveloper("custom").SetIcon("").SetGroup("").SetStatus("enabled").SetModelCard(&objects.ModelCard{}).SetSettings(&objects.ModelSettings{BillingPrice: billingTestPrice(10)}).SaveX(ctx)
-	snapshot, err := service.PrepareBilling(ctx, "public-A")
-	require.NoError(t, err)
-	require.NotEmpty(t, snapshot.PriceReference)
-	channelSnapshot := &objects.RequestBilling{Price: billingTestPrice(1), At: time.Now(), PriceReference: "channel-old"}
-	req := db.Request.Create().SetProjectID(1).SetModelID("route-B").SetOriginalModelID("public-A").SetBilling(snapshot).SetStatus("completed").SetRequestBody(objects.JSONRawMessage(`{}`)).SaveX(ctx)
-	execution := db.RequestExecution.Create().SetRequestID(req.ID).SetProjectID(1).SetChannelID(1).SetModelID("secret-C").SetCostPrice(channelSnapshot).SetFormat("openai/chat_completions").SetStatus("completed").SetRequestBody(objects.JSONRawMessage(`{}`)).SaveX(ctx)
-	// An in-flight request keeps the old price and policy after both change.
-	db.Model.UpdateOne(model).SetSettings(&objects.ModelSettings{BillingPrice: billingTestPrice(99)}).SaveX(ctx)
-	require.NoError(t, system.SetModelSettings(ctx, SystemModelSettings{BillingModelSource: objects.BillingModelSourceRedirected}))
-	usage := &llm.Usage{PromptTokens: 1_000_000, CompletionTokens: 100_000, TotalTokens: 1_100_000, PromptTokensDetails: &llm.PromptTokensDetails{CachedTokens: 200_000}}
-	log, err := service.CreateUsageLogFromRequest(ctx, req, execution, usage)
-	require.NoError(t, err)
-	require.Equal(t, "secret-C", log.ModelID)
-	require.Equal(t, "public-A", log.BillingModelID)
-	require.Equal(t, "original", log.BillingModelSource)
-	require.InDelta(t, 10.4, *log.TotalCost, 1e-9)
-	require.InDelta(t, 1.04, *log.ChannelCost, 1e-9)
-	require.Equal(t, snapshot.PriceReference, log.CostPriceReferenceID)
-	service.InjectRequestUsageCost(ctx, req, execution, usage)
-	require.InDelta(t, 10.4, *usage.Cost, 1e-9)
-	quota := &ProviderQuotaService{AbstractService: &AbstractService{db: db}}
-	amount, err := quota.channelCostSince(ctx, 1, time.Now().UTC().Add(-time.Hour), time.Now().UTC().Add(time.Hour))
-	require.NoError(t, err)
-	require.InDelta(t, 1.04, amount, 1e-9)
-	// Explicit free pricing remains distinct from missing pricing.
-	require.NoError(t, system.SetModelSettings(ctx, SystemModelSettings{BillingModelSource: objects.BillingModelSourceOriginal}))
-	db.Model.UpdateOne(model).SetSettings(&objects.ModelSettings{BillingPrice: &objects.ModelPrice{Items: []objects.ModelPriceItem{}}}).SaveX(ctx)
-	free, err := service.PrepareBilling(ctx, "public-A")
-	require.NoError(t, err)
-	_, cost, _ := requestBillingCost(free, usage)
-	require.NotNil(t, cost)
-	require.Zero(t, *cost)
-	// Channel cost absence must not be replaced by the public charge.
-	db.UsageLog.Create().SetProjectID(1).SetRequestID(req.ID).SetChannelID(2).SetModelID("other").SetBillingModelSource("original").SetTotalCost(100).SaveX(ctx)
-	amount, err = quota.channelCostSince(ctx, 2, time.Now().UTC().Add(-time.Hour), time.Now().UTC().Add(time.Hour))
-	require.NoError(t, err)
-	require.Zero(t, amount)
+// No Model row is needed: both modes look up the execution channel's prices.
+func TestChannelBillingModes(t *testing.T) {
+	for _, tc := range []struct {
+		name            string
+		source          objects.BillingModelSource
+		original        string
+		channelID       int
+		wantCost        *float64
+		wantChannelCost *float64
+		wantReference   string
+	}{
+		{"original", objects.BillingModelSourceOriginal, "public-A", 1, lo.ToPtr(10.4), lo.ToPtr(1.04), "original-price"},
+		{"redirected", objects.BillingModelSourceRedirected, "public-A", 1, lo.ToPtr(1.04), lo.ToPtr(1.04), "actual-price"},
+		{"same-model", objects.BillingModelSourceOriginal, "actual-B", 1, lo.ToPtr(1.04), lo.ToPtr(1.04), "actual-price"},
+		{"original-missing-in-selected-channel", objects.BillingModelSourceOriginal, "other-channel-only", 1, nil, lo.ToPtr(1.04), ""},
+		{"redirected-missing-in-selected-channel", objects.BillingModelSourceRedirected, "public-A", 2, nil, nil, ""},
+		{"explicit-free", objects.BillingModelSourceOriginal, "free", 1, lo.ToPtr(0.0), lo.ToPtr(1.04), "free-price"},
+		{"disabled-channel", objects.BillingModelSourceOriginal, "public-A", 3, nil, nil, ""},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			db := enttest.NewEntClient(t, "sqlite3", "file:billing-modes?mode=memory&_fk=0")
+			defer db.Close()
+			ctx := authz.WithTestBypass(ent.NewContext(t.Context(), db))
+			system := NewSystemService(SystemServiceParams{Ent: db})
+			channels := NewChannelServiceForTest(db)
+			channels.SetEnabledChannelsForTest([]*Channel{
+				{Channel: &ent.Channel{ID: 1}, cachedModelPrices: map[string]*ent.ChannelModelPrice{
+					"public-A": {Price: *billingTestPrice(10), ReferenceID: "original-price"},
+					"actual-B": {Price: *billingTestPrice(1), ReferenceID: "actual-price"},
+					"free":     {Price: objects.ModelPrice{Items: []objects.ModelPriceItem{}}, ReferenceID: "free-price"},
+				}},
+				{Channel: &ent.Channel{ID: 2}, cachedModelPrices: map[string]*ent.ChannelModelPrice{
+					"other-channel-only": {Price: *billingTestPrice(99), ReferenceID: "other-channel"},
+					"public-A":           {Price: *billingTestPrice(20), ReferenceID: "retry-price"},
+				}},
+			})
+			service := NewUsageLogService(db, system, channels)
+			require.NoError(t, system.SetModelSettings(ctx, SystemModelSettings{BillingModelSource: tc.source}))
+			policy, err := service.PrepareBilling(ctx, tc.original)
+			require.NoError(t, err)
+			require.Nil(t, policy.Price, "price must wait for channel selection")
+			billing, channelPrice, err := service.SnapshotRequestPrices(policy, tc.channelID, "actual-B")
+			require.NoError(t, err)
+			require.Equal(t, tc.source, billing.Source)
+			req := db.Request.Create().SetProjectID(1).SetModelID("route-model").SetOriginalModelID(tc.original).
+				SetBilling(billing).SetStatus("completed").SetRequestBody([]byte(`{}`)).SaveX(ctx)
+			execution := db.RequestExecution.Create().SetRequestID(req.ID).SetProjectID(1).SetChannelID(tc.channelID).
+				SetModelID("actual-B").SetCostPrice(channelPrice).SetFormat("openai/chat_completions").
+				SetStatus("completed").SetRequestBody([]byte(`{}`)).SaveX(ctx)
+			// Later edits must not change either saved snapshot or the response charge.
+			channels.GetEnabledChannel(1).cachedModelPrices["public-A"].Price = *billingTestPrice(99)
+			channels.GetEnabledChannel(1).cachedModelPrices["actual-B"].Price = *billingTestPrice(99)
+			require.NoError(t, system.SetModelSettings(ctx, SystemModelSettings{BillingModelSource: objects.BillingModelSourceRedirected}))
+			usage := &llm.Usage{PromptTokens: 1_000_000, CompletionTokens: 100_000, TotalTokens: 1_100_000,
+				PromptTokensDetails: &llm.PromptTokensDetails{CachedTokens: 200_000}, Cost: lo.ToPtr(999.0)}
+			// Reload the persisted request/execution to cover JSON snapshot round trips.
+			req = db.Request.GetX(ctx, req.ID)
+			execution = db.RequestExecution.GetX(ctx, execution.ID)
+			log, err := service.CreateUsageLogFromRequest(ctx, req, execution, usage)
+			require.NoError(t, err)
+			require.Equal(t, tc.wantCost, log.TotalCost)
+			require.Equal(t, tc.wantChannelCost, log.ChannelCost)
+			require.Equal(t, tc.wantReference, log.CostPriceReferenceID)
+			require.EqualValues(t, tc.source, log.BillingModelSource)
+			wantModel := "actual-B"
+			if tc.source == objects.BillingModelSourceOriginal {
+				wantModel = tc.original
+			}
+			require.Equal(t, wantModel, log.BillingModelID)
+			require.Equal(t, "actual-B", log.ModelID)
+			service.InjectRequestUsageCost(ctx, req, execution, usage)
+			require.Equal(t, tc.wantCost, usage.Cost)
+			quota := &ProviderQuotaService{AbstractService: &AbstractService{db: db}}
+			amount, err := quota.channelCostSince(ctx, tc.channelID, time.Now().UTC().Add(-time.Hour), time.Now().UTC().Add(time.Hour))
+			require.NoError(t, err)
+			if tc.wantChannelCost == nil {
+				require.Zero(t, amount)
+			} else {
+				require.Equal(t, *tc.wantChannelCost, amount)
+			}
+
+			if tc.name == "original" {
+				// A retry must resolve the new channel, not retain a prior attempt's price.
+				retry, _, err := service.SnapshotRequestPrices(billing, 2, "actual-B")
+				require.NoError(t, err)
+				_, cost, ref := requestBillingCost(retry, usage)
+				require.InDelta(t, 20.8, *cost, 1e-9)
+				require.Equal(t, "retry-price", ref)
+				require.Equal(t, "original-price", billing.PriceReference)
+				missing, _, err := service.SnapshotRequestPrices(retry, 3, "actual-B")
+				require.NoError(t, err)
+				require.Nil(t, missing.Price, "a missing retry price must clear the previous price")
+			}
+		})
+	}
 }
 
-func TestOriginalBillingWithoutPriceAllowsUsageWithoutCharge(t *testing.T) {
-	db := enttest.NewEntClient(t, "sqlite3", "file:unpriced-original-billing?mode=memory&_fk=0")
-	defer db.Close()
-	ctx := authz.WithTestBypass(ent.NewContext(t.Context(), db))
-	system := NewSystemService(SystemServiceParams{Ent: db})
-	service := NewUsageLogService(db, system, NewChannelServiceForTest(db))
-	require.NoError(t, system.SetModelSettings(ctx, SystemModelSettings{BillingModelSource: objects.BillingModelSourceOriginal}))
-	// Channel-only models such as codex-auto-review need no Model row or tariff.
-	snapshot, err := service.PrepareBilling(ctx, "codex-auto-review")
+func TestRetiredModelPriceDoesNotAffectChannelBilling(t *testing.T) {
+	var settings objects.ModelSettings
+	require.NoError(t, json.Unmarshal([]byte(`{"billingPrice":{"items":[]},"associations":[]}`), &settings))
+	raw, err := json.Marshal(settings)
 	require.NoError(t, err)
-	require.Equal(t, "codex-auto-review", snapshot.OriginalModel)
-	require.Equal(t, objects.BillingModelSourceOriginal, snapshot.Source)
-	require.Nil(t, snapshot.Price)
-	require.Empty(t, snapshot.PriceReference)
-	entity := db.Model.Create().SetModelID("codex-auto-review").SetName("Review").SetDeveloper("custom").SetIcon("").SetGroup("").
-		SetStatus("enabled").SetModelCard(&objects.ModelCard{}).SetSettings(&objects.ModelSettings{}).SaveX(ctx)
-	unpriced, err := service.PrepareBilling(ctx, entity.ModelID)
-	require.NoError(t, err)
-	require.Nil(t, unpriced.Price)
-	// Configuring a price later must not change an already accepted request.
-	db.Model.UpdateOne(entity).SetSettings(&objects.ModelSettings{BillingPrice: billingTestPrice(10)}).SaveX(ctx)
-	req := db.Request.Create().SetProjectID(1).SetModelID("internal-route").SetOriginalModelID(snapshot.OriginalModel).
-		SetBilling(snapshot).SetStatus("completed").SetRequestBody([]byte(`{}`)).SaveX(ctx)
-	execution := db.RequestExecution.Create().SetProjectID(1).SetRequestID(req.ID).SetChannelID(1).SetModelID("internal-actual").
-		SetCostPrice(&objects.RequestBilling{Price: billingTestPrice(1), At: time.Now(), PriceReference: "channel-price"}).
-		SetStatus("completed").SetFormat("openai/chat_completions").SetRequestBody([]byte(`{}`)).SaveX(ctx)
-	usage := &llm.Usage{PromptTokens: 1_000_000, TotalTokens: 1_000_000, Cost: lo.ToPtr(999.0)}
-	saved, err := service.CreateUsageLogFromRequest(ctx, req, execution, usage)
-	require.NoError(t, err)
-	require.Nil(t, saved.TotalCost, "unpriced is unknown, not zero or the channel cost")
-	require.Empty(t, saved.CostItems)
-	require.Empty(t, saved.CostPriceReferenceID)
-	require.Equal(t, "original", saved.BillingModelSource)
-	require.Equal(t, "codex-auto-review", saved.BillingModelID)
-	require.Equal(t, 1.0, *saved.ChannelCost, "channel accounting remains independent")
-	require.EqualValues(t, 1_000_000, saved.TotalTokens)
-	service.InjectRequestUsageCost(ctx, req, execution, usage)
-	require.Nil(t, usage.Cost, "never return upstream cost as user charge")
-	priced, err := service.PrepareBilling(ctx, entity.ModelID)
-	require.NoError(t, err)
-	require.NotNil(t, priced.Price)
-	// Invalid configured pricing is still an error, not an unpriced model.
-	db.Model.UpdateOne(entity).SetSettings(&objects.ModelSettings{BillingPrice: &objects.ModelPrice{Items: []objects.ModelPriceItem{{ItemCode: objects.PriceItemCodeUsage, Pricing: objects.Pricing{Mode: "invalid"}}}}}).SaveX(ctx)
-	_, err = service.PrepareBilling(ctx, entity.ModelID)
-	require.ErrorContains(t, err, "billing price is invalid")
+	require.NotContains(t, string(raw), "billingPrice", "retired settings are tolerated but no longer emitted")
+	// Historical snapshots keep their original rates and remain readable.
+	var snapshot objects.RequestBilling
+	require.NoError(t, json.Unmarshal([]byte(`{"source":"original","originalModel":"legacy","price":{"items":[]},"priceReference":"model:1:legacy","at":"2026-09-15T00:00:00Z"}`), &snapshot))
+	_, cost, ref := requestBillingCost(&snapshot, &llm.Usage{PromptTokens: 100})
+	require.NotNil(t, cost)
+	require.Zero(t, *cost)
+	require.Equal(t, "model:1:legacy", ref)
 }

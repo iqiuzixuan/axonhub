@@ -1,7 +1,6 @@
 package gql
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/99designs/gqlgen/client"
@@ -84,33 +83,6 @@ func TestBillingPolicyGraphQLVisibilityAndAggregation(t *testing.T) {
 	require.NoError(t, gql.Post(query, &data))
 	require.Equal(t, "public-A", *data.Requests.Edges[0].Node.RequestedModelID)
 	require.Contains(t, []string{"secret-C", "secret-D"}, data.Requests.Edges[0].Node.Executions.Edges[0].Node.ModelID)
-	// Verify the same nested input/output used by the price editor, including
-	// clearing a configured price back to "unpriced".
-	entity := db.Model.Create().SetModelID("priced-A").SetName("Priced A").SetDeveloper("custom").SetIcon("").SetGroup("").SetModelCard(&objects.ModelCard{}).SetSettings(&objects.ModelSettings{}).SaveX(setup)
-	var priceResult struct {
-		UpdateModel struct {
-			Settings struct {
-				BillingPrice *struct {
-					Items []struct {
-						ItemCode string
-						Pricing  struct {
-							Mode         string
-							UsagePerUnit float64
-						}
-					}
-				}
-			}
-		}
-	}
-	id := fmt.Sprintf("gid://axonhub/Model/%d", entity.ID)
-	input := map[string]any{"settings": map[string]any{"associations": []any{}, "billingPrice": map[string]any{"items": []any{map[string]any{"itemCode": "prompt_tokens", "pricing": map[string]any{"mode": "usage_per_unit", "usagePerUnit": "10"}}}}}}
-	mutation := `mutation($id:ID!,$input:UpdateModelInput!){updateModel(id:$id,input:$input){settings{billingPrice{items{itemCode pricing{mode usagePerUnit}}}}}}`
-	require.NoError(t, gql.Post(mutation, &priceResult, client.Var("id", id), client.Var("input", input)))
-	require.NotNil(t, priceResult.UpdateModel.Settings.BillingPrice)
-	require.Equal(t, float64(10), priceResult.UpdateModel.Settings.BillingPrice.Items[0].Pricing.UsagePerUnit)
-	input["settings"].(map[string]any)["billingPrice"] = nil
-	require.NoError(t, gql.Post(mutation, &priceResult, client.Var("id", id), client.Var("input", input)))
-	require.Nil(t, db.Model.GetX(setup, entity.ID).Settings.BillingPrice)
 	// Configuration changes affect display, but never recalculate stored amounts.
 	require.NoError(t, system.SetModelSettings(setup, biz.SystemModelSettings{BillingModelSource: objects.BillingModelSourceRedirected}))
 	require.NoError(t, gql.Post(`{requestStatsByModel{modelId count}}`, &stats))

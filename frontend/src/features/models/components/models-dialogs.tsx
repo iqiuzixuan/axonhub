@@ -1,4 +1,3 @@
-import { ModelBillingPriceDialog } from './model-billing-price-dialog';
 import { useModels } from '../context/models-context';
 import { ModelsActionDialog } from './models-action-dialog';
 import { ModelsArchiveDialog } from './models-archive-dialog';
@@ -20,7 +19,6 @@ export function ModelsDialogs() {
       {open === 'delete' && <ModelsDeleteDialog />}
       {open === 'archive' && <ModelsArchiveDialog />}
       {(open === 'association' || open === 'developerAssociation') && <ModelsAssociationDialog />}
-      {open === 'billingPrice' && <ModelBillingPriceDialog />}
       {open === 'settings' && <ModelSettingsDialog />}
       {open === 'unassociated' && <ModelsUnassociatedDialog />}
       <ModelsBulkDisableDialog />

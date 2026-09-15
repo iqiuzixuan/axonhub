@@ -61,7 +61,8 @@ func (Request) Fields() []ent.Field {
 		field.Enum("source").Values("api", "playground", "test").Default("api").Immutable(),
 		field.String("model_id").Immutable(),
 		field.String("original_model_id").Optional().Immutable().Annotations(entgql.Skip(entgql.SkipAll)),
-		field.JSON("billing", &objects.RequestBilling{}).Optional().Immutable().Annotations(entgql.Skip(entgql.SkipAll)),
+		// Policy stays fixed; the channel price is refreshed before each outbound attempt.
+		field.JSON("billing", &objects.RequestBilling{}).Optional().Annotations(entgql.Skip(entgql.SkipAll)),
 		field.String("reasoning_effort").
 			Optional().
 			Immutable().

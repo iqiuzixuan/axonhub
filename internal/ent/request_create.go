@@ -846,6 +846,24 @@ func (u *RequestUpsert) UpdateUpdatedAt() *RequestUpsert {
 	return u
 }
 
+// SetBilling sets the "billing" field.
+func (u *RequestUpsert) SetBilling(v *objects.RequestBilling) *RequestUpsert {
+	u.Set(request.FieldBilling, v)
+	return u
+}
+
+// UpdateBilling sets the "billing" field to the value that was provided on create.
+func (u *RequestUpsert) UpdateBilling() *RequestUpsert {
+	u.SetExcluded(request.FieldBilling)
+	return u
+}
+
+// ClearBilling clears the value of the "billing" field.
+func (u *RequestUpsert) ClearBilling() *RequestUpsert {
+	u.SetNull(request.FieldBilling)
+	return u
+}
+
 // SetRequestHeaders sets the "request_headers" field.
 func (u *RequestUpsert) SetRequestHeaders(v objects.JSONRawMessage) *RequestUpsert {
 	u.Set(request.FieldRequestHeaders, v)
@@ -1127,9 +1145,6 @@ func (u *RequestUpsertOne) UpdateNewValues() *RequestUpsertOne {
 		if _, exists := u.create.mutation.OriginalModelID(); exists {
 			s.SetIgnore(request.FieldOriginalModelID)
 		}
-		if _, exists := u.create.mutation.Billing(); exists {
-			s.SetIgnore(request.FieldBilling)
-		}
 		if _, exists := u.create.mutation.ReasoningEffort(); exists {
 			s.SetIgnore(request.FieldReasoningEffort)
 		}
@@ -1187,6 +1202,27 @@ func (u *RequestUpsertOne) SetUpdatedAt(v time.Time) *RequestUpsertOne {
 func (u *RequestUpsertOne) UpdateUpdatedAt() *RequestUpsertOne {
 	return u.Update(func(s *RequestUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetBilling sets the "billing" field.
+func (u *RequestUpsertOne) SetBilling(v *objects.RequestBilling) *RequestUpsertOne {
+	return u.Update(func(s *RequestUpsert) {
+		s.SetBilling(v)
+	})
+}
+
+// UpdateBilling sets the "billing" field to the value that was provided on create.
+func (u *RequestUpsertOne) UpdateBilling() *RequestUpsertOne {
+	return u.Update(func(s *RequestUpsert) {
+		s.UpdateBilling()
+	})
+}
+
+// ClearBilling clears the value of the "billing" field.
+func (u *RequestUpsertOne) ClearBilling() *RequestUpsertOne {
+	return u.Update(func(s *RequestUpsert) {
+		s.ClearBilling()
 	})
 }
 
@@ -1677,9 +1713,6 @@ func (u *RequestUpsertBulk) UpdateNewValues() *RequestUpsertBulk {
 			if _, exists := b.mutation.OriginalModelID(); exists {
 				s.SetIgnore(request.FieldOriginalModelID)
 			}
-			if _, exists := b.mutation.Billing(); exists {
-				s.SetIgnore(request.FieldBilling)
-			}
 			if _, exists := b.mutation.ReasoningEffort(); exists {
 				s.SetIgnore(request.FieldReasoningEffort)
 			}
@@ -1738,6 +1771,27 @@ func (u *RequestUpsertBulk) SetUpdatedAt(v time.Time) *RequestUpsertBulk {
 func (u *RequestUpsertBulk) UpdateUpdatedAt() *RequestUpsertBulk {
 	return u.Update(func(s *RequestUpsert) {
 		s.UpdateUpdatedAt()
+	})
+}
+
+// SetBilling sets the "billing" field.
+func (u *RequestUpsertBulk) SetBilling(v *objects.RequestBilling) *RequestUpsertBulk {
+	return u.Update(func(s *RequestUpsert) {
+		s.SetBilling(v)
+	})
+}
+
+// UpdateBilling sets the "billing" field to the value that was provided on create.
+func (u *RequestUpsertBulk) UpdateBilling() *RequestUpsertBulk {
+	return u.Update(func(s *RequestUpsert) {
+		s.UpdateBilling()
+	})
+}
+
+// ClearBilling clears the value of the "billing" field.
+func (u *RequestUpsertBulk) ClearBilling() *RequestUpsertBulk {
+	return u.Update(func(s *RequestUpsert) {
+		s.ClearBilling()
 	})
 }
 

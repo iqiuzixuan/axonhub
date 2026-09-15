@@ -98,13 +98,8 @@ func (s *PersistenceState) publicResponseWithCost(data []byte, usage *llm.Usage)
 	if !s.Billing.InjectCost {
 		return result
 	}
-	var snapshot *objects.RequestBilling
-	if s.Billing.Source == objects.BillingModelSourceOriginal {
-		snapshot = s.Billing
-	} else if s.RequestExec != nil {
-		snapshot = s.RequestExec.CostPrice
-	}
-	if snapshot == nil || snapshot.Price == nil {
+	snapshot := s.Billing
+	if snapshot.Price == nil {
 		return result
 	}
 	for _, path := range []string{"usage", "message.usage", "response.usage"} {

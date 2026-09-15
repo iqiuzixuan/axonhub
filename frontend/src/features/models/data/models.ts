@@ -5,31 +5,6 @@ import { toast } from 'sonner';
 import { useErrorHandler } from '@/hooks/use-error-handler';
 import { Model, ModelConnection, CreateModelInput, UpdateModelInput, modelConnectionSchema, modelSchema } from './schema';
 
-const BILLING_PRICE_ITEM_FIELDS = `
-  itemCode
-  pricing { mode flatFee usagePerUnit usageTiered { tiers { upTo pricePerUnit } } }
-  promptWriteCacheVariants {
-    variantCode
-    pricing { mode flatFee usagePerUnit usageTiered { tiers { upTo pricePerUnit } } }
-  }
-`;
-
-// Shared by list/create/bulk/edit so unrelated model edits preserve the price.
-const MODEL_BILLING_PRICE_FIELDS = `
-  billingPrice {
-    items { ${BILLING_PRICE_ITEM_FIELDS} }
-    schedule {
-      timezone
-      overrides {
-        name
-        priority
-        when { dailyTime { start end } weekdays dateRange { start end } }
-        items { ${BILLING_PRICE_ITEM_FIELDS} }
-      }
-    }
-  }
-`;
-
 const MODELS_QUERY = `
   query GetModels(
     $first: Int
@@ -78,7 +53,6 @@ const MODELS_QUERY = `
             lastUpdated
           }
           settings {
-            ${MODEL_BILLING_PRICE_FIELDS}
             disableDeveloperSettingsInheritance
             loadBalancerStrategy
             traceStickyMode
@@ -200,7 +174,6 @@ const CREATE_MODEL_MUTATION = `
         lastUpdated
       }
       settings {
-            ${MODEL_BILLING_PRICE_FIELDS}
         disableDeveloperSettingsInheritance
         loadBalancerStrategy
         traceStickyMode
@@ -304,7 +277,6 @@ const BULK_CREATE_MODELS_MUTATION = `
         lastUpdated
       }
       settings {
-            ${MODEL_BILLING_PRICE_FIELDS}
         disableDeveloperSettingsInheritance
         loadBalancerStrategy
         traceStickyMode
@@ -408,7 +380,6 @@ const UPDATE_MODEL_MUTATION = `
         lastUpdated
       }
       settings {
-            ${MODEL_BILLING_PRICE_FIELDS}
         disableDeveloperSettingsInheritance
         loadBalancerStrategy
         traceStickyMode
