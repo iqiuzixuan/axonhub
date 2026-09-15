@@ -789,9 +789,6 @@ func (svc *ModelService) queryConfiguredModelFacades(ctx context.Context, allowe
 	systemSettings := svc.modelSettingsOrDefault(ctx)
 
 	for _, m := range enabledModels {
-		if systemSettings.BillingModelSource == objects.BillingModelSourceOriginal && (m.Settings == nil || m.Settings.BillingPrice == nil) {
-			continue
-		}
 		effectiveAssociations := EffectiveModelAssociations(systemSettings, m)
 		connections := MatchConnections(effectiveAssociations, channels)
 		if len(connections) == 0 {

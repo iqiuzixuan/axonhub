@@ -1,5 +1,6 @@
 'use client';
 
+import { formatModelLabel } from '@/utils/model-label';
 import { format } from 'date-fns';
 import { ColumnDef } from '@tanstack/react-table';
 import { IconArrowsExchange, IconArrowsJoin2, IconRoute } from '@tabler/icons-react';
@@ -144,13 +145,13 @@ export function useRequestsColumns(options?: UseRequestsColumnsOptions): ColumnD
       enableHiding: false,
       cell: ({ row }) => {
         const request = row.original;
-        const originalModelId = request.modelID || t('requests.columns.unknown');
+        const originalModelId = formatModelLabel(request.modelID, t);
         const executions = request.executions?.edges?.flatMap((edge) => (edge.node ? [edge.node] : [])) ?? [];
         const executionModelIds = (
           permissions.canViewDetails
             ? Array.from(new Set([...executions.map((exe) => exe.modelID || ''), request.requestedModelID || '']))
             : []
-        ).filter((id) => id && id !== originalModelId);
+        ).filter((id) => id && id !== request.modelID);
         const reasoningEffort = executions[0]?.reasoningEffort ?? request.reasoningEffort;
         const inboundFormat = request.format;
         const outboundFormat = executions[0]?.format;
@@ -183,6 +184,7 @@ export function useRequestsColumns(options?: UseRequestsColumnsOptions): ColumnD
                   <span className='rounded bg-amber-100 px-2 py-0.5 text-xs font-medium whitespace-nowrap text-amber-800 dark:bg-amber-900/40 dark:text-amber-200'>
                     {[request.requestedModelID, ...executions.map((exe) => exe.modelID)]
                       .filter((id, index, ids) => id && ids.indexOf(id) === index)
+                      .map((id) => formatModelLabel(id, t))
                       .join(' → ')}
                   </span>
                 </div>

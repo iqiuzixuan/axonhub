@@ -27,7 +27,7 @@ func TestBillingUpgradePreservesLegacyRows(t *testing.T) {
 	}
 	require.NoError(t, migrate.Create(ctx, db.Schema, tables, migrate.WithForeignKeys(false), migrate.WithDropColumn(true)))
 	// Use raw SQL only to insert a fixture while the new Go fields do not exist.
-	require.NoError(t, db.Driver().Exec(ctx, `INSERT INTO requests(id,created_at,updated_at,project_id,model_id,status,request_body) VALUES(1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,1,'legacy-route','completed','{}')`, []any{}, nil))
+	require.NoError(t, db.Driver().Exec(ctx, `INSERT INTO requests(id,created_at,updated_at,project_id,model_id,status,request_body) VALUES(1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,1,'legacy-route','completed','{"model":"legacy-public"}')`, []any{}, nil))
 	require.NoError(t, db.Driver().Exec(ctx, `INSERT INTO usage_logs(id,created_at,updated_at,request_id,project_id,channel_id,model_id,format,total_cost) VALUES(1,CURRENT_TIMESTAMP,CURRENT_TIMESTAMP,1,1,1,'legacy-secret','openai/chat_completions',3.25)`, []any{}, nil))
 	require.NoError(t, db.Schema.Create(ctx, migrate.WithForeignKeys(false)))
 	req, err := db.Request.Get(ctx, 1)
@@ -38,8 +38,14 @@ func TestBillingUpgradePreservesLegacyRows(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 3.25, *log.TotalCost)
 	require.Nil(t, log.ChannelCost)
+	svc := newResponsesSessionRequestService(db)
+	_, recovered, err := svc.recoverOriginalModelsBatch(ctx, 0, 100)
+	require.NoError(t, err)
+	require.Equal(t, 1, recovered)
+	require.Equal(t, "legacy-public", db.Request.GetX(ctx, 1).OriginalModelID)
+	require.Equal(t, 3.25, *db.UsageLog.GetX(ctx, 1).TotalCost)
 	InstallModelDisplay(db)
 	req, err = db.Request.Get(WithModelDisplay(ctx, objects.BillingModelSourceOriginal), 1)
 	require.NoError(t, err)
-	require.Equal(t, "[original model unavailable]", req.ModelID)
+	require.Equal(t, "legacy-public", req.ModelID)
 }

@@ -240,6 +240,16 @@ func (s *RequestService) CreateRequest(
 
 	if len(billing) > 0 && billing[0] != nil {
 		mut.SetBilling(billing[0]).SetOriginalModelID(billing[0].OriginalModel)
+	} else if httpRequest != nil {
+		// Internal callers can omit billing. Preserve the client model even when
+		// request-body retention is disabled, without guessing from the route.
+		body := httpRequest.JSONBody
+		if len(body) == 0 {
+			body = httpRequest.Body
+		}
+		if model := originalModelFromBody(body); model != "" {
+			mut.SetOriginalModelID(model)
+		}
 	}
 	if httpRequest != nil {
 		mut = mut.SetClientIP(httpRequest.ClientIP)

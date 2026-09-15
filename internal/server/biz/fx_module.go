@@ -37,6 +37,13 @@ var Module = fx.Module("biz",
 	fx.Provide(NewOIDCService),
 	fx.Provide(NewAPIKeyProfileTemplateService),
 	fx.Provide(NewCatalogService),
+	fx.Invoke(func(lc fx.Lifecycle, svc *RequestService, s *scheduler.Scheduler) {
+		lc.Append(fx.Hook{
+			OnStart: func(ctx context.Context) error {
+				return svc.registerOriginalModelRecovery(ctx, s)
+			},
+		})
+	}),
 	fx.Invoke(func(channelSvc *ChannelService, quotaSvc *ProviderQuotaService) {
 		channelSvc.SetChannelProviderQuotaInvalidator(quotaSvc)
 	}),

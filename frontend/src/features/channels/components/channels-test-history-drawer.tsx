@@ -1,5 +1,6 @@
 'use client';
 
+import { formatModelLabel } from '@/utils/model-label';
 import { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { format } from 'date-fns';
@@ -159,7 +160,7 @@ export function ChannelsTestHistoryDrawer({ open, onOpenChange, channel }: Props
                                 {t(`requests.status.${item.status}`)}
                               </Badge>
                             </div>
-                            <p className='truncate text-sm'>{item.modelID || t('requests.columns.unknown')}</p>
+                            <p className='truncate text-sm'>{formatModelLabel(item.modelID, t)}</p>
                             <p className='text-muted-foreground text-xs'>{format(new Date(item.createdAt), 'yyyy-MM-dd HH:mm:ss')}</p>
                           </div>
                           <ChevronRight className='text-muted-foreground h-4 w-4 flex-shrink-0' />

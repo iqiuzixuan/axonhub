@@ -1,3 +1,4 @@
+import { formatModelLabel } from '@/utils/model-label';
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
@@ -410,7 +411,7 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
                 <span className='text-xs font-medium'>{t('requests.columns.modelId')}</span>
               </div>
               <p className='bg-background rounded border px-2 py-0.5 font-mono text-xs'>
-                {request.modelID || t('requests.columns.unknown')}
+                {formatModelLabel(request.modelID, t)}
               </p>
             </div>
 

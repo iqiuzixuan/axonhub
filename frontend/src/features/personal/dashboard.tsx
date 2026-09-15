@@ -1,3 +1,4 @@
+import { formatModelLabel } from '@/utils/model-label';
 import { useState, type ReactNode } from 'react';
 import { Link } from '@tanstack/react-router';
 import { Activity, BarChart4, Bot, CalendarDays, CheckCircle2, Database, Download, KeyRound, ShieldCheck, Wallet } from 'lucide-react';
@@ -348,7 +349,7 @@ export default function PersonalDashboardPage() {
                         <PieChart>
                           <Pie
                             isAnimationActive={false}
-                            data={distribution.map((row) => ({ name: row.modelId, value: row.metrics.totalTokens }))}
+                            data={distribution.map((row) => ({ name: formatModelLabel(row.modelId, t), value: row.metrics.totalTokens }))}
                             dataKey='value'
                             innerRadius={58}
                             outerRadius={82}
@@ -379,7 +380,7 @@ export default function PersonalDashboardPage() {
                           key={row.modelId}
                         >
                           <i className='size-2 shrink-0 rounded-full' style={{ background: colors[index % colors.length] }} />
-                          <span className='truncate'>{row.modelId}</span>
+                          <span className='truncate'>{formatModelLabel(row.modelId, t)}</span>
                           <span className='text-muted-foreground ml-auto'>
                             {((row.metrics.totalTokens / summary!.totalTokens) * 100).toFixed(1)}%
                           </span>

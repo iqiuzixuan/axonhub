@@ -1,5 +1,6 @@
 'use client';
 
+import { formatModelLabel } from '@/utils/model-label';
 import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis, type TooltipProps } from 'recharts';
@@ -49,7 +50,7 @@ export function RequestsByModelChart({ timePeriod }: RequestsByModelChartProps) 
 
     const data = modelData
       .map((item) => ({
-        name: item.modelId,
+        name: formatModelLabel(item.modelId, t),
         requests: item.count,
         cost: costMap.get(item.modelId) ?? 0,
       }))
@@ -60,7 +61,7 @@ export function RequestsByModelChart({ timePeriod }: RequestsByModelChartProps) 
     const totalC = data.reduce((sum, item) => sum + item.cost, 0);
 
     return { chartData: data, totalRequests: totalReq, totalCost: totalC };
-  }, [modelData, costData]);
+  }, [modelData, costData, t]);
 
   if (isLoading) {
     return (

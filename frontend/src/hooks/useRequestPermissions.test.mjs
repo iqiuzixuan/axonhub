@@ -5,6 +5,7 @@ import { createRequire } from 'node:module';
 import test from 'node:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import ts from 'typescript';
+import { formatModelLabel } from '../utils/model-label.ts';
 import * as routePermissions from '../config/route-permission.ts';
 
 const require = createRequire(import.meta.url);
@@ -32,6 +33,7 @@ const { useRequestsColumns } = load('../features/requests/components/requests-co
   'react-i18next': { useTranslation: () => ({ t: (key) => key, i18n: { language: 'en' } }) },
   '@/lib/utils': { extractNumberID: (id) => id.split('/').at(-1) },
   '@/utils/format-duration': {},
+  '@/utils/model-label': { formatModelLabel },
   '@/hooks/use-pagination-search': { usePaginationSearch: () => ({ navigateWithSearch() {} }) },
   '@/hooks/usePermissions': { usePermissions: () => ({ hasSystemScope: () => false }) },
   '@/components/ui/badge': { Badge: ui('span') },
@@ -146,4 +148,14 @@ test('administrators can inspect mapping while the main model follows either pol
     assert.ok(html.includes('secret-C'));
     assert.ok(html.includes('billing.routing'));
   }
+});
+
+test('missing original models show the localized label without revealing execution models', () => {
+  user = { scopes: ['read_requests'], projects: [{ projectID: 'project-a', scopes: ['read_requests'], isOwner: false }] };
+  meData = undefined;
+  const html = renderModelCell('[original model unavailable]', undefined, 'secret-C');
+  assert.ok(html.includes('billing.originalModelNotRecorded'));
+  assert.ok(!html.includes('[original model unavailable]'));
+  assert.ok(!html.includes('secret-C'));
+  assert.ok(!html.includes('billing.routing'));
 });
