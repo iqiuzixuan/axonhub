@@ -4644,15 +4644,15 @@ type RequestExecution implements Node {
   dataStorageID: ID
   externalID: String
   modelID: String!
-  """
-  Masked channel API key selected for this execution attempt
-  """
-  channelAPIKeyMasked: String
   format: String!
   """
   Final reasoning effort sent to the upstream provider
   """
   reasoningEffort: String
+  """
+  Last 4 characters of the channel API key used for this execution
+  """
+  channelAPIKeySuffix: String @goField(forceResolver: true)
   requestBody: JSONRawMessage! @goField(forceResolver: true)
   responseBody: JSONRawMessage @goField(forceResolver: true)
   responseChunks: [JSONRawMessage!] @goField(forceResolver: true)
@@ -4856,24 +4856,6 @@ input RequestExecutionWhereInput {
   modelIDHasSuffix: String
   modelIDEqualFold: String
   modelIDContainsFold: String
-  """
-  channel_api_key_masked field predicates
-  """
-  channelAPIKeyMasked: String
-  channelAPIKeyMaskedNEQ: String
-  channelAPIKeyMaskedIn: [String!]
-  channelAPIKeyMaskedNotIn: [String!]
-  channelAPIKeyMaskedGT: String
-  channelAPIKeyMaskedGTE: String
-  channelAPIKeyMaskedLT: String
-  channelAPIKeyMaskedLTE: String
-  channelAPIKeyMaskedContains: String
-  channelAPIKeyMaskedHasPrefix: String
-  channelAPIKeyMaskedHasSuffix: String
-  channelAPIKeyMaskedIsNil: Boolean
-  channelAPIKeyMaskedNotNil: Boolean
-  channelAPIKeyMaskedEqualFold: String
-  channelAPIKeyMaskedContainsFold: String
   """
   format field predicates
   """

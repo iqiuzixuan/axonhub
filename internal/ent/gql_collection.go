@@ -4036,11 +4036,6 @@ func (_q *RequestExecutionQuery) collectField(ctx context.Context, oneNode bool,
 				selectedFields = append(selectedFields, requestexecution.FieldModelID)
 				fieldSeen[requestexecution.FieldModelID] = struct{}{}
 			}
-		case "channelAPIKeyMasked":
-			if _, ok := fieldSeen[requestexecution.FieldChannelAPIKeyMasked]; !ok {
-				selectedFields = append(selectedFields, requestexecution.FieldChannelAPIKeyMasked)
-				fieldSeen[requestexecution.FieldChannelAPIKeyMasked] = struct{}{}
-			}
 		case "format":
 			if _, ok := fieldSeen[requestexecution.FieldFormat]; !ok {
 				selectedFields = append(selectedFields, requestexecution.FieldFormat)
@@ -4050,6 +4045,11 @@ func (_q *RequestExecutionQuery) collectField(ctx context.Context, oneNode bool,
 			if _, ok := fieldSeen[requestexecution.FieldReasoningEffort]; !ok {
 				selectedFields = append(selectedFields, requestexecution.FieldReasoningEffort)
 				fieldSeen[requestexecution.FieldReasoningEffort] = struct{}{}
+			}
+		case "channelAPIKeySuffix":
+			if _, ok := fieldSeen[requestexecution.FieldChannelAPIKeySuffix]; !ok {
+				selectedFields = append(selectedFields, requestexecution.FieldChannelAPIKeySuffix)
+				fieldSeen[requestexecution.FieldChannelAPIKeySuffix] = struct{}{}
 			}
 		case "requestBody":
 			if _, ok := fieldSeen[requestexecution.FieldRequestBody]; !ok {

@@ -447,9 +447,9 @@ var schemaGraph = func() *sqlgraph.Schema {
 			requestexecution.FieldExternalID:                 {Type: field.TypeString, Column: requestexecution.FieldExternalID},
 			requestexecution.FieldModelID:                    {Type: field.TypeString, Column: requestexecution.FieldModelID},
 			requestexecution.FieldCostPrice:                  {Type: field.TypeJSON, Column: requestexecution.FieldCostPrice},
-			requestexecution.FieldChannelAPIKeyMasked:        {Type: field.TypeString, Column: requestexecution.FieldChannelAPIKeyMasked},
 			requestexecution.FieldFormat:                     {Type: field.TypeString, Column: requestexecution.FieldFormat},
 			requestexecution.FieldReasoningEffort:            {Type: field.TypeString, Column: requestexecution.FieldReasoningEffort},
+			requestexecution.FieldChannelAPIKeySuffix:        {Type: field.TypeString, Column: requestexecution.FieldChannelAPIKeySuffix},
 			requestexecution.FieldRequestBody:                {Type: field.TypeJSON, Column: requestexecution.FieldRequestBody},
 			requestexecution.FieldResponseBody:               {Type: field.TypeJSON, Column: requestexecution.FieldResponseBody},
 			requestexecution.FieldResponseChunks:             {Type: field.TypeJSON, Column: requestexecution.FieldResponseChunks},
@@ -3591,11 +3591,6 @@ func (f *RequestExecutionFilter) WhereCostPrice(p entql.BytesP) {
 	f.Where(p.Field(requestexecution.FieldCostPrice))
 }
 
-// WhereChannelAPIKeyMasked applies the entql string predicate on the channel_api_key_masked field.
-func (f *RequestExecutionFilter) WhereChannelAPIKeyMasked(p entql.StringP) {
-	f.Where(p.Field(requestexecution.FieldChannelAPIKeyMasked))
-}
-
 // WhereFormat applies the entql string predicate on the format field.
 func (f *RequestExecutionFilter) WhereFormat(p entql.StringP) {
 	f.Where(p.Field(requestexecution.FieldFormat))
@@ -3604,6 +3599,11 @@ func (f *RequestExecutionFilter) WhereFormat(p entql.StringP) {
 // WhereReasoningEffort applies the entql string predicate on the reasoning_effort field.
 func (f *RequestExecutionFilter) WhereReasoningEffort(p entql.StringP) {
 	f.Where(p.Field(requestexecution.FieldReasoningEffort))
+}
+
+// WhereChannelAPIKeySuffix applies the entql string predicate on the channel_api_key_suffix field.
+func (f *RequestExecutionFilter) WhereChannelAPIKeySuffix(p entql.StringP) {
+	f.Where(p.Field(requestexecution.FieldChannelAPIKeySuffix))
 }
 
 // WhereRequestBody applies the entql json.RawMessage predicate on the request_body field.

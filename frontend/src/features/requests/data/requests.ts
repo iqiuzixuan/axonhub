@@ -132,7 +132,6 @@ function buildRequestDetailQuery(permissions: { canViewApiKeys: boolean; canView
             edges {
               node {
                 id
-                channelAPIKeyMasked
               }
               cursor
             }
@@ -203,7 +202,6 @@ function buildRequestDetailPollingQuery(permissions: { canViewApiKeys: boolean; 
             edges {
               node {
                 id
-                channelAPIKeyMasked
               }
               cursor
             }
@@ -237,13 +235,13 @@ function buildRequestDetailPollingQuery(permissions: { canViewApiKeys: boolean; 
 function buildRequestExecutionsQuery(permissions: { canViewChannels: boolean }) {
   const channelFields = permissions.canViewChannels
     ? `
-              channelAPIKeyMasked
               channel {
                   id
                   name
                   type
                   baseURL
-              }`
+              }
+              channelAPIKeySuffix`
     : '';
 
   return `

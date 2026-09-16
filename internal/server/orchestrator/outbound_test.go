@@ -15,7 +15,6 @@ import (
 	"github.com/tidwall/gjson"
 
 	"github.com/looplj/axonhub/internal/authz"
-	"github.com/looplj/axonhub/internal/contexts"
 	"github.com/looplj/axonhub/internal/ent"
 	entchannel "github.com/looplj/axonhub/internal/ent/channel"
 	"github.com/looplj/axonhub/internal/ent/enttest"
@@ -650,7 +649,7 @@ func TestSelectOutboundForCandidate(t *testing.T) {
 }
 
 func TestPersistentOutboundTransformer_TransformRequest_ResetsStreamCompletedForNewAttempt(t *testing.T) {
-	ctx := contexts.WithChannelAPIKey(context.Background(), "previous-attempt-key")
+	ctx := context.Background()
 
 	channel := &biz.Channel{
 		Channel: &ent.Channel{
@@ -689,8 +688,6 @@ func TestPersistentOutboundTransformer_TransformRequest_ResetsStreamCompletedFor
 	require.NoError(t, err)
 	require.False(t, processor.state.StreamCompleted)
 	require.Equal(t, streamTerminalNone, processor.state.OutboundStreamTerminal)
-	apiKey, _ := contexts.GetChannelAPIKey(ctx)
-	require.Empty(t, apiKey)
 }
 
 func TestPersistentOutboundTransformer_CanRetry(t *testing.T) {

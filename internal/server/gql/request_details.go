@@ -26,7 +26,7 @@ func requestDetailsMiddleware(ctx context.Context, next graphql.Resolver) (any, 
 		}
 	case "RequestExecution":
 		switch field.Field.Name {
-		case "requestHeaders", "requestBody", "responseBody", "responseChunks", "errorMessage", "requestURL", "channelAPIKeyMasked":
+		case "requestHeaders", "requestBody", "responseBody", "responseChunks", "errorMessage", "requestURL":
 			protected = true
 		}
 	case "Trace":

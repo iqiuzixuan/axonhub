@@ -35,12 +35,12 @@ const (
 	FieldModelID = "model_id"
 	// FieldCostPrice holds the string denoting the cost_price field in the database.
 	FieldCostPrice = "cost_price"
-	// FieldChannelAPIKeyMasked holds the string denoting the channel_api_key_masked field in the database.
-	FieldChannelAPIKeyMasked = "channel_api_key_masked"
 	// FieldFormat holds the string denoting the format field in the database.
 	FieldFormat = "format"
 	// FieldReasoningEffort holds the string denoting the reasoning_effort field in the database.
 	FieldReasoningEffort = "reasoning_effort"
+	// FieldChannelAPIKeySuffix holds the string denoting the channel_api_key_suffix field in the database.
+	FieldChannelAPIKeySuffix = "channel_api_key_suffix"
 	// FieldRequestBody holds the string denoting the request_body field in the database.
 	FieldRequestBody = "request_body"
 	// FieldResponseBody holds the string denoting the response_body field in the database.
@@ -110,9 +110,9 @@ var Columns = []string{
 	FieldExternalID,
 	FieldModelID,
 	FieldCostPrice,
-	FieldChannelAPIKeyMasked,
 	FieldFormat,
 	FieldReasoningEffort,
+	FieldChannelAPIKeySuffix,
 	FieldRequestBody,
 	FieldResponseBody,
 	FieldResponseChunks,
@@ -151,6 +151,8 @@ var (
 	ExternalIDValidator func(string) error
 	// DefaultFormat holds the default value on creation for the "format" field.
 	DefaultFormat string
+	// ChannelAPIKeySuffixValidator is a validator for the "channel_api_key_suffix" field. It is called by the builders before save.
+	ChannelAPIKeySuffixValidator func(string) error
 	// DefaultStream holds the default value on creation for the "stream" field.
 	DefaultStream bool
 	// DefaultPassThroughApplied holds the default value on creation for the "pass_through_applied" field.
@@ -231,11 +233,6 @@ func ByModelID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldModelID, opts...).ToFunc()
 }
 
-// ByChannelAPIKeyMasked orders the results by the channel_api_key_masked field.
-func ByChannelAPIKeyMasked(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldChannelAPIKeyMasked, opts...).ToFunc()
-}
-
 // ByFormat orders the results by the format field.
 func ByFormat(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldFormat, opts...).ToFunc()
@@ -244,6 +241,11 @@ func ByFormat(opts ...sql.OrderTermOption) OrderOption {
 // ByReasoningEffort orders the results by the reasoning_effort field.
 func ByReasoningEffort(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldReasoningEffort, opts...).ToFunc()
+}
+
+// ByChannelAPIKeySuffix orders the results by the channel_api_key_suffix field.
+func ByChannelAPIKeySuffix(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldChannelAPIKeySuffix, opts...).ToFunc()
 }
 
 // ByErrorMessage orders the results by the error_message field.

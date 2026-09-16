@@ -7719,23 +7719,6 @@ type RequestExecutionWhereInput struct {
 	ModelIDEqualFold    *string  `json:"modelIDEqualFold,omitempty"`
 	ModelIDContainsFold *string  `json:"modelIDContainsFold,omitempty"`
 
-	// "channel_api_key_masked" field predicates.
-	ChannelAPIKeyMasked             *string  `json:"channelAPIKeyMasked,omitempty"`
-	ChannelAPIKeyMaskedNEQ          *string  `json:"channelAPIKeyMaskedNEQ,omitempty"`
-	ChannelAPIKeyMaskedIn           []string `json:"channelAPIKeyMaskedIn,omitempty"`
-	ChannelAPIKeyMaskedNotIn        []string `json:"channelAPIKeyMaskedNotIn,omitempty"`
-	ChannelAPIKeyMaskedGT           *string  `json:"channelAPIKeyMaskedGT,omitempty"`
-	ChannelAPIKeyMaskedGTE          *string  `json:"channelAPIKeyMaskedGTE,omitempty"`
-	ChannelAPIKeyMaskedLT           *string  `json:"channelAPIKeyMaskedLT,omitempty"`
-	ChannelAPIKeyMaskedLTE          *string  `json:"channelAPIKeyMaskedLTE,omitempty"`
-	ChannelAPIKeyMaskedContains     *string  `json:"channelAPIKeyMaskedContains,omitempty"`
-	ChannelAPIKeyMaskedHasPrefix    *string  `json:"channelAPIKeyMaskedHasPrefix,omitempty"`
-	ChannelAPIKeyMaskedHasSuffix    *string  `json:"channelAPIKeyMaskedHasSuffix,omitempty"`
-	ChannelAPIKeyMaskedIsNil        bool     `json:"channelAPIKeyMaskedIsNil,omitempty"`
-	ChannelAPIKeyMaskedNotNil       bool     `json:"channelAPIKeyMaskedNotNil,omitempty"`
-	ChannelAPIKeyMaskedEqualFold    *string  `json:"channelAPIKeyMaskedEqualFold,omitempty"`
-	ChannelAPIKeyMaskedContainsFold *string  `json:"channelAPIKeyMaskedContainsFold,omitempty"`
-
 	// "format" field predicates.
 	Format             *string  `json:"format,omitempty"`
 	FormatNEQ          *string  `json:"formatNEQ,omitempty"`
@@ -8175,51 +8158,6 @@ func (i *RequestExecutionWhereInput) P() (predicate.RequestExecution, error) {
 	}
 	if i.ModelIDContainsFold != nil {
 		predicates = append(predicates, requestexecution.ModelIDContainsFold(*i.ModelIDContainsFold))
-	}
-	if i.ChannelAPIKeyMasked != nil {
-		predicates = append(predicates, requestexecution.ChannelAPIKeyMaskedEQ(*i.ChannelAPIKeyMasked))
-	}
-	if i.ChannelAPIKeyMaskedNEQ != nil {
-		predicates = append(predicates, requestexecution.ChannelAPIKeyMaskedNEQ(*i.ChannelAPIKeyMaskedNEQ))
-	}
-	if len(i.ChannelAPIKeyMaskedIn) > 0 {
-		predicates = append(predicates, requestexecution.ChannelAPIKeyMaskedIn(i.ChannelAPIKeyMaskedIn...))
-	}
-	if len(i.ChannelAPIKeyMaskedNotIn) > 0 {
-		predicates = append(predicates, requestexecution.ChannelAPIKeyMaskedNotIn(i.ChannelAPIKeyMaskedNotIn...))
-	}
-	if i.ChannelAPIKeyMaskedGT != nil {
-		predicates = append(predicates, requestexecution.ChannelAPIKeyMaskedGT(*i.ChannelAPIKeyMaskedGT))
-	}
-	if i.ChannelAPIKeyMaskedGTE != nil {
-		predicates = append(predicates, requestexecution.ChannelAPIKeyMaskedGTE(*i.ChannelAPIKeyMaskedGTE))
-	}
-	if i.ChannelAPIKeyMaskedLT != nil {
-		predicates = append(predicates, requestexecution.ChannelAPIKeyMaskedLT(*i.ChannelAPIKeyMaskedLT))
-	}
-	if i.ChannelAPIKeyMaskedLTE != nil {
-		predicates = append(predicates, requestexecution.ChannelAPIKeyMaskedLTE(*i.ChannelAPIKeyMaskedLTE))
-	}
-	if i.ChannelAPIKeyMaskedContains != nil {
-		predicates = append(predicates, requestexecution.ChannelAPIKeyMaskedContains(*i.ChannelAPIKeyMaskedContains))
-	}
-	if i.ChannelAPIKeyMaskedHasPrefix != nil {
-		predicates = append(predicates, requestexecution.ChannelAPIKeyMaskedHasPrefix(*i.ChannelAPIKeyMaskedHasPrefix))
-	}
-	if i.ChannelAPIKeyMaskedHasSuffix != nil {
-		predicates = append(predicates, requestexecution.ChannelAPIKeyMaskedHasSuffix(*i.ChannelAPIKeyMaskedHasSuffix))
-	}
-	if i.ChannelAPIKeyMaskedIsNil {
-		predicates = append(predicates, requestexecution.ChannelAPIKeyMaskedIsNil())
-	}
-	if i.ChannelAPIKeyMaskedNotNil {
-		predicates = append(predicates, requestexecution.ChannelAPIKeyMaskedNotNil())
-	}
-	if i.ChannelAPIKeyMaskedEqualFold != nil {
-		predicates = append(predicates, requestexecution.ChannelAPIKeyMaskedEqualFold(*i.ChannelAPIKeyMaskedEqualFold))
-	}
-	if i.ChannelAPIKeyMaskedContainsFold != nil {
-		predicates = append(predicates, requestexecution.ChannelAPIKeyMaskedContainsFold(*i.ChannelAPIKeyMaskedContainsFold))
 	}
 	if i.Format != nil {
 		predicates = append(predicates, requestexecution.FormatEQ(*i.Format))
