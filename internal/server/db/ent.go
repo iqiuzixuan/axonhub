@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect"
-	"entgo.io/ent/dialect/sql/schema"
 
 	_ "github.com/go-sql-driver/mysql"
 	_ "github.com/jackc/pgx/v5/stdlib"
@@ -16,9 +15,7 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 
 	"github.com/looplj/axonhub/internal/ent"
-	"github.com/looplj/axonhub/internal/ent/migrate"
 	"github.com/looplj/axonhub/internal/ent/migrate/datamigrate"
-	"github.com/looplj/axonhub/internal/ent/migrate/schemahook"
 	_ "github.com/looplj/axonhub/internal/ent/runtime"
 	_ "github.com/looplj/axonhub/internal/pkg/sqlite"
 )
@@ -64,16 +61,9 @@ func NewEntClient(cfg Config) *ent.Client {
 	client := ent.NewClient(opts...)
 
 	if !cfg.DisableAutoMigration {
-		err = client.Schema.Create(
-			context.Background(),
-			migrate.WithGlobalUniqueID(false),
-			migrate.WithForeignKeys(false),
-			migrate.WithDropIndex(true),
-			migrate.WithDropColumn(true),
-			schema.WithHooks(schemahook.V0_3_0),
-			filterEquivalentDefaultChanges(),
-		)
+		err = migrateSchema(context.Background(), masterDB, dbDialect)
 		if err != nil {
+			_ = client.Close()
 			panic(err)
 		}
 

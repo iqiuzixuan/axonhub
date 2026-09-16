@@ -1930,18 +1930,10 @@ func (_m *RequestExecution) Node(ctx context.Context) (node *Node, err error) {
 		Name:  "model_id",
 		Value: string(buf),
 	}
-	if buf, err = json.Marshal(_m.ChannelAPIKeyMasked); err != nil {
-		return nil, err
-	}
-	node.Fields[8] = &Field{
-		Type:  "string",
-		Name:  "channel_api_key_masked",
-		Value: string(buf),
-	}
 	if buf, err = json.Marshal(_m.Format); err != nil {
 		return nil, err
 	}
-	node.Fields[9] = &Field{
+	node.Fields[8] = &Field{
 		Type:  "string",
 		Name:  "format",
 		Value: string(buf),
@@ -1949,9 +1941,17 @@ func (_m *RequestExecution) Node(ctx context.Context) (node *Node, err error) {
 	if buf, err = json.Marshal(_m.ReasoningEffort); err != nil {
 		return nil, err
 	}
-	node.Fields[10] = &Field{
+	node.Fields[9] = &Field{
 		Type:  "string",
 		Name:  "reasoning_effort",
+		Value: string(buf),
+	}
+	if buf, err = json.Marshal(_m.ChannelAPIKeySuffix); err != nil {
+		return nil, err
+	}
+	node.Fields[10] = &Field{
+		Type:  "string",
+		Name:  "channel_api_key_suffix",
 		Value: string(buf),
 	}
 	if buf, err = json.Marshal(_m.RequestBody); err != nil {

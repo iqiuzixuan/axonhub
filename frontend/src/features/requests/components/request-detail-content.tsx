@@ -9,7 +9,6 @@ import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { copyTextToClipboard } from '@/lib/clipboard';
 import { extractNumberID, formatApiKeyLabel } from '@/lib/utils';
-import { useRequestPermissions } from '@/hooks/useRequestPermissions';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,7 +37,6 @@ interface RequestDetailContentProps {
 
 export function RequestDetailContent({ requestId, projectId, previewRequest, isPreviewStreaming = false }: RequestDetailContentProps) {
   const { t, i18n } = useTranslation();
-  const { canViewChannels } = useRequestPermissions();
   const queryClient = useQueryClient();
   const locale = i18n.language === 'zh' ? zhCN : enUS;
 
@@ -382,7 +380,7 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className={`grid grid-cols-1 gap-2 sm:grid-cols-2 ${canViewChannels ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
+          <div className='grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3'>
             <div className='bg-muted/30 flex items-center justify-between gap-2 rounded-lg border px-3 py-2'>
               <div className='flex items-center gap-2'>
                 <Database className='text-primary h-3.5 w-3.5' />
@@ -392,18 +390,6 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
                 {request.channel?.name || t('requests.columns.unknown')}
               </p>
             </div>
-
-            {canViewChannels && (
-              <div className='bg-muted/30 flex items-center justify-between gap-2 rounded-lg border px-3 py-2'>
-                <div className='flex items-center gap-2'>
-                  <Key className='text-primary h-3.5 w-3.5' />
-                  <span className='text-xs font-medium'>{t('requests.dialogs.requestDetail.fields.channelApiKey')}</span>
-                </div>
-                <p className='bg-background whitespace-nowrap rounded border px-2 py-0.5 font-mono text-xs'>
-                  {latestExecution?.channelAPIKeyMasked || t('requests.dialogs.requestDetail.fields.channelApiKeyNotRecorded')}
-                </p>
-              </div>
-            )}
 
             <div className='bg-muted/30 flex items-center justify-between gap-2 rounded-lg border px-3 py-2'>
               <div className='flex items-center gap-2'>
@@ -819,7 +805,7 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
                           </div>
                         </CardHeader>
                         <CardContent className='space-y-6'>
-                          <div className={`grid grid-cols-1 gap-4 sm:grid-cols-2 ${canViewChannels ? 'lg:grid-cols-3' : 'lg:grid-cols-5'}`}>
+                          <div className='grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5'>
                             <div className='bg-background space-y-2 rounded-lg border p-3'>
                               <span className='flex items-center gap-2 text-sm font-medium'>
                                 <Database className='text-primary h-4 w-4' />
@@ -828,18 +814,14 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
                               <p className='text-muted-foreground font-mono text-sm'>
                                 {execution.channel?.name || t('requests.columns.unknown')}
                               </p>
+                              {execution.channelAPIKeySuffix && (
+                                <div className='flex items-center gap-1.5 text-xs text-muted-foreground pt-0.5'>
+                                  <Key className='h-3.5 w-3.5 shrink-0' />
+                                  <span>{t('requests.columns.upstreamApiKey')}</span>
+                                  <span className='font-mono'>••••{execution.channelAPIKeySuffix}</span>
+                                </div>
+                              )}
                             </div>
-                            {canViewChannels && (
-                              <div className='bg-background space-y-2 rounded-lg border p-3'>
-                                <span className='flex items-center gap-2 text-sm font-medium'>
-                                  <Key className='text-primary h-4 w-4' />
-                                  {t('requests.dialogs.requestDetail.fields.channelApiKey')}
-                                </span>
-                                <p className='text-muted-foreground font-mono text-sm'>
-                                  {execution.channelAPIKeyMasked || t('requests.dialogs.requestDetail.fields.channelApiKeyNotRecorded')}
-                                </p>
-                              </div>
-                            )}
                             <div className='bg-background space-y-2 rounded-lg border p-3'>
                               <span className='flex items-center gap-2 text-sm font-medium'>
                                 <Clock className='text-primary h-4 w-4' />

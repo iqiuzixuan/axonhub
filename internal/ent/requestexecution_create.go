@@ -128,20 +128,6 @@ func (_c *RequestExecutionCreate) SetCostPrice(v *objects.RequestBilling) *Reque
 	return _c
 }
 
-// SetChannelAPIKeyMasked sets the "channel_api_key_masked" field.
-func (_c *RequestExecutionCreate) SetChannelAPIKeyMasked(v string) *RequestExecutionCreate {
-	_c.mutation.SetChannelAPIKeyMasked(v)
-	return _c
-}
-
-// SetNillableChannelAPIKeyMasked sets the "channel_api_key_masked" field if the given value is not nil.
-func (_c *RequestExecutionCreate) SetNillableChannelAPIKeyMasked(v *string) *RequestExecutionCreate {
-	if v != nil {
-		_c.SetChannelAPIKeyMasked(*v)
-	}
-	return _c
-}
-
 // SetFormat sets the "format" field.
 func (_c *RequestExecutionCreate) SetFormat(v string) *RequestExecutionCreate {
 	_c.mutation.SetFormat(v)
@@ -166,6 +152,20 @@ func (_c *RequestExecutionCreate) SetReasoningEffort(v string) *RequestExecution
 func (_c *RequestExecutionCreate) SetNillableReasoningEffort(v *string) *RequestExecutionCreate {
 	if v != nil {
 		_c.SetReasoningEffort(*v)
+	}
+	return _c
+}
+
+// SetChannelAPIKeySuffix sets the "channel_api_key_suffix" field.
+func (_c *RequestExecutionCreate) SetChannelAPIKeySuffix(v string) *RequestExecutionCreate {
+	_c.mutation.SetChannelAPIKeySuffix(v)
+	return _c
+}
+
+// SetNillableChannelAPIKeySuffix sets the "channel_api_key_suffix" field if the given value is not nil.
+func (_c *RequestExecutionCreate) SetNillableChannelAPIKeySuffix(v *string) *RequestExecutionCreate {
+	if v != nil {
+		_c.SetChannelAPIKeySuffix(*v)
 	}
 	return _c
 }
@@ -407,6 +407,11 @@ func (_c *RequestExecutionCreate) check() error {
 	if _, ok := _c.mutation.Format(); !ok {
 		return &ValidationError{Name: "format", err: errors.New(`ent: missing required field "RequestExecution.format"`)}
 	}
+	if v, ok := _c.mutation.ChannelAPIKeySuffix(); ok {
+		if err := requestexecution.ChannelAPIKeySuffixValidator(v); err != nil {
+			return &ValidationError{Name: "channel_api_key_suffix", err: fmt.Errorf(`ent: validator failed for field "RequestExecution.channel_api_key_suffix": %w`, err)}
+		}
+	}
 	if _, ok := _c.mutation.RequestBody(); !ok {
 		return &ValidationError{Name: "request_body", err: errors.New(`ent: missing required field "RequestExecution.request_body"`)}
 	}
@@ -478,10 +483,6 @@ func (_c *RequestExecutionCreate) createSpec() (*RequestExecution, *sqlgraph.Cre
 		_spec.SetField(requestexecution.FieldCostPrice, field.TypeJSON, value)
 		_node.CostPrice = value
 	}
-	if value, ok := _c.mutation.ChannelAPIKeyMasked(); ok {
-		_spec.SetField(requestexecution.FieldChannelAPIKeyMasked, field.TypeString, value)
-		_node.ChannelAPIKeyMasked = &value
-	}
 	if value, ok := _c.mutation.Format(); ok {
 		_spec.SetField(requestexecution.FieldFormat, field.TypeString, value)
 		_node.Format = value
@@ -489,6 +490,10 @@ func (_c *RequestExecutionCreate) createSpec() (*RequestExecution, *sqlgraph.Cre
 	if value, ok := _c.mutation.ReasoningEffort(); ok {
 		_spec.SetField(requestexecution.FieldReasoningEffort, field.TypeString, value)
 		_node.ReasoningEffort = &value
+	}
+	if value, ok := _c.mutation.ChannelAPIKeySuffix(); ok {
+		_spec.SetField(requestexecution.FieldChannelAPIKeySuffix, field.TypeString, value)
+		_node.ChannelAPIKeySuffix = &value
 	}
 	if value, ok := _c.mutation.RequestBody(); ok {
 		_spec.SetField(requestexecution.FieldRequestBody, field.TypeJSON, value)
@@ -917,14 +922,14 @@ func (u *RequestExecutionUpsertOne) UpdateNewValues() *RequestExecutionUpsertOne
 		if _, exists := u.create.mutation.CostPrice(); exists {
 			s.SetIgnore(requestexecution.FieldCostPrice)
 		}
-		if _, exists := u.create.mutation.ChannelAPIKeyMasked(); exists {
-			s.SetIgnore(requestexecution.FieldChannelAPIKeyMasked)
-		}
 		if _, exists := u.create.mutation.Format(); exists {
 			s.SetIgnore(requestexecution.FieldFormat)
 		}
 		if _, exists := u.create.mutation.ReasoningEffort(); exists {
 			s.SetIgnore(requestexecution.FieldReasoningEffort)
+		}
+		if _, exists := u.create.mutation.ChannelAPIKeySuffix(); exists {
+			s.SetIgnore(requestexecution.FieldChannelAPIKeySuffix)
 		}
 		if _, exists := u.create.mutation.RequestBody(); exists {
 			s.SetIgnore(requestexecution.FieldRequestBody)
@@ -1440,14 +1445,14 @@ func (u *RequestExecutionUpsertBulk) UpdateNewValues() *RequestExecutionUpsertBu
 			if _, exists := b.mutation.CostPrice(); exists {
 				s.SetIgnore(requestexecution.FieldCostPrice)
 			}
-			if _, exists := b.mutation.ChannelAPIKeyMasked(); exists {
-				s.SetIgnore(requestexecution.FieldChannelAPIKeyMasked)
-			}
 			if _, exists := b.mutation.Format(); exists {
 				s.SetIgnore(requestexecution.FieldFormat)
 			}
 			if _, exists := b.mutation.ReasoningEffort(); exists {
 				s.SetIgnore(requestexecution.FieldReasoningEffort)
+			}
+			if _, exists := b.mutation.ChannelAPIKeySuffix(); exists {
+				s.SetIgnore(requestexecution.FieldChannelAPIKeySuffix)
 			}
 			if _, exists := b.mutation.RequestBody(); exists {
 				s.SetIgnore(requestexecution.FieldRequestBody)
