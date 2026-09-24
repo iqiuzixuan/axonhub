@@ -133,7 +133,13 @@ test('Qianwen quota popover renders normalized usage and reset, and unavailable 
   assert.match(windows, /limits\.length === 0[\s\S]*quota\.label\.unavailable/);
   const zhipuStart = source.indexOf("      {(channel.type === 'zhipu'");
   const zhipuEnd = source.indexOf("      {isOpenaiType(channel.type) && channel.providerType === 'wafer'", zhipuStart);
-  assert.match(source.slice(zhipuStart, zhipuEnd), /<QuotaWindows limits=\{quota\.limits\}/);
+  const zhipuBlock = source.slice(zhipuStart, zhipuEnd);
+  // Multi-key Zhipu channels render one compact row per account (upstream #2482),
+  // with disabled and failing keys collapsed behind a toggle.
+  assert.match(zhipuBlock, /qd\.accounts \?\? \[\]/);
+  assert.match(zhipuBlock, /'quota\.label\.accounts_summary'/);
+  assert.match(zhipuBlock, /showDisabledAccounts \? \[\.\.\.usableAccounts, \.\.\.unavailableAccounts\] : usableAccounts/);
+  assert.match(zhipuBlock, /renderWindowRows\(qd\.rows \?\? \[\]\)/);
   assert.doesNotMatch(block, /periodQuota|remainingCredits|maxCredits|quotaData/);
 });
 
