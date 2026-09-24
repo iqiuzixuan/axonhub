@@ -1,15 +1,17 @@
 import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
+import { pickFallbackNavUrl } from '@/config/nav-items';
 import { graphqlRequest } from '@/gql/graphql';
 import { ME_QUERY } from '@/gql/users';
 import { toast } from 'sonner';
 import { useAuthStore, setTokenToStorage, removeTokenFromStorage } from '@/stores/authStore';
-import { useProjectStore } from '@/stores/projectStore';
-import { isProjectSelectionValid } from '@/lib/project-membership';
 import { AuthUser } from '@/stores/authStore';
+import { useProjectStore } from '@/stores/projectStore';
+import { getHiddenNavItems } from '@/stores/sidebarPrefsStore';
 import { authApi } from '@/lib/api-client';
 import i18n from '@/lib/i18n';
+import { isProjectSelectionValid } from '@/lib/project-membership';
 
 export interface SignInInput {
   email: string;
@@ -124,7 +126,6 @@ export function useSignOut() {
   };
 }
 
-
 export function useOIDCProviders() {
   return useQuery({
     queryKey: ['oidc-providers'],
@@ -166,7 +167,7 @@ export function useOIDCExchange() {
     },
     onSuccess: (response) => {
       const data = response.data;
-      
+
       // Store token in localStorage
       setTokenToStorage(data.token);
 

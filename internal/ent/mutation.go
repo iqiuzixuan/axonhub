@@ -19249,6 +19249,7 @@ type RequestExecutionMutation struct {
 	addproject_id                     *int
 	external_id                       *string
 	model_id                          *string
+	upstream_model_id                 *string
 	cost_price                        **objects.RequestBilling
 	format                            *string
 	reasoning_effort                  *string
@@ -19731,6 +19732,55 @@ func (m *RequestExecutionMutation) OldModelID(ctx context.Context) (v string, er
 // ResetModelID resets all changes to the "model_id" field.
 func (m *RequestExecutionMutation) ResetModelID() {
 	m.model_id = nil
+}
+
+// SetUpstreamModelID sets the "upstream_model_id" field.
+func (m *RequestExecutionMutation) SetUpstreamModelID(s string) {
+	m.upstream_model_id = &s
+}
+
+// UpstreamModelID returns the value of the "upstream_model_id" field in the mutation.
+func (m *RequestExecutionMutation) UpstreamModelID() (r string, exists bool) {
+	v := m.upstream_model_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUpstreamModelID returns the old "upstream_model_id" field's value of the RequestExecution entity.
+// If the RequestExecution object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RequestExecutionMutation) OldUpstreamModelID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUpstreamModelID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUpstreamModelID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUpstreamModelID: %w", err)
+	}
+	return oldValue.UpstreamModelID, nil
+}
+
+// ClearUpstreamModelID clears the value of the "upstream_model_id" field.
+func (m *RequestExecutionMutation) ClearUpstreamModelID() {
+	m.upstream_model_id = nil
+	m.clearedFields[requestexecution.FieldUpstreamModelID] = struct{}{}
+}
+
+// UpstreamModelIDCleared returns if the "upstream_model_id" field was cleared in this mutation.
+func (m *RequestExecutionMutation) UpstreamModelIDCleared() bool {
+	_, ok := m.clearedFields[requestexecution.FieldUpstreamModelID]
+	return ok
+}
+
+// ResetUpstreamModelID resets all changes to the "upstream_model_id" field.
+func (m *RequestExecutionMutation) ResetUpstreamModelID() {
+	m.upstream_model_id = nil
+	delete(m.clearedFields, requestexecution.FieldUpstreamModelID)
 }
 
 // SetCostPrice sets the "cost_price" field.
@@ -20828,7 +20878,7 @@ func (m *RequestExecutionMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *RequestExecutionMutation) Fields() []string {
-	fields := make([]string, 0, 26)
+	fields := make([]string, 0, 27)
 	if m.created_at != nil {
 		fields = append(fields, requestexecution.FieldCreatedAt)
 	}
@@ -20852,6 +20902,9 @@ func (m *RequestExecutionMutation) Fields() []string {
 	}
 	if m.model_id != nil {
 		fields = append(fields, requestexecution.FieldModelID)
+	}
+	if m.upstream_model_id != nil {
+		fields = append(fields, requestexecution.FieldUpstreamModelID)
 	}
 	if m.cost_price != nil {
 		fields = append(fields, requestexecution.FieldCostPrice)
@@ -20931,6 +20984,8 @@ func (m *RequestExecutionMutation) Field(name string) (ent.Value, bool) {
 		return m.ExternalID()
 	case requestexecution.FieldModelID:
 		return m.ModelID()
+	case requestexecution.FieldUpstreamModelID:
+		return m.UpstreamModelID()
 	case requestexecution.FieldCostPrice:
 		return m.CostPrice()
 	case requestexecution.FieldFormat:
@@ -20992,6 +21047,8 @@ func (m *RequestExecutionMutation) OldField(ctx context.Context, name string) (e
 		return m.OldExternalID(ctx)
 	case requestexecution.FieldModelID:
 		return m.OldModelID(ctx)
+	case requestexecution.FieldUpstreamModelID:
+		return m.OldUpstreamModelID(ctx)
 	case requestexecution.FieldCostPrice:
 		return m.OldCostPrice(ctx)
 	case requestexecution.FieldFormat:
@@ -21092,6 +21149,13 @@ func (m *RequestExecutionMutation) SetField(name string, value ent.Value) error 
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetModelID(v)
+		return nil
+	case requestexecution.FieldUpstreamModelID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUpstreamModelID(v)
 		return nil
 	case requestexecution.FieldCostPrice:
 		v, ok := value.(*objects.RequestBilling)
@@ -21321,6 +21385,9 @@ func (m *RequestExecutionMutation) ClearedFields() []string {
 	if m.FieldCleared(requestexecution.FieldExternalID) {
 		fields = append(fields, requestexecution.FieldExternalID)
 	}
+	if m.FieldCleared(requestexecution.FieldUpstreamModelID) {
+		fields = append(fields, requestexecution.FieldUpstreamModelID)
+	}
 	if m.FieldCleared(requestexecution.FieldCostPrice) {
 		fields = append(fields, requestexecution.FieldCostPrice)
 	}
@@ -21382,6 +21449,9 @@ func (m *RequestExecutionMutation) ClearField(name string) error {
 		return nil
 	case requestexecution.FieldExternalID:
 		m.ClearExternalID()
+		return nil
+	case requestexecution.FieldUpstreamModelID:
+		m.ClearUpstreamModelID()
 		return nil
 	case requestexecution.FieldCostPrice:
 		m.ClearCostPrice()
@@ -21453,6 +21523,9 @@ func (m *RequestExecutionMutation) ResetField(name string) error {
 		return nil
 	case requestexecution.FieldModelID:
 		m.ResetModelID()
+		return nil
+	case requestexecution.FieldUpstreamModelID:
+		m.ResetUpstreamModelID()
 		return nil
 	case requestexecution.FieldCostPrice:
 		m.ResetCostPrice()

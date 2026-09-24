@@ -110,6 +110,7 @@ func (Channel) Fields() []ent.Field {
 				"zenmux_video",
 				"commandcode",
 				"commandcode_anthropic",
+				"typesafe",
 			).
 			Annotations(
 				entgql.OrderField("TYPE"),

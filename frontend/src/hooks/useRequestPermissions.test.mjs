@@ -43,6 +43,7 @@ const { useRequestsColumns } = load('../features/requests/components/requests-co
   '@/features/system/data/system': { useGeneralSettings: () => ({}), useSecuritySettings: () => ({}), useUpdateSecuritySettings: () => ({}) },
   '../../../hooks/useRequestPermissions': { useRequestPermissions },
   '../utils/tokens-per-second': {},
+  '../utils/upstream-model-audit': { getUpstreamModelAudit: () => ({ status: 'matched' }), getRequestModelAuditTooltip: () => '' },
   './help': { getStatusColor: () => '' },
 });
 function permissions(projectId) {

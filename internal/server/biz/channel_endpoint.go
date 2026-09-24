@@ -33,6 +33,7 @@ var SupportedAPIFormats = map[string]struct{}{
 	llm.APIFormatGeminiEmbedding.String():       {},
 	llm.APIFormatJinaRerank.String():            {},
 	llm.APIFormatJinaEmbedding.String():         {},
+	llm.APIFormatTypeSafeSystemOne.String():     {},
 }
 
 // ValidateEndpoints validates channel endpoint configurations.
@@ -286,20 +287,23 @@ var defaultEndpointsForChannelType = map[channel.Type][]objects.ChannelEndpoint{
 		{APIFormat: llm.APIFormatOpenAIChatCompletion.String()},
 		{APIFormat: llm.APIFormatOpenAIResponse.String()},
 	},
-	channel.TypeXaiResponses:              {{APIFormat: llm.APIFormatOpenAIResponse.String()}},
-	channel.TypeXaiSubscription:           {{APIFormat: llm.APIFormatOpenAIResponse.String()}},
-	channel.TypePpio:                      openAICompatibleDefaultEndpoints,
-	channel.TypeSiliconflow:               openAICompatibleDefaultEndpoints,
-	channel.TypeVolcengine:                {{APIFormat: llm.APIFormatOpenAIChatCompletion.String()}},
-	channel.TypeVolcengineAnthropic:       {{APIFormat: llm.APIFormatAnthropicMessage.String()}},
-	channel.TypeLongcat:                   {{APIFormat: llm.APIFormatOpenAIChatCompletion.String()}},
-	channel.TypeLongcatAnthropic:          {{APIFormat: llm.APIFormatAnthropicMessage.String()}},
-	channel.TypeMinimax:                   openAIChatOnlyDefaultEndpoints,
-	channel.TypeMinimaxAnthropic:          {{APIFormat: llm.APIFormatAnthropicMessage.String()}},
-	channel.TypeAihubmix:                  openAICompatibleDefaultEndpoints,
-	channel.TypeAihubmixAnthropic:         {{APIFormat: llm.APIFormatAnthropicMessage.String()}},
-	channel.TypeBurncloud:                 openAICompatibleDefaultEndpoints,
-	channel.TypeModelscope:                {{APIFormat: llm.APIFormatOpenAIChatCompletion.String()}},
+	channel.TypeXaiResponses:        {{APIFormat: llm.APIFormatOpenAIResponse.String()}},
+	channel.TypeXaiSubscription:     {{APIFormat: llm.APIFormatOpenAIResponse.String()}},
+	channel.TypePpio:                openAICompatibleDefaultEndpoints,
+	channel.TypeSiliconflow:         openAICompatibleDefaultEndpoints,
+	channel.TypeVolcengine:          {{APIFormat: llm.APIFormatOpenAIChatCompletion.String()}},
+	channel.TypeVolcengineAnthropic: {{APIFormat: llm.APIFormatAnthropicMessage.String()}},
+	channel.TypeLongcat:             {{APIFormat: llm.APIFormatOpenAIChatCompletion.String()}},
+	channel.TypeLongcatAnthropic:    {{APIFormat: llm.APIFormatAnthropicMessage.String()}},
+	channel.TypeMinimax:             openAIChatOnlyDefaultEndpoints,
+	channel.TypeMinimaxAnthropic:    {{APIFormat: llm.APIFormatAnthropicMessage.String()}},
+	channel.TypeAihubmix:            openAICompatibleDefaultEndpoints,
+	channel.TypeAihubmixAnthropic:   {{APIFormat: llm.APIFormatAnthropicMessage.String()}},
+	channel.TypeBurncloud:           openAICompatibleDefaultEndpoints,
+	channel.TypeModelscope: {
+		{APIFormat: llm.APIFormatOpenAIChatCompletion.String()},
+		{APIFormat: llm.APIFormatModelScopeImage.String()},
+	},
 	channel.TypeBailian:                   {{APIFormat: llm.APIFormatOpenAIChatCompletion.String()}},
 	channel.TypeBailianAnthropic:          {{APIFormat: llm.APIFormatAnthropicMessage.String()}},
 	channel.TypeQianwenTokenPlan:          {{APIFormat: llm.APIFormatOpenAIChatCompletion.String()}},
@@ -329,11 +333,28 @@ var defaultEndpointsForChannelType = map[channel.Type][]objects.ChannelEndpoint{
 	},
 	channel.TypeCommandcode:          openAIChatOnlyDefaultEndpoints,
 	channel.TypeCommandcodeAnthropic: {{APIFormat: llm.APIFormatAnthropicMessage.String()}},
+	channel.TypeTypesafe: {
+		{APIFormat: llm.APIFormatTypeSafeSystemOne.String()},
+	},
 }
 
 func validateEndpointsForChannelType(channelType channel.Type, endpoints []objects.ChannelEndpoint) error {
 	if err := ValidateEndpoints(endpoints); err != nil {
 		return err
+	}
+
+	if channelType == channel.TypeTypesafe {
+		for _, endpoint := range endpoints {
+			if endpoint.APIFormat != llm.APIFormatTypeSafeSystemOne.String() {
+				return fmt.Errorf("channel type %q only supports api_format %q", channelType, llm.APIFormatTypeSafeSystemOne.String())
+			}
+		}
+	}
+
+	for _, endpoint := range endpoints {
+		if endpoint.APIFormat == llm.APIFormatTypeSafeSystemOne.String() && channelType != channel.TypeTypesafe {
+			return fmt.Errorf("api_format %q is only supported by TypeSafe channel types", endpoint.APIFormat)
+		}
 	}
 
 	if isZenmuxChannelType(channelType) {

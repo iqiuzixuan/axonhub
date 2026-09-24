@@ -36,8 +36,10 @@ type RequestExecution struct {
 	DataStorageID int `json:"data_storage_id,omitempty"`
 	// ExternalID holds the value of the "external_id" field.
 	ExternalID string `json:"external_id,omitempty"`
-	// ModelID holds the value of the "model_id" field.
+	// Channel model ID selected after model mapping, used for routing and pricing. May differ from the final wire model and the upstream-reported model.
 	ModelID string `json:"model_id,omitempty"`
+	// Raw model reported by the upstream provider response, before client-model rewrite
+	UpstreamModelID string `json:"upstream_model_id,omitempty"`
 	// CostPrice holds the value of the "cost_price" field.
 	CostPrice *objects.RequestBilling `json:"cost_price,omitempty"`
 	// Format holds the value of the "format" field.
@@ -139,7 +141,7 @@ func (*RequestExecution) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullBool)
 		case requestexecution.FieldID, requestexecution.FieldProjectID, requestexecution.FieldRequestID, requestexecution.FieldChannelID, requestexecution.FieldDataStorageID, requestexecution.FieldResponseStatusCode, requestexecution.FieldMetricsLatencyMs, requestexecution.FieldMetricsFirstTokenLatencyMs, requestexecution.FieldMetricsReasoningDurationMs:
 			values[i] = new(sql.NullInt64)
-		case requestexecution.FieldExternalID, requestexecution.FieldModelID, requestexecution.FieldFormat, requestexecution.FieldReasoningEffort, requestexecution.FieldChannelAPIKeySuffix, requestexecution.FieldErrorMessage, requestexecution.FieldStatus, requestexecution.FieldRequestURL:
+		case requestexecution.FieldExternalID, requestexecution.FieldModelID, requestexecution.FieldUpstreamModelID, requestexecution.FieldFormat, requestexecution.FieldReasoningEffort, requestexecution.FieldChannelAPIKeySuffix, requestexecution.FieldErrorMessage, requestexecution.FieldStatus, requestexecution.FieldRequestURL:
 			values[i] = new(sql.NullString)
 		case requestexecution.FieldCreatedAt, requestexecution.FieldUpdatedAt:
 			values[i] = new(sql.NullTime)
@@ -211,6 +213,12 @@ func (_m *RequestExecution) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field model_id", values[i])
 			} else if value.Valid {
 				_m.ModelID = value.String
+			}
+		case requestexecution.FieldUpstreamModelID:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field upstream_model_id", values[i])
+			} else if value.Valid {
+				_m.UpstreamModelID = value.String
 			}
 		case requestexecution.FieldCostPrice:
 			if value, ok := values[i].(*[]byte); !ok {
@@ -412,6 +420,9 @@ func (_m *RequestExecution) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("model_id=")
 	builder.WriteString(_m.ModelID)
+	builder.WriteString(", ")
+	builder.WriteString("upstream_model_id=")
+	builder.WriteString(_m.UpstreamModelID)
 	builder.WriteString(", ")
 	builder.WriteString("cost_price=")
 	builder.WriteString(fmt.Sprintf("%v", _m.CostPrice))
