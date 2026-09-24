@@ -23,6 +23,7 @@ export const apiFormatSchema = z.enum([
   'aisdk/datastream',
   'jina/rerank',
   'jina/embeddings',
+  'typesafe/systemone',
   'ollama/chat',
 ]);
 
@@ -46,6 +47,7 @@ export const configurableChannelEndpointApiFormats = [
   'gemini/embeddings',
   'jina/rerank',
   'jina/embeddings',
+  'typesafe/systemone',
 ] as const;
 
 export const configurableChannelEndpointApiFormatSchema = z.enum(configurableChannelEndpointApiFormats);
@@ -122,6 +124,7 @@ export const channelTypeSchema = z.enum([
   'qianwen_token_plan_anthropic',
   'moonshot_coding',
   'jina',
+  'typesafe',
   'github',
   'github_copilot',
   'claudecode',
