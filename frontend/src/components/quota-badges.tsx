@@ -1077,6 +1077,7 @@ function QuotaRow({ channel, effectiveMode }: { channel: ProviderQuotaChannel; e
 
       {(channel.type === 'qianwen_token_plan' || channel.type === 'qianwen_token_plan_anthropic') && (
         <QuotaWindows limits={quota.limits} />
+      )}
       {(channel.type === 'opencode_go' || channel.type === 'opencode_go_anthropic') && (
         <div className='mt-3 space-y-3'>
           {(() => {
