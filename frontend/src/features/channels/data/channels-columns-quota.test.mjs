@@ -304,6 +304,27 @@ test('Qianwen personal quota retains its seven-day remaining percentage and rese
   }
 });
 
+test('Qianwen monthly usage reaches the channel display without being relabeled as weekly', () => {
+  for (const type of ['qianwen_token_plan', 'qianwen_token_plan_anthropic']) {
+    const providerQuotaStatus = {
+      providerType: 'qianwen_token_plan', status: 'available', ready: true,
+      quotaData: { _limits: [{
+        type: 'token', window: 'monthly', usageRatio: 0.27052849091666664, status: 'available', ready: true,
+        nextResetAt: '2026-10-20T16:00:00Z', periodStart: '2026-09-20T16:00:00Z',
+      }] },
+    };
+    const channel = channelSchema.parse(channelFixture({ type, providerQuotaStatus }));
+    const parsed = parseChannelNode(channel);
+    assert.equal(parsed.quotaStatus.limits.length, 1);
+    const [limit] = parsed.quotaStatus.limits;
+    assert.equal(limit.window, 'monthly');
+    assert.equal(Math.round(100 - limit.usageRatio * 100), 73);
+    assert.equal(limit.nextResetAt, '2026-10-20T16:00:00Z');
+    assert.equal(limit.periodStart, '2026-09-20T16:00:00Z');
+    assert.equal(limit.periodQuota, undefined);
+  }
+});
+
 test('channel queries recall the Qianwen quota cookie for edit, duplicate, and refresh flows', () => {
   const source = read('features/channels/data/channels.ts');
   const providerQuotaBlocks = source.match(/providerQuota\s*\{[\s\S]*?ollama\s*\{\s*authCookie\s*\}/g) ?? [];
