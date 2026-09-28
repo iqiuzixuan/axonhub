@@ -108,6 +108,75 @@ func TestQianwenQuotaParser_MissingWeeklyResetIsNotInvented(t *testing.T) {
 	require.Nil(t, quota.Limits[0].PeriodQuota)
 }
 
+func TestQianwenQuotaParser_MonthlyUsage(t *testing.T) {
+	// Sanitized shape returned by the personal plan endpoint on 2026-09-25.
+	// Keep the reset in the future so normalization does not discard it.
+	body := []byte(`{"code":"200","data":{"success":true,"DataV2":{"ret":["SUCCESS::接口调用成功"],"data":{"msg":"Success.","code":"SUCCESS","data":{"per1MonthPercentage":0.27052849091666664,"per1MonthResetTime":"2099-10-21T00:00:00+08:00"},"success":true}}},"successResponse":true}`)
+	quota, err := parseQianwenTokenPlanQuotaResponse(body)
+	require.NoError(t, err)
+	require.Equal(t, "available", quota.Status)
+	require.True(t, quota.Ready)
+	require.Len(t, quota.Limits, 1)
+	limit := quota.Limits[0]
+	require.Equal(t, QuotaWindowMonthly, limit.Window)
+	require.InDelta(t, 0.27052849091666664, limit.UsageRatio, 1e-12)
+	require.InDelta(t, 72.94715090833334, quota.RawData["remaining_percent"], 1e-9)
+	require.Equal(t, "2099-10-20T16:00:00Z", quota.NextResetAt.UTC().Format(time.RFC3339))
+	require.Equal(t, "2099-09-20T16:00:00Z", limit.PeriodStart.UTC().Format(time.RFC3339))
+	assertNormalizedLimitContract(t, quota)
+}
+
+func TestQianwenQuotaParser_MonthlyWindows(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		usage  string
+		status string
+		ratio  float64
+	}{
+		{"unused", `{"per1MonthPercentage":0}`, "available", 0},
+		{"warning", `{"per1MonthPercentage":0.85}`, "warning", 0.85},
+		{"exhausted", `{"per1MonthPercentage":1}`, "exhausted", 1},
+		{"over limit", `{"per1MonthPercentage":1.1}`, "exhausted", 1},
+		{"monthly exhausted with weekly available", `{"per1MonthPercentage":1,"per1WeekPercentage":0.2}`, "exhausted", 1},
+		{"weekly exhausted with monthly available", `{"per1MonthPercentage":0.2,"per1WeekPercentage":1}`, "exhausted", 1},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			quota, err := parseQianwenTokenPlanQuotaResponse([]byte(`{"successResponse":true,"data":{"DataV2":{"data":` + tc.usage + `}}}`))
+			require.NoError(t, err)
+			require.Equal(t, tc.status, quota.Status)
+			require.Equal(t, IsReadyStatus(tc.status), quota.Ready)
+			require.InDelta(t, tc.ratio*100, quota.RawData["used_percent"], 1e-9)
+			require.Nil(t, quota.NextResetAt)
+			for _, limit := range quota.Limits {
+				require.Nil(t, limit.PeriodStart)
+				require.Nil(t, limit.PeriodQuota)
+			}
+			if strings.Contains(tc.usage, "per1WeekPercentage") {
+				require.Len(t, quota.Limits, 2)
+				require.Equal(t, QuotaWindow7d, quota.Limits[0].Window)
+			}
+			require.Equal(t, QuotaWindowMonthly, quota.Limits[len(quota.Limits)-1].Window)
+			assertNormalizedLimitContract(t, quota)
+		})
+	}
+}
+
+func TestQianwenQuotaParser_MonthlyTimestampUsesConsoleTimeZone(t *testing.T) {
+	// March 1 in China is still February in UTC. Do not subtract a month in UTC
+	// or treat a monthly window as a fixed 30 days.
+	reset := time.Date(2099, time.March, 1, 0, 0, 0, 0, time.FixedZone("Asia/Shanghai", 8*60*60))
+	body, err := json.Marshal(map[string]any{"successResponse": true, "data": map[string]any{"DataV2": map[string]any{"data": map[string]any{
+		"per1MonthPercentage": 0.2, "per1MonthResetTime": reset.UnixMilli(),
+		"per1WeekPercentage": 0.4, "per1WeekResetTime": reset.Add(-24 * time.Hour).UnixMilli(),
+	}}}})
+	require.NoError(t, err)
+	quota, err := parseQianwenTokenPlanQuotaResponse(body)
+	require.NoError(t, err)
+	require.Len(t, quota.Limits, 2)
+	require.Equal(t, "2099-01-31T16:00:00Z", quota.Limits[1].PeriodStart.UTC().Format(time.RFC3339))
+	require.True(t, quota.NextResetAt.Equal(reset.Add(-24*time.Hour)))
+}
+
 func TestQianwenQuotaParser_RejectsUnknownUsageAndErrors(t *testing.T) {
 	for _, body := range []string{
 		`{}`, `<html>sign in</html>`,
@@ -116,6 +185,10 @@ func TestQianwenQuotaParser_RejectsUnknownUsageAndErrors(t *testing.T) {
 		`{"code":"200","data":{"DataV2":{"data":{"success":false,"per1WeekPercentage":0.2}}}}`,
 		strings.Replace(qianwenUsageFixture, "0.25", "null", 1),
 		strings.Replace(qianwenUsageFixture, "0.25", "-1", 1),
+		`{"code":"200","data":{"DataV2":{"data":{"per1MonthResetTime":123}}}}`,
+		`{"code":"200","data":{"DataV2":{"data":{"per1MonthPercentage":null}}}}`,
+		`{"code":"200","data":{"DataV2":{"data":{"per1MonthPercentage":-0.1,"per1WeekPercentage":0.2}}}}`,
+		`{"code":"200","data":{"DataV2":{"data":{"per1MonthPercentage":"invalid"}}}}`,
 		strings.Replace(qianwenUsageFixture, "SUCCESS::success", "FAIL::fixture-sensitive", 1),
 	} {
 		quota, err := parseQianwenTokenPlanQuotaResponse([]byte(body))

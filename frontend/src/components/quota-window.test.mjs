@@ -64,13 +64,25 @@ const componentSource = readFileSync(new URL('./quota-window.tsx', import.meta.u
 const prelude = `const { ${Object.keys(globalThis.__quotaWindowTest).join(', ')} } = globalThis.__quotaWindowTest;\n`;
 const components = await import(`data:text/javascript;base64,${Buffer.from(prelude + transpile(componentSource)).toString('base64')}`);
 
-test('shared popover windows render used progress, weekly label and real reset details', () => {
+test('shared popover windows render used progress, weekly label and real reset details', (context) => {
+  context.mock.method(Date, 'now', () => now);
   const html = renderToStaticMarkup(React.createElement(components.QuotaWindows, { limits: [limit()] }));
   assert.match(html, /每周窗口/);
   assert.match(html, /已使用 17%/);
   assert.match(html, /width:17%/);
   assert.match(html, /重置于|已重置|即将重置/);
   assert.match(html, /aria-hidden/);
+});
+
+test('Qianwen monthly usage renders the monthly label and reported usage', () => {
+  const monthly = limit({
+    window: 'monthly', usageRatio: 0.27052849091666664,
+    periodStart: '2026-09-20T16:00:00Z', nextResetAt: '2026-10-20T16:00:00Z',
+  });
+  const html = renderToStaticMarkup(React.createElement(components.QuotaWindows, { limits: [monthly] }));
+  assert.match(html, /每月窗口/);
+  assert.match(html, /已使用 27%/);
+  assert.doesNotMatch(html, /每周窗口/);
 });
 
 test('Qianwen zero usage with no reset shows missing reset and estimate reason, not an invented allowance', () => {

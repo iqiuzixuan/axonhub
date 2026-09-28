@@ -22,7 +22,7 @@ const (
 	qianwenPersonalUsageAPI = "zeldaHttp.apikeyMgr./tokenplan/personal/api/v2/usage"
 )
 
-// QianwenTokenPlanQuotaChecker reads the personal plan's seven-day window from
+// QianwenTokenPlanQuotaChecker reads the personal plan's weekly/monthly windows from
 // the console API. The console cookie is separate from the inference API key.
 // Protocol source: console-home/1.1.27/assets/{analytics,shared}.js on
 // https://q.alyasset.com/code/qwen-cloud/ (verified 2026-09-10).
@@ -177,25 +177,63 @@ func parseQianwenTokenPlanQuotaResponse(body []byte) (QuotaData, error) {
 		data = wrapped.Data
 	}
 	var usage struct {
-		Percentage *float64        `json:"per1WeekPercentage"`
-		Reset      json.RawMessage `json:"per1WeekResetTime"`
+		WeeklyPercentage  *float64        `json:"per1WeekPercentage"`
+		WeeklyReset       json.RawMessage `json:"per1WeekResetTime"`
+		MonthlyPercentage *float64        `json:"per1MonthPercentage"`
+		MonthlyReset      json.RawMessage `json:"per1MonthResetTime"`
 	}
-	if json.Unmarshal(data, &usage) != nil || usage.Percentage == nil ||
-		!isFiniteRatio(*usage.Percentage) || *usage.Percentage < 0 {
-		return QuotaData{}, fmt.Errorf("Qianwen personal plan returned no valid seven-day usage")
+	if json.Unmarshal(data, &usage) != nil {
+		return QuotaData{}, fmt.Errorf("invalid Qianwen personal plan usage")
 	}
-	ratio := min(*usage.Percentage, 1)
+	limits := make([]QuotaLimitStatus, 0, 2)
+	ratio := 0.0
 	status := "available"
-	if ratio >= 1 {
-		status = "exhausted"
-	} else if ratio >= WarningThresholdRatio {
-		status = "warning"
+	for _, window := range []struct {
+		name       string
+		percentage *float64
+		reset      json.RawMessage
+	}{
+		{QuotaWindow7d, usage.WeeklyPercentage, usage.WeeklyReset},
+		{QuotaWindowMonthly, usage.MonthlyPercentage, usage.MonthlyReset},
+	} {
+		if window.percentage == nil {
+			continue
+		}
+		if !isFiniteRatio(*window.percentage) || *window.percentage < 0 {
+			return QuotaData{}, fmt.Errorf("invalid Qianwen personal plan usage")
+		}
+		windowRatio := min(*window.percentage, 1)
+		windowStatus := "available"
+		if windowRatio >= 1 {
+			windowStatus = "exhausted"
+		} else if windowRatio >= WarningThresholdRatio {
+			windowStatus = "warning"
+		}
+		reset := parseQianwenQuotaReset(window.reset)
+		limit := NewTokenLimitStatus(windowStatus, windowRatio, reset)
+		limit.Window = window.name
+		if window.name == QuotaWindowMonthly {
+			// A calendar month is not a fixed 30-day duration. Use the console's
+			// time zone even when the reset is reported as a Unix timestamp.
+			if reset != nil {
+				chinaReset := reset.In(time.FixedZone("Asia/Shanghai", 8*60*60))
+				limit.PeriodStart = PeriodStartFromMonthlyReset(&chinaReset)
+			}
+		} else {
+			limit.PeriodStart = PeriodStartFromReset(reset, 7*24*time.Hour)
+		}
+		limits = append(limits, limit)
+		if windowRatio >= ratio {
+			ratio, status = windowRatio, windowStatus
+		}
 	}
-	reset := parseQianwenQuotaReset(usage.Reset)
+	if len(limits) == 0 {
+		return QuotaData{}, fmt.Errorf("Qianwen personal plan returned no valid usage window")
+	}
 	return NormalizeQuotaData(QuotaData{
-		ProviderType: "qianwen_token_plan", Status: status, Ready: IsReadyStatus(status), NextResetAt: reset,
+		ProviderType: "qianwen_token_plan", Status: status, Ready: IsReadyStatus(status),
 		RawData: map[string]any{"plan_type": "personal", "used_percent": ratio * 100, "remaining_percent": (1 - ratio) * 100},
-		Limits:  []QuotaLimitStatus{NewTokenLimitStatus(status, ratio, reset).WithWindow(QuotaWindow7d, 7*24*time.Hour)},
+		Limits:  limits,
 	}), nil
 }
 
