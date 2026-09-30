@@ -1,17 +1,17 @@
 import { useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from '@tanstack/react-router';
-import { pickFallbackNavUrl } from '@/config/nav-items';
+import { getRouteConfig, hasRouteAccess } from '@/config/route-permission';
 import { graphqlRequest } from '@/gql/graphql';
 import { ME_QUERY } from '@/gql/users';
 import { toast } from 'sonner';
 import { useAuthStore, setTokenToStorage, removeTokenFromStorage } from '@/stores/authStore';
 import { AuthUser } from '@/stores/authStore';
 import { useProjectStore } from '@/stores/projectStore';
-import { getHiddenNavItems } from '@/stores/sidebarPrefsStore';
 import { authApi } from '@/lib/api-client';
 import i18n from '@/lib/i18n';
 import { isProjectSelectionValid } from '@/lib/project-membership';
+import { consumeOIDCRedirect, getSafeRedirect, storeOIDCRedirect } from '@/lib/auth-redirect';
 
 export interface SignInInput {
   email: string;
@@ -65,7 +65,25 @@ export function useMe(enabled = true) {
   return query;
 }
 
-export function useSignIn() {
+// A safe local URL can still require permissions the newly signed-in user lacks.
+export function getPermittedSignInRedirect(redirect: string | undefined, user: AuthUser, selectedProjectId: string | null): string | undefined {
+  const safeRedirect = getSafeRedirect(redirect);
+  if (!safeRedirect) return undefined;
+  const pathname = new URL(safeRedirect, window.location.origin).pathname;
+  const project = user.projects?.find((p) => p.projectID === selectedProjectId);
+  if (pathname.startsWith('/project/') && !project) return undefined;
+  const route = getRouteConfig(pathname);
+  if (!route) return undefined;
+  const permitted = hasRouteAccess({
+    systemScopes: user.scopes ?? [],
+    projectScopes: project?.effectiveScopes ?? project?.scopes ?? [],
+    isOwner: user.isOwner,
+    isProjectOwner: user.isOwner || !!project?.isOwner,
+  }, route);
+  return permitted ? safeRedirect : undefined;
+}
+
+export function useSignIn(redirect?: string) {
   const { setUser, setAccessToken } = useAuthStore((state) => state.auth);
   const router = useRouter();
 
@@ -95,6 +113,12 @@ export function useSignIn() {
 
       toast.success(i18n.t('common.success.signedIn'));
 
+      consumeOIDCRedirect();
+      const safeRedirect = getPermittedSignInRedirect(redirect, data.user, useProjectStore.getState().selectedProjectId);
+      if (safeRedirect) {
+        router.history.push(safeRedirect);
+        return;
+      }
       // The home route waits for current permissions and selects an accessible page.
       router.navigate({ to: '/', replace: true });
     },
@@ -138,13 +162,14 @@ export function useOIDCProviders() {
   });
 }
 
-export function useOIDCAuthorize() {
+export function useOIDCAuthorize(redirect?: string) {
   return useMutation({
     mutationFn: async (providerId: string) => {
       return await authApi.getOIDCAuthorizeURL(providerId);
     },
     onSuccess: (response) => {
       if (response && response.data && response.data.url) {
+        storeOIDCRedirect(redirect);
         window.location.href = response.data.url;
       } else {
         toast.error('Invalid authorization URL received');
@@ -189,13 +214,18 @@ export function useOIDCExchange() {
 
       toast.success(i18n.t('common.success.signedIn'));
 
-      // Use the same permission-aware landing route as password sign-in.
+      const safeRedirect = getPermittedSignInRedirect(consumeOIDCRedirect(), data.user, useProjectStore.getState().selectedProjectId);
+      if (safeRedirect) {
+        router.history.push(safeRedirect);
+        return;
+      }
+      // The home route waits for current permissions and selects an accessible page.
       router.navigate({ to: '/', replace: true });
     },
     onError: (error: unknown) => {
       const errorMessage = error instanceof Error ? error.message : 'SSO login failed';
       toast.error(errorMessage);
-      router.navigate({ to: '/sign-in' });
+      router.navigate({ to: '/sign-in', search: { redirect: consumeOIDCRedirect() } });
     },
   });
 }

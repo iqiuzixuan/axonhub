@@ -7,6 +7,7 @@ import test, { beforeEach } from 'node:test';
 import { renderToStaticMarkup } from 'react-dom/server';
 import ts from 'typescript';
 import * as routePermissions from '../config/route-permission.ts';
+import * as authRedirects from '../lib/auth-redirect.ts';
 import * as navigationPermissions from '../lib/navigation-permissions.ts';
 
 const require = createRequire(import.meta.url);
@@ -97,13 +98,15 @@ const authStore = {
   removeTokenFromStorage() {},
 };
 const { useSignIn, useOIDCExchange } = loadComponent('../features/auth/data/auth.ts', {
+  '@/config/route-permission': routePermissions,
+  '@/lib/auth-redirect': authRedirects,
   '@tanstack/react-query': { useMutation: (options) => options },
   '@tanstack/react-router': { useRouter: () => router },
   '@/gql/graphql': {},
   '@/gql/users': {},
   sonner: { toast: { success() {} } },
   '@/stores/authStore': authStore,
-  '@/stores/projectStore': {},
+  '@/stores/projectStore': { useProjectStore: { getState: () => ({ selectedProjectId }) } },
   '@/lib/project-membership': {},
   '@/lib/api-client': {},
   '@/lib/i18n': { default: { language: 'en', t: (key) => key } },
