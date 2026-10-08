@@ -13,6 +13,7 @@ export const QUOTA_WINDOW_LABEL_KEYS: Record<string, string> = {
   credits: 'quota.label.credits_remaining',
   overage: 'quota.label.overage_window',
   cycle: 'quota.label.subscription',
+  kwh: 'quota.label.kwh_remaining',
 };
 
 export function quotaWindowLabel(window: string | undefined, t: TFunction): string {

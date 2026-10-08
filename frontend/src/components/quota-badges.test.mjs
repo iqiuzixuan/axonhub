@@ -3,6 +3,7 @@ import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import ts from 'typescript';
+import { QUOTA_WINDOW_LABEL_KEYS } from '../features/system/data/quota-window-display.ts';
 
 const componentsDir = import.meta.dirname;
 const srcRoot = join(componentsDir, '..');
@@ -166,6 +167,22 @@ test('Wafer and Apertis duration markers share timestamp validation', () => {
     quotaBadges.slice(apertisStart, apertisEnd),
     /durationPercent=\{getDurationPercent\(qd\.subscription\.cycle_start, qd\.subscription\.cycle_end\)\}/
   );
+});
+
+test('NeuralWatt kWh bar shares the elapsed-window marker and label', () => {
+  const quotaBadges = read('components/quota-badges.tsx');
+  const start = quotaBadges.indexOf("{isOpenaiType(channel.type) && channel.providerType === 'neuralwatt' &&");
+  const end = quotaBadges.indexOf("{isOpenaiType(channel.type) && channel.providerType === 'apertis' &&");
+
+  assert.ok(start !== -1, 'NeuralWatt popover branch should exist in quota-badges source');
+  assert.ok(end !== -1 && end > start, 'the Apertis branch should follow the NeuralWatt branch');
+
+  const neuralwattBlock = quotaBadges.slice(start, end);
+
+  assert.match(neuralwattBlock, /const durationPercent = kwhLimit \? getLimitDurationPercent\(kwhLimit\) : undefined/);
+  assert.match(neuralwattBlock, /durationPercent=\{durationPercent\}/);
+  assert.match(neuralwattBlock, /quota\.label\.time_elapsed/);
+  assert.equal(QUOTA_WINDOW_LABEL_KEYS.kwh, 'quota.label.kwh_remaining');
 });
 
 // Regression: the quota-display refactor dropped the OpenCode Go popover

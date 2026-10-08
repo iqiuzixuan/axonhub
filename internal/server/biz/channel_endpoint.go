@@ -28,6 +28,7 @@ var SupportedAPIFormats = map[string]struct{}{
 	llm.APIFormatOpenAITranslation.String():     {},
 	llm.APIFormatOpenAIModeration.String():      {},
 	llm.APIFormatOpenAIAlphaSearch.String():     {},
+	llm.APIFormatOpenAIDecisions.String():       {},
 	llm.APIFormatAnthropicMessage.String():      {},
 	llm.APIFormatGeminiContents.String():        {},
 	llm.APIFormatGeminiEmbedding.String():       {},
@@ -209,6 +210,11 @@ var openAIChatOnlyDefaultEndpoints = []objects.ChannelEndpoint{
 	{APIFormat: llm.APIFormatOpenAIChatCompletion.String()},
 }
 
+var minimaxDefaultEndpoints = []objects.ChannelEndpoint{
+	{APIFormat: llm.APIFormatOpenAIChatCompletion.String()},
+	{APIFormat: llm.APIFormatOpenAIImageGeneration.String()},
+}
+
 // defaultEndpointsForChannelType defines the built-in default endpoints for
 // each channel type.
 //
@@ -295,7 +301,7 @@ var defaultEndpointsForChannelType = map[channel.Type][]objects.ChannelEndpoint{
 	channel.TypeVolcengineAnthropic: {{APIFormat: llm.APIFormatAnthropicMessage.String()}},
 	channel.TypeLongcat:             {{APIFormat: llm.APIFormatOpenAIChatCompletion.String()}},
 	channel.TypeLongcatAnthropic:    {{APIFormat: llm.APIFormatAnthropicMessage.String()}},
-	channel.TypeMinimax:             openAIChatOnlyDefaultEndpoints,
+	channel.TypeMinimax:             minimaxDefaultEndpoints,
 	channel.TypeMinimaxAnthropic:    {{APIFormat: llm.APIFormatAnthropicMessage.String()}},
 	channel.TypeAihubmix:            openAICompatibleDefaultEndpoints,
 	channel.TypeAihubmixAnthropic:   {{APIFormat: llm.APIFormatAnthropicMessage.String()}},
@@ -309,6 +315,7 @@ var defaultEndpointsForChannelType = map[channel.Type][]objects.ChannelEndpoint{
 	channel.TypeQianwenTokenPlan:          {{APIFormat: llm.APIFormatOpenAIChatCompletion.String()}},
 	channel.TypeQianwenTokenPlanAnthropic: {{APIFormat: llm.APIFormatAnthropicMessage.String()}},
 	channel.TypeMoonshotCoding:            {{APIFormat: llm.APIFormatAnthropicMessage.String()}},
+	channel.TypeBailianResponses:          {{APIFormat: llm.APIFormatOpenAIResponse.String()}},
 	channel.TypeJina: {
 		{APIFormat: llm.APIFormatJinaRerank.String()},
 		{APIFormat: llm.APIFormatJinaEmbedding.String()},
