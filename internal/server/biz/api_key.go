@@ -483,21 +483,19 @@ func (s *APIKeyService) UpdateAPIKey(ctx context.Context, id int, input ent.Upda
 		if input.Name != nil && *input.Name != apiKey.Name {
 			nameScope := apikey.TypeNEQ(apikey.TypePersonal)
 			if apiKey.Type == apikey.TypePersonal {
-				// Owners may rename another user's personal key; use its creator's namespace.
 				nameScope = apikey.Or(nameScope, apikey.UserIDEQ(apiKey.UserID))
 			} else if user, ok := contexts.GetUser(ctx); ok {
 				nameScope = apikey.Or(nameScope, apikey.UserIDEQ(user.ID))
 			}
 			duplicateCount, err := client.APIKey.Query().Where(
 				apikey.NameEQ(*input.Name),
-				apikey.IDNEQ(id),
 				apikey.ProjectIDEQ(apiKey.ProjectID),
 				nameScope,
 			).Count(authz.WithSystemBypass(ctx, "api key name uniqueness"))
 			if err != nil {
 				return fmt.Errorf("failed to check api key name uniqueness: %w", err)
 			}
-			if duplicateCount > 0 {
+			if duplicateCount > 1 {
 				return xerrors.DuplicateNameError("API Key", *input.Name)
 			}
 		}

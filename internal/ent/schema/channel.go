@@ -82,6 +82,7 @@ func (Channel) Fields() []ent.Field {
 				"burncloud",
 				"modelscope",
 				"bailian",
+				"bailian_responses",
 				"bailian_anthropic",
 				"qianwen_token_plan",
 				"qianwen_token_plan_anthropic",
