@@ -52,6 +52,7 @@ import { parseQuotaLimits } from '../../system/data/quotas';
 import type { QuotaRoutingMode } from '../../system/data/system';
 import { getChannelQuotaRoutingIndicator } from '../utils/quota-routing-status';
 import { ChannelHealthCell } from './channel-health-cell';
+import { DeepSeekBalanceBars } from '@/components/deepseek-balance-bars';
 import { ChannelLimiterCell } from './channel-limiter-cell';
 import { ChannelsStatusDialog } from './channels-status-dialog';
 import { ChatProtocolIcon, MessagesProtocolIcon, ResponsesProtocolIcon } from './endpoint-protocol-icons';
@@ -497,6 +498,15 @@ const QuotaCell = memo(({ row }: { row: Row<Channel> }) => {
   const { t } = useTranslation();
   const [isExpanded, setIsExpanded] = useState(false);
   const channel = row.original;
+
+  if (channel.type === 'deepseek' || channel.type === 'deepseek_anthropic') {
+    return (
+      <DeepSeekBalanceBars
+        quotaData={channel.providerQuotaStatus?.quotaData}
+        status={channel.providerQuotaStatus?.status ?? 'unknown'}
+      />
+    );
+  }
 
   if (!channel.providerQuotaStatus) {
     return (

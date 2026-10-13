@@ -42,6 +42,8 @@ func TestSystemService_ProviderQuotaCollectionSettings_DefaultsToEnabled(t *test
 	require.True(t, settings.Providers["xai_subscription"])
 	require.True(t, settings.Providers["minimax"])
 	require.True(t, settings.Providers["zhipu"])
+	require.Contains(t, settings.Providers, "deepseek")
+	require.False(t, settings.Providers["deepseek"])
 }
 
 func TestSystemService_ProviderQuotaCollectionSettings_CachesDefaults(t *testing.T) {
@@ -81,6 +83,22 @@ func TestSystemService_ProviderQuotaCollectionSettings_DefaultsMissingProvidersT
 	require.True(t, settings.Enabled)
 	require.False(t, settings.Providers["minimax"])
 	require.True(t, settings.Providers["zhipu"])
+	require.Contains(t, settings.Providers, "deepseek")
+	require.False(t, settings.Providers["deepseek"])
+}
+
+func TestSystemService_ProviderQuotaCollectionSettings_DeepSeekRequiresOptIn(t *testing.T) {
+	service, client := setupProviderQuotaSettingsTest(t)
+	defer client.Close()
+	ctx := authz.WithTestBypass(ent.NewContext(t.Context(), client))
+	for _, enabled := range []bool{false, true, false} {
+		require.NoError(t, service.UpdateProviderQuotaCollectionSettings(ctx, nil, []ProviderQuotaCollectionProvider{
+			{Provider: "deepseek", Enabled: enabled},
+		}))
+		actual, err := service.IsProviderQuotaCollectionEnabled(ctx, "deepseek")
+		require.NoError(t, err)
+		require.Equal(t, enabled, actual)
+	}
 }
 
 func TestSystemService_ProviderQuotaCollectionSettings_UpdateMergesProviders(t *testing.T) {

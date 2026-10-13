@@ -17,6 +17,7 @@ var supportedProviderQuotaTypes = []string{
 	"wafer", "synthetic", "neuralwatt", "apertis", "opencode_go",
 	"kimi_code", "minimax", "zhipu", "zai", "charm_hyper", "zenmux", "commandcode",
 	"ollama", "qianwen_token_plan",
+	"deepseek",
 }
 
 var supportedProviderQuotaTypeSet = func() map[string]struct{} {
@@ -40,7 +41,7 @@ type ProviderQuotaCollectionProvider struct {
 func defaultProviderQuotaCollectionSettings() *ProviderQuotaCollectionSettings {
 	providers := make(map[string]bool, len(supportedProviderQuotaTypes))
 	for _, providerType := range supportedProviderQuotaTypes {
-		providers[providerType] = true
+		providers[providerType] = providerType != "deepseek"
 	}
 
 	return &ProviderQuotaCollectionSettings{Enabled: true, Providers: providers}
@@ -50,7 +51,7 @@ func normalizeProviderQuotaCollectionSettings(settings *ProviderQuotaCollectionS
 	normalized := defaultProviderQuotaCollectionSettings()
 	normalized.Enabled = settings.Enabled
 
-	// 旧配置缺少后来新增的提供商时保持默认开启，避免升级后静默关闭新能力。
+	// 旧配置缺少提供商时沿用各自默认值；DeepSeek 余额采集需要显式开启。
 	for providerType, enabled := range settings.Providers {
 		if _, ok := supportedProviderQuotaTypeSet[providerType]; ok {
 			normalized.Providers[providerType] = enabled

@@ -39,6 +39,8 @@ import {
 import { useQuotaRoutingSettings, type QuotaRoutingMode } from '@/features/system/data/system';
 import type { ChannelQuotaRoutingMode } from '@/features/channels/data/schema';
 import { capitalizeZenmuxTier, getZenmuxMonthlyQuotaUSD, getZenmuxUsagePercentage } from '@/features/system/data/zenmux-quota-display';
+import { DeepSeekBalanceBars } from '@/components/deepseek-balance-bars';
+import { parseDeepSeekBalances } from '@/features/system/data/deepseek-balance-display';
 
 const syntheticWeeklyRegenTickPct = 0.02;
 
@@ -262,6 +264,9 @@ function getChannelPercentage(channel: ProviderQuotaChannel): number {
     }
   } else if (isZenmuxType(channel.type)) {
     percentage = getZenmuxUsagePercentage(channel.quotaStatus.limits);
+  } else if (channel.type === 'deepseek' || channel.type === 'deepseek_anthropic') {
+    const balances = parseDeepSeekBalances(channel.quotaStatus.quotaData, channel.quotaStatus.status);
+    percentage = balances.length > 0 ? Math.max(...balances.map((balance) => 100 - balance.remainingPercent)) : 0;
   }
   return percentage;
 }
@@ -423,6 +428,14 @@ function QuotaRow({ channel, effectiveMode }: { channel: ProviderQuotaChannel; e
     const date = new Date(value);
     return Number.isNaN(date.getTime()) ? value : format(date, 'yyyy-MM-dd HH:mm');
   };
+  if (channel.type === 'deepseek' || channel.type === 'deepseek_anthropic') {
+    return (
+      <div className='border-border border-b py-3 last:border-0'>
+        <div className='mb-2 truncate text-sm font-medium'>{channel.name}</div>
+        <DeepSeekBalanceBars quotaData={quota.quotaData} status={status} />
+      </div>
+    );
+  }
   return (
     <div className='space-y-3 border-b py-3 first:pt-1 last:border-0 last:pb-1'>
       <div className='flex items-center justify-between'>

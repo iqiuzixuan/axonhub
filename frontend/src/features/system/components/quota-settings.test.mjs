@@ -41,6 +41,13 @@ const systemData = read('features/system/data/system.ts');
 const enSystem = JSON.parse(read('locales/en/system.json'));
 const zhSystem = JSON.parse(read('locales/zh-CN/system.json'));
 
+test('DeepSeek collection switch is localized and uses the persisted provider settings', () => {
+  assert.equal(enSystem['system.quota.collection.providers.deepseek'], 'DeepSeek');
+  assert.equal(zhSystem['system.quota.collection.providers.deepseek'], 'DeepSeek');
+  assert.match(source, /checked=\{provider\.enabled\}/);
+  assert.match(source, /handleCollectionProviderChange\(provider\.provider, checked\)/);
+});
+
 const ROUTING_KEYS = [
   'system.quota.routing.title',
   'system.quota.routing.description',

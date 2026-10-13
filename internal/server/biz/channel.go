@@ -876,7 +876,8 @@ func (svc *ChannelService) UpdateChannel(ctx context.Context, id int, input *ent
 			(input.Settings.ProviderQuota != nil && input.Settings.ProviderQuota.CommandCode != nil))
 	qianwenQuotaSettings := input.Settings != nil && (isQianwenTokenPlanChannelType(effectiveType) ||
 		(input.Settings.ProviderQuota != nil && input.Settings.ProviderQuota.QianwenTokenPlan != nil))
-	guardProviderIdentity := input.Type != nil || input.BaseURL != nil || input.Endpoints != nil || commandCodeQuotaSettings || qianwenQuotaSettings
+	deepSeekCredentials := input.Credentials != nil && (effectiveType == channel.TypeDeepseek || effectiveType == channel.TypeDeepseekAnthropic)
+	guardProviderIdentity := input.Type != nil || input.BaseURL != nil || input.Endpoints != nil || commandCodeQuotaSettings || qianwenQuotaSettings || deepSeekCredentials
 
 	// A cleared Command Code quota cookie must invalidate the old persisted
 	// status, regardless of whether the client sent null or an empty object.
@@ -1068,6 +1069,7 @@ func (svc *ChannelService) UpdateChannel(ctx context.Context, id int, input *ent
 
 	var updated *ent.Channel
 	providerIdentityChanged := false
+	deepSeekCredentialsChanged := false
 	clearStaleQuotaSettings := input.Settings == nil && input.Type != nil
 	err = svc.RunInTransaction(ctx, func(ctx context.Context) error {
 		db := svc.entFromContext(ctx)
@@ -1141,6 +1143,10 @@ func (svc *ChannelService) UpdateChannel(ctx context.Context, id int, input *ent
 			if credentials.ManagementAPIKey == "" && isZenmuxChannelType(effectiveType) {
 				credentials.ManagementAPIKey = existing.Credentials.ManagementAPIKey
 			}
+			if effectiveType == channel.TypeDeepseek || effectiveType == channel.TypeDeepseekAnthropic {
+				deepSeekCredentialsChanged = strings.TrimSpace(credentials.APIKey) != strings.TrimSpace(existing.Credentials.APIKey) ||
+					!slices.Equal(credentials.APIKeys, existing.Credentials.APIKeys)
+			}
 			mut.SetCredentials(credentials)
 		}
 
@@ -1194,7 +1200,7 @@ func (svc *ChannelService) UpdateChannel(ctx context.Context, id int, input *ent
 	if ent.TxFromContext(ctx) == nil {
 		updated.Unwrap()
 	}
-	if providerIdentityChanged || quotaCookieCleared || qianwenQuotaSettings {
+	if providerIdentityChanged || quotaCookieCleared || qianwenQuotaSettings || deepSeekCredentialsChanged {
 		runAfterCommit(ctx, func(ctx context.Context) {
 			svc.invalidateProviderQuota(ctx, id)
 		})

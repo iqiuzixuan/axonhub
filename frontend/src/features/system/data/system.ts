@@ -1884,6 +1884,7 @@ export function useUpdateProviderQuotaCollectionSettings() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['providerQuotaCollectionSettings'] });
       queryClient.invalidateQueries({ queryKey: ['provider-quotas'] });
+      queryClient.invalidateQueries({ queryKey: ['channels'] });
       toast.success(i18n.t('common.success.systemUpdated'));
     },
     onError: () => {

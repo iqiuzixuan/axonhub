@@ -804,6 +804,12 @@ export type ProviderQuotaChannel = {
         quotaData: ProviderQuotaDataCommon;
       };
     }
+  | {
+      type: 'deepseek' | 'deepseek_anthropic';
+      quotaStatus: {
+        quotaData: ProviderQuotaDataCommon;
+      };
+    }
 );
 
 type ProviderQuotaStatusNode = {
@@ -1019,6 +1025,13 @@ function parseChannelNode(node: QueryChannelNodeWithQuota): ProviderQuotaChannel
       ...base,
       type: node.type as 'ollama' | 'ollama_anthropic',
       quotaStatus: { ...base.quotaStatus, quotaData: node.providerQuotaStatus.quotaData as ProviderOllamaQuotaData },
+    };
+  }
+  if (node.type === 'deepseek' || node.type === 'deepseek_anthropic') {
+    return {
+      ...base,
+      type: node.type,
+      quotaStatus: { ...base.quotaStatus, quotaData: node.providerQuotaStatus.quotaData as ProviderQuotaDataCommon },
     };
   }
   return {
