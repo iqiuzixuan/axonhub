@@ -9,6 +9,7 @@ import (
 	"io"
 	"mime"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 
@@ -87,9 +88,27 @@ type Params struct {
 
 // isOfficialCodexBaseURL reports whether baseURL points at the official Codex
 // backend. Everything else is treated as a compatible relay that may return a
-// completed JSON response instead of SSE.
+// completed JSON response instead of SSE, and that must not receive the private
+// Responses Lite constructs.
+//
+// The host is compared as a whole: a relay reached through a path or hostname
+// that merely mentions the official domain is still a relay.
 func isOfficialCodexBaseURL(baseURL string) bool {
-	return strings.Contains(strings.ToLower(baseURL), "chatgpt.com")
+	host := ""
+	if parsed, err := url.Parse(baseURL); err == nil && parsed.Host != "" {
+		host = parsed.Hostname()
+	} else {
+		// Tolerate a base URL written without a scheme, e.g. "chatgpt.com/v1".
+		remainder := strings.TrimPrefix(strings.TrimPrefix(baseURL, "//"), "/")
+		host = strings.SplitN(remainder, "/", 2)[0]
+		if idx := strings.Index(host, ":"); idx >= 0 {
+			host = host[:idx]
+		}
+	}
+
+	host = strings.ToLower(host)
+
+	return host == "chatgpt.com" || strings.HasSuffix(host, ".chatgpt.com")
 }
 
 // isOfficialCodex reports whether the transformer targets the official Codex backend.
@@ -116,6 +135,8 @@ func NewOutboundTransformer(params Params) (*OutboundTransformer, error) {
 		imageMainModel = defaultImageMainModel
 	}
 
+	official := isOfficialCodexBaseURL(baseURL)
+
 	// The underlying responses outbound requires baseURL/apiKey. We only need its request body logic.
 	// Use a dummy config and then override URL/auth.
 	ro, err := responses.NewOutboundTransformerWithConfig(&responses.Config{
@@ -133,7 +154,7 @@ func NewOutboundTransformer(params Params) (*OutboundTransformer, error) {
 		baseURL:           strings.TrimSuffix(baseURL, "##"),
 		alphaSearchPath:   alphaSearchPath,
 		imageMainModel:    imageMainModel,
-		official:          isOfficialCodexBaseURL(baseURL),
+		official:          official,
 		responsesOutbound: ro,
 	}, nil
 }
@@ -178,7 +199,6 @@ func (t *OutboundTransformer) TransformRequest(ctx context.Context, llmReq *llm.
 
 	rawSessionID := ""
 	rawOriginator := ""
-	rawUserAgent := ""
 	rawTurnMetadata := ""
 
 	var rawHeaders http.Header
@@ -191,8 +211,11 @@ func (t *OutboundTransformer) TransformRequest(ctx context.Context, llmReq *llm.
 		}
 		// Remove underscore variant to prevent it from leaking upstream via MergeInboundRequest.
 		llmReq.RawRequest.Headers.Del(SessionHeader)
+		// The ChatGPT Codex backend does not consume client attribution headers,
+		// so drop them before MergeInboundRequest can forward the client's
+		// fingerprint to chatgpt.com.
+		ScrubClientFingerprintHeaders(llmReq.RawRequest.Headers)
 		rawOriginator = llmReq.RawRequest.Headers.Get("Originator")
-		rawUserAgent = llmReq.RawRequest.Headers.Get("User-Agent")
 		rawTurnMetadata = llmReq.RawRequest.Headers.Get(TurnMetadataHeader)
 
 		// Responses Lite selects a private Codex protocol mode. It is not
@@ -288,16 +311,19 @@ func (t *OutboundTransformer) TransformRequest(ctx context.Context, llmReq *llm.
 		hreq.Headers.Set("Accept", "text/event-stream")
 	}
 
+	// The transformer owns the outbound User-Agent. The inbound client UA must
+	// not be copied here: client-UA forwarding is owned solely by the
+	// orchestrator's user-agent pass-through middleware, which runs after this
+	// transformer and overwrites this default when the switch is enabled. When
+	// the switch is off the upstream sees this Codex-client-like fingerprint
+	// instead of the client's private identity.
 	hreq.Headers.Del("User-Agent")
+	hreq.Headers.Set("User-Agent", codexDefaultUserAgent)
 
 	if rawOriginator != "" {
 		hreq.Headers.Set("Originator", rawOriginator)
 	} else {
 		hreq.Headers.Set("Originator", AxonHubOriginator)
-	}
-
-	if rawUserAgent != "" {
-		hreq.Headers.Set("User-Agent", rawUserAgent)
 	}
 
 	for _, header := range PassthroughHeaders {

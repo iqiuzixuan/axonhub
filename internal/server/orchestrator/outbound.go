@@ -514,6 +514,8 @@ func (p *PersistentOutboundTransformer) TransformError(ctx context.Context, rawE
 }
 
 func (p *PersistentOutboundTransformer) TransformRequest(ctx context.Context, llmRequest *llm.Request) (*httpclient.Request, error) {
+	hasAdditionalTools := containsAdditionalToolsInputItems(llmRequest)
+
 	// Candidates should already be selected by inbound transformer
 	if len(p.state.ChannelModelsCandidates) == 0 {
 		return nil, errors.New("no candidates available: candidates should be selected by inbound transformer")
@@ -590,8 +592,30 @@ func (p *PersistentOutboundTransformer) TransformRequest(ctx context.Context, ll
 	if httpRequest.APIFormat != "" {
 		outboundFormat = llm.APIFormat(httpRequest.APIFormat)
 	}
+	if hasAdditionalTools && !isResponsesFormat(outboundFormat) {
+		return nil, fmt.Errorf(
+			"%w: %w: additional_tools input items cannot be converted to %s",
+			transformer.ErrUnsupportedConversion,
+			transformer.ErrInvalidRequest,
+			outboundFormat,
+		)
+	}
 
 	return httpRequest, nil
+}
+
+func containsAdditionalToolsInputItems(request *llm.Request) bool {
+	if request == nil || request.ProviderExtensions == nil || request.ProviderExtensions.OpenAIResponses == nil || request.ProviderExtensions.OpenAIResponses.Request == nil {
+		return false
+	}
+
+	for _, fragment := range request.ProviderExtensions.OpenAIResponses.Request.RawInputItems {
+		if fragment.Type == "additional_tools" {
+			return true
+		}
+	}
+
+	return false
 }
 
 func filterResponseCustomToolMessagesForNonResponsesOutbound(
@@ -818,6 +842,14 @@ func (p *PersistentOutboundTransformer) CanRetry(err error) bool {
 // This will reset the request execution for the same channel, so that the same request can be retried.
 // It will try the next model in the same channel if available.
 func (p *PersistentOutboundTransformer) PrepareForRetry(ctx context.Context) error {
+	// fork: re-read the channel state so a credential disabled mid-request is
+	// picked up before the next same-channel attempt, and so a channel that has
+	// left service ends the retry instead of burning the remaining budget
+	// (see retry_channel_refresh.go).
+	if err := p.refreshChannelBeforeRetry(ctx); err != nil {
+		return err
+	}
+
 	candidate := p.state.CurrentCandidate
 
 	// Reset request execution for the same channel.
