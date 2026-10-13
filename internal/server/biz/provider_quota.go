@@ -82,6 +82,8 @@ var providerQuotaChannelTypes = []channel.Type{
 	channel.TypeCommandcodeAnthropic,
 	channel.TypeOllama,
 	channel.TypeOllamaAnthropic,
+	channel.TypeDeepseek,
+	channel.TypeDeepseekAnthropic,
 }
 
 // quotaErrorBackoff returns the next-check delay after `failures` consecutive
@@ -399,6 +401,7 @@ func (svc *ProviderQuotaService) registerProviderQuotaSupport() {
 	svc.registerCharmHyperSupport()
 	svc.registerCommandCodeSupport()
 	svc.registerOllamaSupport()
+	svc.checkers["deepseek"] = provider_quota.NewDeepSeekQuotaChecker(svc.httpClient)
 }
 
 func (svc *ProviderQuotaService) RegisterScheduledTasks(ctx context.Context, s *scheduler.Scheduler) error {
@@ -941,6 +944,28 @@ func (svc *ProviderQuotaService) saveQuotaError(
 
 	if ch.Edges.ProviderQuotaStatus != nil {
 		existing := ch.Edges.ProviderQuotaStatus
+		if providerType == "deepseek" && existing.ProviderType == pt {
+			// Hide failed balance reads and disable quota gating while preserving
+			// the last observation and baseline for recovery with the same key.
+			data := lo.Assign(map[string]any{}, existing.QuotaData, map[string]any{
+				"error_code": errorCode, "error_count": failures,
+			})
+			delete(data, "error")
+			err := svc.db.ProviderQuotaStatus.UpdateOne(existing).
+				SetAccountKey(accountKey).
+				SetStatus(providerquotastatus.StatusUnknown).
+				SetReady(false).
+				SetQuotaData(data).
+				ClearNextResetAt().
+				SetNextCheckAt(nextCheck).
+				Exec(ctx)
+			if err != nil {
+				log.Error(ctx, "Failed to save DeepSeek balance error", log.Int("channel_id", ch.ID), log.Cause(err))
+				return
+			}
+			svc.updateQuotaCache(ch.ID, providerType, providerquotastatus.StatusUnknown, false, nil)
+			return
+		}
 		providerChanged := existing.ProviderType != pt
 		invalidCredentials := errors.Is(quotaErr, provider_quota.ErrInvalidCredentials)
 		if providerChanged || invalidCredentials {
@@ -1061,6 +1086,8 @@ func (svc *ProviderQuotaService) getProviderType(ch *ent.Channel) string {
 		return "commandcode"
 	case channel.TypeOllama, channel.TypeOllamaAnthropic:
 		return "ollama"
+	case channel.TypeDeepseek, channel.TypeDeepseekAnthropic:
+		return "deepseek"
 	default:
 		return ""
 	}

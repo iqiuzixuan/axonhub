@@ -53,6 +53,23 @@ const { buildQueryChannelsQuery } = await import(
 
 const columnsSource = read('features/channels/components/channels-columns.tsx');
 
+test('DeepSeek balance-only data reaches the shared amount bar for both protocols', () => {
+  for (const type of ['deepseek', 'deepseek_anthropic']) {
+    const quotaData = { balance_infos: [{ currency: 'CNY', total_balance: '60', baseline_balance: '100' }] };
+    const channel = channelSchema.parse(channelFixture({
+      type,
+      providerQuotaStatus: { status: 'available', ready: true, nextResetAt: null, quotaData, providerType: 'deepseek' },
+    }));
+    const parsed = parseChannelNode(channel);
+    assert.equal(parsed.type, type);
+    assert.deepEqual(parsed.quotaStatus.quotaData, quotaData);
+    assert.deepEqual(parsed.quotaStatus.limits, []);
+  }
+  const cell = columnsSource.slice(columnsSource.indexOf('const QuotaCell ='), columnsSource.indexOf("QuotaCell.displayName"));
+  assert.match(cell, /channel\.type === 'deepseek' \|\| channel\.type === 'deepseek_anthropic'/);
+  assert.match(cell, /<DeepSeekBalanceBars/);
+});
+
 function channelFixture({ type, providerQuotaStatus }) {
   return {
     id: 'channel-1',
