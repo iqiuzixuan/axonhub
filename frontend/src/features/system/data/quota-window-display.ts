@@ -2,6 +2,10 @@ import type { TFunction } from 'i18next';
 import type { ProviderQuotaLimit } from './quotas';
 
 export const QUOTA_WINDOW_LABEL_KEYS: Record<string, string> = {
+  gemini_5h: 'quota.window.gemini_5h',
+  gemini_7d: 'quota.window.gemini_7d',
+  claude_gpt_5h: 'quota.window.claude_gpt_5h',
+  claude_gpt_7d: 'quota.window.claude_gpt_7d',
   '5h': 'quota.window.5h',
   '7d': 'quota.window.7d',
   '30d': 'quota.window.30d',
@@ -39,7 +43,7 @@ export function getPeriodQuotaUnavailableReason(limit: ProviderQuotaLimit): stri
 
 export function hasPeriodQuotaWindow(limit: ProviderQuotaLimit): boolean {
   if (limit.periodQuota != null) return true;
-  return limit.type === 'token' && Boolean(limit.window && /^(\d+[smhd]|daily|weekly|monthly|cycle)$/.test(limit.window));
+  return limit.type === 'token' && Boolean(limit.window && /^(\d+[smhd]|daily|weekly|monthly|cycle|(?:gemini|claude_gpt)_(?:5h|7d))$/.test(limit.window));
 }
 
 export function getQuotaWindowUsage(limit: ProviderQuotaLimit): number | undefined {
