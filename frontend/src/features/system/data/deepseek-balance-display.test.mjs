@@ -42,3 +42,10 @@ test('currencies render independently without converting or adding balances', ()
   );
   assert.deepEqual(parseDeepSeekBalances({ balance_infos: [...data().balance_infos, ...data().balance_infos] }, 'available'), []);
 });
+
+test('empty alternate currency does not make a funded account look exhausted', () => {
+  const combined = { balance_infos: [...data('0', '0', 'USD').balance_infos, ...data('485.40', '485.40').balance_infos] };
+  assert.deepEqual(parseDeepSeekBalances(combined, 'available'), [{ currency: 'CNY', totalBalance: 485.4, remainingPercent: 100 }]);
+  const exhausted = { balance_infos: [...data('0', '0', 'USD').balance_infos, ...data('0', '0').balance_infos] };
+  assert.deepEqual(parseDeepSeekBalances(exhausted, 'exhausted').map((b) => b.remainingPercent), [0, 0]);
+});

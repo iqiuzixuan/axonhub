@@ -30,5 +30,8 @@ export function parseDeepSeekBalances(quotaData: unknown, status: string): DeepS
       remainingPercent: baseline > 0 ? Math.max(0, Math.min(100, (total / baseline) * 100)) : 0,
     });
   }
-  return result;
+  // DeepSeek also reports an empty wallet for the other currency. Keep it
+  // out of the bar and aggregate battery while a funded wallet is available.
+  const funded = result.filter((balance) => balance.totalBalance > 0);
+  return funded.length > 0 ? funded : result;
 }
