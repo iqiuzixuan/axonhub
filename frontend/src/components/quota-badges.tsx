@@ -40,6 +40,7 @@ import { useQuotaRoutingSettings, type QuotaRoutingMode } from '@/features/syste
 import type { ChannelQuotaRoutingMode } from '@/features/channels/data/schema';
 import { capitalizeZenmuxTier, getZenmuxMonthlyQuotaUSD, getZenmuxUsagePercentage } from '@/features/system/data/zenmux-quota-display';
 import { DeepSeekBalanceBars } from '@/components/deepseek-balance-bars';
+import { getCPAPoolUsagePercentage } from '@/features/system/data/cpa-quota-display';
 import { parseDeepSeekBalances } from '@/features/system/data/deepseek-balance-display';
 
 const syntheticWeeklyRegenTickPct = 0.02;
@@ -164,7 +165,9 @@ function getChannelPercentage(channel: ProviderQuotaChannel): number {
     percentage = Math.max(util5h, util7d) * 100;
   } else if (channel.type === 'codex') {
     const qd = channel.quotaStatus.quotaData;
-    percentage = qd.rate_limit?.primary_window?.used_percent || 0;
+    percentage = channel.quotaStatus.limits.some((limit) => limit.availabilityGroup === 'cpa_accounts')
+      ? getCPAPoolUsagePercentage(channel.quotaStatus.limits)
+      : qd.rate_limit?.primary_window?.used_percent || 0;
   } else if (channel.type === 'xai_subscription') {
     const qd = channel.quotaStatus.quotaData;
     percentage = Math.max(qd.billing?.weekly?.usage_percent ?? 0, qd.billing?.monthly?.usage_percent ?? 0);
@@ -715,7 +718,7 @@ function QuotaRow({ channel, effectiveMode }: { channel: ProviderQuotaChannel; e
                   .map((limit, index) => {
                     const labelKey = limit.window === '5h' || limit.window === '7d' ? WINDOW_LABEL_KEYS[limit.window] : undefined;
                     const label = labelKey ? t(labelKey) : t('quota.label.token_usage');
-                    const usedPercent = limit.status === 'exhausted' ? 100 : limit.usageRatio * 100;
+                    const usedPercent = limit.availabilityGroup !== 'cpa_accounts' && limit.status === 'exhausted' ? 100 : limit.usageRatio * 100;
                     const durationPercent = getLimitDurationPercent(limit);
 
                     return (
@@ -725,7 +728,7 @@ function QuotaRow({ channel, effectiveMode }: { channel: ProviderQuotaChannel; e
                       >
                         <div className='space-y-1'>
                           <div className='flex items-center justify-between text-xs'>
-                            <span className='text-muted-foreground font-medium'>{label}</span>
+                            <span className='text-muted-foreground font-medium'>{label}{limit.account ? ` · ${limit.account}` : ''}</span>
                             <span className='text-foreground font-medium'>
                               {t('quota.label.percent_used', { percent: Math.round(usedPercent) })}
                             </span>
@@ -751,7 +754,13 @@ function QuotaRow({ channel, effectiveMode }: { channel: ProviderQuotaChannel; e
                     );
                   })}
 
-                <div className='border-border/60 space-y-2 border-t border-dashed pt-3'>
+                {qd.quota_source === 'cpa' && qd.accounts?.filter((account) => account.status === 'unknown').map((account) => (
+                  <div key={account.label} className='text-muted-foreground flex justify-between text-xs'>
+                    <span>{account.label}</span>
+                    <span>{t('quota.label.unavailable')}</span>
+                  </div>
+                ))}
+                {qd._resets?.supported !== false && (<div className='border-border/60 space-y-2 border-t border-dashed pt-3'>
                   <div className='flex items-center justify-between text-xs'>
                     <span className='text-muted-foreground font-medium'>{t('quota.codex.availableResets')}</span>
                     <span className='text-foreground font-medium'>
@@ -783,7 +792,7 @@ function QuotaRow({ channel, effectiveMode }: { channel: ProviderQuotaChannel; e
                       </Button>
                     </div>
                   )}
-                </div>
+                </div>)}
               </>
             );
           })()}

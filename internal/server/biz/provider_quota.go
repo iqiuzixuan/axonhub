@@ -651,7 +651,7 @@ func (svc *ProviderQuotaService) ListResets(ctx context.Context, channelID int) 
 	}
 
 	providerType := svc.getProviderType(ch)
-	checker, ok := svc.checkers[providerType]
+	checker, ok := svc.quotaCheckerForChannel(providerType, ch)
 	if !ok {
 		return provider_quota.ResetList{Supported: false}, nil
 	}
@@ -688,7 +688,7 @@ func (svc *ProviderQuotaService) ResetChannelQuotaNow(ctx context.Context, chann
 	}
 
 	providerType := svc.getProviderType(ch)
-	checker, ok := svc.checkers[providerType]
+	checker, ok := svc.quotaCheckerForChannel(providerType, ch)
 	if !ok {
 		return fmt.Errorf("%w for provider %q", provider_quota.ErrResetUnsupported, providerType)
 	}
@@ -827,7 +827,7 @@ func (svc *ProviderQuotaService) checkChannelQuota(ctx context.Context, group qu
 		return
 	}
 
-	checker, ok := svc.checkers[providerType]
+	checker, ok := svc.quotaCheckerForChannel(providerType, ch)
 	if !ok {
 		log.Error(ctx, "No checker for provider",
 			log.String("provider", providerType),
@@ -1093,7 +1093,19 @@ func (svc *ProviderQuotaService) getProviderType(ch *ent.Channel) string {
 	}
 }
 
+func (svc *ProviderQuotaService) quotaCheckerForChannel(providerType string, ch *ent.Channel) (provider_quota.QuotaChecker, bool) {
+	if provider_quota.CPASettings(ch) != nil {
+		return provider_quota.NewCPAQuotaChecker(svc.httpClient), true
+	}
+	checker, ok := svc.checkers[providerType]
+	return checker, ok
+}
+
 func hasCredentialsForProvider(ch *ent.Channel) bool {
+	if provider_quota.CPASettings(ch) != nil {
+		return !ch.Credentials.IsOAuth() && strings.TrimSpace(ch.Credentials.ManagementAPIKey) != ""
+	}
+
 	if ch.Type == channel.TypeQianwenTokenPlan || ch.Type == channel.TypeQianwenTokenPlanAnthropic {
 		if ch.Settings == nil || ch.Settings.ProviderQuota == nil || ch.Settings.ProviderQuota.QianwenTokenPlan == nil {
 			return false

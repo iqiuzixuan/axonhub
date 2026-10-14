@@ -27,7 +27,7 @@ func (svc *ChannelService) DuplicateChannel(ctx context.Context, sourceID int, i
 		if input.Endpoints == nil {
 			input.Endpoints = source.Endpoints
 		}
-		if isZenmuxChannelType(source.Type) && isZenmuxChannelType(input.Type) && input.Credentials.ManagementAPIKey == "" {
+		if (isZenmuxChannelType(source.Type) && isZenmuxChannelType(input.Type) || input.Type == channel.TypeCodex && source.Type == channel.TypeCodex && cpaSettingsPresent(input.Settings, nil)) && input.Credentials.ManagementAPIKey == "" {
 			input.Credentials.ManagementAPIKey = source.Credentials.ManagementAPIKey
 		}
 

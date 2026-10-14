@@ -979,5 +979,21 @@
   "channels.templates.manager.deleting": "删除中...",
   "channels.templates.dialogs.edit.title": "编辑模板",
   "channels.templates.dialogs.edit.description": "更新模板配置。在你重新应用模板之前，改动不会影响任何渠道。",
-  "channels.templates.validation.duplicateName": "已存在名为 \"{{name}}\" 的模板，请更换名称。"
+  "channels.templates.validation.duplicateName": "已存在名为 \"{{name}}\" 的模板，请更换名称。",
+  "channels.dialogs.cpa.thirdPartyType": "第三方类型",
+  "channels.dialogs.cpa.generic": "普通第三方",
+  "channels.dialogs.cpa.managementURL": "CPA 管理地址",
+  "channels.dialogs.cpa.managementURLHint": "填写 CPA 服务地址，可包含反向代理路径。额度采集使用此地址，模型请求仍使用渠道地址。",
+  "channels.dialogs.cpa.managementKey": "CPA 管理密钥",
+  "channels.dialogs.cpa.managementKeyHint": "仅用于后端额度查询，不会用于模型请求。需要 CPA 开放管理接口；采集开关沿用系统设置中的 Codex 开关。",
+  "channels.dialogs.cpa.keepKey": "留空保留已保存的管理密钥",
+  "channels.dialogs.cpa.enterKey": "输入 CPA 管理密钥",
+  "channels.dialogs.cpa.keyRequired": "请输入 CPA 管理密钥",
+  "channels.dialogs.cpa.invalidURL": "请输入有效的 HTTP(S) 管理地址，不包含账号密码、查询参数或片段。",
+  "channels.dialogs.cpa.compatibility": "CPA 接口兼容性",
+  "channels.dialogs.cpa.v8": "CPA 8 及以上",
+  "channels.dialogs.cpa.v0": "旧版 CPA",
+  "channels.dialogs.cpa.authIndex": "Codex 账号标识（可选）",
+  "channels.dialogs.cpa.authIndexPlaceholder": "留空查询启用的 Codex 账号池",
+  "channels.dialogs.cpa.authIndexHint": "填写 CPA 的 auth_index 可限定一个账号；留空查询所有启用的 Codex 账号。选择范围应与渠道实际使用的账号一致。"
 }

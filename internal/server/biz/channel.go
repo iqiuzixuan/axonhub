@@ -526,6 +526,10 @@ func (svc *ChannelService) ListModels(ctx context.Context, input ListModelsInput
 // This is useful for batch operations where reload should happen once at the end.
 func (svc *ChannelService) createChannel(ctx context.Context, input ent.CreateChannelInput) (*ent.Channel, error) {
 	var quotaErr error
+	input.Settings, quotaErr = normalizeCPAQuotaSettings(input.Settings, input.Type)
+	if quotaErr != nil {
+		return nil, quotaErr
+	}
 	input.Settings, quotaErr = normalizeQianwenQuotaSettings(input.Settings, input.Type)
 	if quotaErr != nil {
 		return nil, quotaErr
@@ -859,7 +863,7 @@ func (svc *ChannelService) UpdateChannel(ctx context.Context, id int, input *ent
 	existingIdentity, err := authz.RunWithScopeDecision(ctx, scopes.ScopeWriteChannels, func(queryCtx context.Context) (*ent.Channel, error) {
 		return svc.entFromContext(queryCtx).Channel.Query().
 			Where(channel.IDEQ(id)).
-			Select(channel.FieldType, channel.FieldBaseURL, channel.FieldUpdatedAt).
+			Select(channel.FieldType, channel.FieldBaseURL, channel.FieldUpdatedAt, channel.FieldSettings, channel.FieldCredentials).
 			Only(queryCtx)
 	})
 	if err != nil {
@@ -876,14 +880,19 @@ func (svc *ChannelService) UpdateChannel(ctx context.Context, id int, input *ent
 			(input.Settings.ProviderQuota != nil && input.Settings.ProviderQuota.CommandCode != nil))
 	qianwenQuotaSettings := input.Settings != nil && (isQianwenTokenPlanChannelType(effectiveType) ||
 		(input.Settings.ProviderQuota != nil && input.Settings.ProviderQuota.QianwenTokenPlan != nil))
+	cpaQuotaSettings := provider_quota.CPASettings(existingIdentity) != nil || (input.Settings != nil && input.Settings.ProviderQuota != nil && input.Settings.ProviderQuota.CPA != nil)
 	deepSeekCredentials := input.Credentials != nil && (effectiveType == channel.TypeDeepseek || effectiveType == channel.TypeDeepseekAnthropic)
-	guardProviderIdentity := input.Type != nil || input.BaseURL != nil || input.Endpoints != nil || commandCodeQuotaSettings || qianwenQuotaSettings || deepSeekCredentials
+	guardProviderIdentity := input.Type != nil || input.BaseURL != nil || input.Endpoints != nil || commandCodeQuotaSettings || qianwenQuotaSettings || deepSeekCredentials || cpaQuotaSettings
 
 	// A cleared Command Code quota cookie must invalidate the old persisted
 	// status, regardless of whether the client sent null or an empty object.
 	quotaCookieCleared := false
 
 	if input.Settings != nil {
+		input.Settings, err = normalizeCPAQuotaSettings(input.Settings, effectiveType)
+		if err != nil {
+			return nil, err
+		}
 		input.Settings, err = normalizeQianwenQuotaSettings(input.Settings, effectiveType)
 		if err != nil {
 			return nil, err
@@ -1116,6 +1125,10 @@ func (svc *ChannelService) UpdateChannel(ctx context.Context, id int, input *ent
 			if !isCommandCodeChannelType(*input.Type) {
 				settings = clearCommandCodeQuotaSettings(settings)
 			}
+			settings, err = normalizeCPAQuotaSettings(settings, *input.Type)
+			if err != nil {
+				return err
+			}
 			settings, err = normalizeQianwenQuotaSettings(settings, *input.Type)
 			if err != nil {
 				return err
@@ -1131,7 +1144,7 @@ func (svc *ChannelService) UpdateChannel(ctx context.Context, id int, input *ent
 			credentials := *input.Credentials
 			existing, err := db.Channel.Query().
 				Where(channel.IDEQ(id)).
-				Select(channel.FieldType, channel.FieldCredentials).
+				Select(channel.FieldType, channel.FieldCredentials, channel.FieldSettings).
 				Only(ctx)
 			if err != nil {
 				return fmt.Errorf("failed to load existing channel credentials: %w", err)
@@ -1140,13 +1153,22 @@ func (svc *ChannelService) UpdateChannel(ctx context.Context, id int, input *ent
 			if input.Type != nil {
 				effectiveType = *input.Type
 			}
-			if credentials.ManagementAPIKey == "" && isZenmuxChannelType(effectiveType) {
+			if credentials.ManagementAPIKey == "" && (isZenmuxChannelType(effectiveType) || effectiveType == channel.TypeCodex && cpaSettingsPresent(input.Settings, existing.Settings)) {
 				credentials.ManagementAPIKey = existing.Credentials.ManagementAPIKey
 			}
 			if effectiveType == channel.TypeDeepseek || effectiveType == channel.TypeDeepseekAnthropic {
 				deepSeekCredentialsChanged = strings.TrimSpace(credentials.APIKey) != strings.TrimSpace(existing.Credentials.APIKey) ||
 					!slices.Equal(credentials.APIKeys, existing.Credentials.APIKeys)
 			}
+			mut.SetCredentials(credentials)
+		}
+		if provider_quota.CPASettings(existingIdentity) != nil &&
+			(effectiveType != channel.TypeCodex || !cpaSettingsPresent(input.Settings, existingIdentity.Settings)) {
+			credentials := existingIdentity.Credentials
+			if input.Credentials != nil {
+				credentials = *input.Credentials
+			}
+			credentials.ManagementAPIKey = ""
 			mut.SetCredentials(credentials)
 		}
 
@@ -1200,7 +1222,7 @@ func (svc *ChannelService) UpdateChannel(ctx context.Context, id int, input *ent
 	if ent.TxFromContext(ctx) == nil {
 		updated.Unwrap()
 	}
-	if providerIdentityChanged || quotaCookieCleared || qianwenQuotaSettings || deepSeekCredentialsChanged {
+	if providerIdentityChanged || quotaCookieCleared || qianwenQuotaSettings || deepSeekCredentialsChanged || cpaQuotaIdentityChanged(existingIdentity, updated) {
 		runAfterCommit(ctx, func(ctx context.Context) {
 			svc.invalidateProviderQuota(ctx, id)
 		})

@@ -346,6 +346,12 @@ type ComplexityRoot struct {
 		Updated  func(childComplexity int) int
 	}
 
+	CPAQuotaSettings struct {
+		APIVersion    func(childComplexity int) int
+		AuthIndex     func(childComplexity int) int
+		ManagementURL func(childComplexity int) int
+	}
+
 	CatalogSettings struct {
 		RefreshSeconds func(childComplexity int) int
 		UpstreamURL    func(childComplexity int) int
@@ -552,6 +558,7 @@ type ComplexityRoot struct {
 	}
 
 	ChannelProviderQuotaSettings struct {
+		CPA              func(childComplexity int) int
 		CommandCode      func(childComplexity int) int
 		Ollama           func(childComplexity int) int
 		QianwenTokenPlan func(childComplexity int) int
@@ -3626,6 +3633,25 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.BulkUpdateChannelOrderingResult.Updated(childComplexity), true
 
+	case "CPAQuotaSettings.apiVersion":
+		if e.complexity.CPAQuotaSettings.APIVersion == nil {
+			break
+		}
+
+		return e.complexity.CPAQuotaSettings.APIVersion(childComplexity), true
+	case "CPAQuotaSettings.authIndex":
+		if e.complexity.CPAQuotaSettings.AuthIndex == nil {
+			break
+		}
+
+		return e.complexity.CPAQuotaSettings.AuthIndex(childComplexity), true
+	case "CPAQuotaSettings.managementURL":
+		if e.complexity.CPAQuotaSettings.ManagementURL == nil {
+			break
+		}
+
+		return e.complexity.CPAQuotaSettings.ManagementURL(childComplexity), true
+
 	case "CatalogSettings.refreshSeconds":
 		if e.complexity.CatalogSettings.RefreshSeconds == nil {
 			break
@@ -4446,6 +4472,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.ChannelProbeSetting.Frequency(childComplexity), true
 
+	case "ChannelProviderQuotaSettings.cpa":
+		if e.complexity.ChannelProviderQuotaSettings.CPA == nil {
+			break
+		}
+
+		return e.complexity.ChannelProviderQuotaSettings.CPA(childComplexity), true
 	case "ChannelProviderQuotaSettings.commandCode":
 		if e.complexity.ChannelProviderQuotaSettings.CommandCode == nil {
 			break
@@ -12385,6 +12417,7 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputBulkImportChannelsInput,
 		ec.unmarshalInputBulkUpdateChannelAutoDisableInput,
 		ec.unmarshalInputBulkUpdateChannelOrderingInput,
+		ec.unmarshalInputCPAQuotaSettingsInput,
 		ec.unmarshalInputChannelCredentialsInput,
 		ec.unmarshalInputChannelEndpointInput,
 		ec.unmarshalInputChannelModelAssociationInput,
@@ -21136,6 +21169,93 @@ func (ec *executionContext) fieldContext_BulkUpdateChannelOrderingResult_channel
 	return fc, nil
 }
 
+func (ec *executionContext) _CPAQuotaSettings_managementURL(ctx context.Context, field graphql.CollectedField, obj *objects.CPAQuotaSettings) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CPAQuotaSettings_managementURL,
+		func(ctx context.Context) (any, error) {
+			return obj.ManagementURL, nil
+		},
+		nil,
+		ec.marshalNString2string,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_CPAQuotaSettings_managementURL(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CPAQuotaSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CPAQuotaSettings_apiVersion(ctx context.Context, field graphql.CollectedField, obj *objects.CPAQuotaSettings) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CPAQuotaSettings_apiVersion,
+		func(ctx context.Context) (any, error) {
+			return obj.APIVersion, nil
+		},
+		nil,
+		ec.marshalOCPAManagementAPIVersion2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐCPAManagementAPIVersion,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CPAQuotaSettings_apiVersion(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CPAQuotaSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type CPAManagementAPIVersion does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _CPAQuotaSettings_authIndex(ctx context.Context, field graphql.CollectedField, obj *objects.CPAQuotaSettings) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_CPAQuotaSettings_authIndex,
+		func(ctx context.Context) (any, error) {
+			return obj.AuthIndex, nil
+		},
+		nil,
+		ec.marshalOString2string,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_CPAQuotaSettings_authIndex(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "CPAQuotaSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _CatalogSettings_upstreamURL(ctx context.Context, field graphql.CollectedField, obj *biz.CatalogSettings) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -25757,6 +25877,43 @@ func (ec *executionContext) fieldContext_ChannelProviderQuotaSettings_qianwenTok
 	return fc, nil
 }
 
+func (ec *executionContext) _ChannelProviderQuotaSettings_cpa(ctx context.Context, field graphql.CollectedField, obj *objects.ChannelProviderQuotaSettings) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_ChannelProviderQuotaSettings_cpa,
+		func(ctx context.Context) (any, error) {
+			return obj.CPA, nil
+		},
+		nil,
+		ec.marshalOCPAQuotaSettings2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐCPAQuotaSettings,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_ChannelProviderQuotaSettings_cpa(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "ChannelProviderQuotaSettings",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			switch field.Name {
+			case "managementURL":
+				return ec.fieldContext_CPAQuotaSettings_managementURL(ctx, field)
+			case "apiVersion":
+				return ec.fieldContext_CPAQuotaSettings_apiVersion(ctx, field)
+			case "authIndex":
+				return ec.fieldContext_CPAQuotaSettings_authIndex(ctx, field)
+			}
+			return nil, fmt.Errorf("no field named %q was found under type CPAQuotaSettings", field.Name)
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _ChannelRateLimit_rpm(ctx context.Context, field graphql.CollectedField, obj *objects.ChannelRateLimit) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -26548,6 +26705,8 @@ func (ec *executionContext) fieldContext_ChannelSettings_providerQuota(_ context
 				return ec.fieldContext_ChannelProviderQuotaSettings_ollama(ctx, field)
 			case "qianwenTokenPlan":
 				return ec.fieldContext_ChannelProviderQuotaSettings_qianwenTokenPlan(ctx, field)
+			case "cpa":
+				return ec.fieldContext_ChannelProviderQuotaSettings_cpa(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type ChannelProviderQuotaSettings", field.Name)
 		},
@@ -69738,6 +69897,47 @@ func (ec *executionContext) unmarshalInputBulkUpdateChannelOrderingInput(ctx con
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputCPAQuotaSettingsInput(ctx context.Context, obj any) (objects.CPAQuotaSettings, error) {
+	var it objects.CPAQuotaSettings
+	asMap := map[string]any{}
+	for k, v := range obj.(map[string]any) {
+		asMap[k] = v
+	}
+
+	fieldsInOrder := [...]string{"managementURL", "apiVersion", "authIndex"}
+	for _, k := range fieldsInOrder {
+		v, ok := asMap[k]
+		if !ok {
+			continue
+		}
+		switch k {
+		case "managementURL":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("managementURL"))
+			data, err := ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ManagementURL = data
+		case "apiVersion":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("apiVersion"))
+			data, err := ec.unmarshalOCPAManagementAPIVersion2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐCPAManagementAPIVersion(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.APIVersion = data
+		case "authIndex":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("authIndex"))
+			data, err := ec.unmarshalOString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.AuthIndex = data
+		}
+	}
+
+	return it, nil
+}
+
 func (ec *executionContext) unmarshalInputChannelCredentialsInput(ctx context.Context, obj any) (objects.ChannelCredentials, error) {
 	var it objects.ChannelCredentials
 	asMap := map[string]any{}
@@ -72394,7 +72594,7 @@ func (ec *executionContext) unmarshalInputChannelProviderQuotaSettingsInput(ctx 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"commandCode", "ollama", "qianwenTokenPlan"}
+	fieldsInOrder := [...]string{"commandCode", "ollama", "qianwenTokenPlan", "cpa"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -72422,6 +72622,13 @@ func (ec *executionContext) unmarshalInputChannelProviderQuotaSettingsInput(ctx 
 				return it, err
 			}
 			it.QianwenTokenPlan = data
+		case "cpa":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cpa"))
+			data, err := ec.unmarshalOCPAQuotaSettingsInput2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐCPAQuotaSettings(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.CPA = data
 		}
 	}
 
@@ -96827,6 +97034,49 @@ func (ec *executionContext) _BulkUpdateChannelOrderingResult(ctx context.Context
 	return out
 }
 
+var cPAQuotaSettingsImplementors = []string{"CPAQuotaSettings"}
+
+func (ec *executionContext) _CPAQuotaSettings(ctx context.Context, sel ast.SelectionSet, obj *objects.CPAQuotaSettings) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, cPAQuotaSettingsImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	deferred := make(map[string]*graphql.FieldSet)
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("CPAQuotaSettings")
+		case "managementURL":
+			out.Values[i] = ec._CPAQuotaSettings_managementURL(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "apiVersion":
+			out.Values[i] = ec._CPAQuotaSettings_apiVersion(ctx, field, obj)
+		case "authIndex":
+			out.Values[i] = ec._CPAQuotaSettings_authIndex(ctx, field, obj)
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch(ctx)
+	if out.Invalids > 0 {
+		return graphql.Null
+	}
+
+	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
+
+	for label, dfs := range deferred {
+		ec.processDeferredGroup(graphql.DeferredGroup{
+			Label:    label,
+			Path:     graphql.GetPath(ctx),
+			FieldSet: dfs,
+			Context:  ctx,
+		})
+	}
+
+	return out
+}
+
 var catalogSettingsImplementors = []string{"CatalogSettings"}
 
 func (ec *executionContext) _CatalogSettings(ctx context.Context, sel ast.SelectionSet, obj *biz.CatalogSettings) graphql.Marshaler {
@@ -99130,6 +99380,8 @@ func (ec *executionContext) _ChannelProviderQuotaSettings(ctx context.Context, s
 			out.Values[i] = ec._ChannelProviderQuotaSettings_ollama(ctx, field, obj)
 		case "qianwenTokenPlan":
 			out.Values[i] = ec._ChannelProviderQuotaSettings_qianwenTokenPlan(ctx, field, obj)
+		case "cpa":
+			out.Values[i] = ec._ChannelProviderQuotaSettings_cpa(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -123874,6 +124126,34 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	_ = ctx
 	res := graphql.MarshalBoolean(*v)
 	return res
+}
+
+func (ec *executionContext) unmarshalOCPAManagementAPIVersion2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐCPAManagementAPIVersion(ctx context.Context, v any) (objects.CPAManagementAPIVersion, error) {
+	tmp, err := graphql.UnmarshalString(v)
+	res := objects.CPAManagementAPIVersion(tmp)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalOCPAManagementAPIVersion2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐCPAManagementAPIVersion(ctx context.Context, sel ast.SelectionSet, v objects.CPAManagementAPIVersion) graphql.Marshaler {
+	_ = sel
+	_ = ctx
+	res := graphql.MarshalString(string(v))
+	return res
+}
+
+func (ec *executionContext) marshalOCPAQuotaSettings2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐCPAQuotaSettings(ctx context.Context, sel ast.SelectionSet, v *objects.CPAQuotaSettings) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CPAQuotaSettings(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalOCPAQuotaSettingsInput2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐCPAQuotaSettings(ctx context.Context, v any) (*objects.CPAQuotaSettings, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalInputCPAQuotaSettingsInput(ctx, v)
+	return &res, graphql.ErrorOnPath(ctx, err)
 }
 
 func (ec *executionContext) unmarshalOCapabilityPolicy2githubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐCapabilityPolicy(ctx context.Context, v any) (objects.CapabilityPolicy, error) {

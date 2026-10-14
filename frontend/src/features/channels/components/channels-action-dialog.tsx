@@ -126,6 +126,7 @@ export function providerQuotaSettingsForSubmit(
   type: ChannelType | undefined,
   settings: ChannelSettings | null | undefined
 ): ChannelSettings['providerQuota'] {
+  if (type === 'codex') return settings?.providerQuota?.cpa ? { cpa: settings.providerQuota.cpa } : null;
   const key =
     type === 'qianwen_token_plan' || type === 'qianwen_token_plan_anthropic'
       ? 'qianwenTokenPlan'
@@ -859,6 +860,8 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
   const isXAISubscriptionType = activeChannelType === 'xai_subscription';
   const isZenmuxType = ['zenmux', 'zenmux_responses', 'zenmux_anthropic', 'zenmux_gemini', 'zenmux_video'].includes(activeChannelType);
   const isCommandCodeType = activeChannelType === 'commandcode' || activeChannelType === 'commandcode_anthropic';
+  const cpaSettings = form.watch('settings.providerQuota.cpa');
+  const isCPAType = isCodexType && authMode === 'third-party' && !!cpaSettings;
   const isOllamaType = activeChannelType === 'ollama' || activeChannelType === 'ollama_anthropic';
   const isQianwenTokenPlanType = activeChannelType === 'qianwen_token_plan' || activeChannelType === 'qianwen_token_plan_anthropic';
 
@@ -1344,16 +1347,35 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
             type: derivedChannelType,
           };
 
+      if (isCPAType) {
+        const cpa = values.settings?.providerQuota?.cpa;
+        try {
+          const url = new URL(cpa?.managementURL?.trim() ?? '');
+          if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password || url.search || url.hash) throw new Error();
+        } catch {
+          form.setError('settings.providerQuota.cpa.managementURL', { type: 'manual', message: t('channels.dialogs.cpa.invalidURL') });
+          return;
+        }
+        if (!isEdit && !isDuplicate && !values.credentials?.managementApiKey?.trim()) {
+          form.setError('credentials.managementApiKey', { type: 'manual', message: t('channels.dialogs.cpa.keyRequired') });
+          return;
+        }
+      }
+
       const dataWithModels = {
         ...valuesForSubmit,
         supportedModels,
         manualModels,
         credentials: valuesForSubmit.credentials,
       };
+      if (!isCPAType && !isZenmuxType && dataWithModels.credentials) {
+        dataWithModels.credentials = { ...dataWithModels.credentials };
+        delete dataWithModels.credentials.managementApiKey;
+      }
       const settingsForSubmit = values.settings
         ? {
             ...values.settings,
-            providerQuota: providerQuotaSettingsForSubmit(valuesForSubmit.type, values.settings),
+            providerQuota: isCodexType && authMode !== 'third-party' ? null : providerQuotaSettingsForSubmit(valuesForSubmit.type, values.settings),
           }
         : undefined;
 
@@ -1411,7 +1433,7 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
           'zenmux_anthropic',
           'zenmux_gemini',
           'zenmux_video',
-        ].includes(finalChannelType);
+        ].includes(finalChannelType) || (finalChannelType === 'codex' && isCPAType);
         if (!keepsManagementApiKey && updateInput.credentials) {
           delete updateInput.credentials.managementApiKey;
         }
@@ -2545,6 +2567,119 @@ export function ChannelsActionDialog({ currentRow, duplicateFromRow, open, onOpe
                             )}
                           />
                         )}
+
+                      {isCodexType && authMode === 'third-party' && (
+                        <FormField
+                          control={form.control}
+                          name='settings.providerQuota.cpa'
+                          render={({ field }) => (
+                            <FormItem className='grid grid-cols-1 items-start gap-x-6 gap-y-2 md:grid-cols-8'>
+                              <FormLabel className='pt-2 font-medium md:col-span-2 md:text-right'>{t('channels.dialogs.cpa.thirdPartyType')}</FormLabel>
+                              <div className='space-y-1 md:col-span-6'>
+                                <Select
+                                  value={isCPAType ? 'cpa' : 'generic'}
+                                  onValueChange={(value) => {
+                                    field.onChange(value === 'cpa' ? { managementURL: '', apiVersion: 'V8', authIndex: '' } : null);
+                                  }}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger>
+                                      <SelectValue />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    <SelectItem value='generic'>{t('channels.dialogs.cpa.generic')}</SelectItem>
+                                    <SelectItem value='cpa'>CLIProxyAPI (CPA)</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </FormItem>
+                          )}
+                        />
+                      )}
+
+                      {isCPAType && (
+                        <>
+                          <FormField
+                            control={form.control}
+                            name='settings.providerQuota.cpa.managementURL'
+                            render={({ field }) => (
+                              <FormItem className='grid grid-cols-1 items-start gap-x-6 gap-y-2 md:grid-cols-8'>
+                                <FormLabel className='pt-2 font-medium md:col-span-2 md:text-right'>{t('channels.dialogs.cpa.managementURL')}</FormLabel>
+                                <div className='space-y-1 md:col-span-6'>
+                                  <FormControl>
+                                    <Input {...field} value={field.value ?? ''} placeholder='http://cpa:8317' />
+                                  </FormControl>
+                                  <FormDescription>{t('channels.dialogs.cpa.managementURLHint')}</FormDescription>
+                                  <FormMessage />
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name='credentials.managementApiKey'
+                            render={({ field }) => (
+                              <FormItem className='grid grid-cols-1 items-start gap-x-6 gap-y-2 md:grid-cols-8'>
+                                <FormLabel className='pt-2 font-medium md:col-span-2 md:text-right'>{t('channels.dialogs.cpa.managementKey')}</FormLabel>
+                                <div className='space-y-1 md:col-span-6'>
+                                  <FormControl>
+                                    <Input
+                                      {...field}
+                                      value={field.value ?? ''}
+                                      type='password'
+                                      autoComplete='new-password'
+                                      data-form-type='other'
+                                      spellCheck={false}
+                                      placeholder={t(isEdit || isDuplicate ? 'channels.dialogs.cpa.keepKey' : 'channels.dialogs.cpa.enterKey')}
+                                    />
+                                  </FormControl>
+                                  <FormDescription>{t('channels.dialogs.cpa.managementKeyHint')}</FormDescription>
+                                  <FormMessage />
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name='settings.providerQuota.cpa.apiVersion'
+                            render={({ field }) => (
+                              <FormItem className='grid grid-cols-1 items-start gap-x-6 gap-y-2 md:grid-cols-8'>
+                                <FormLabel className='pt-2 font-medium md:col-span-2 md:text-right'>{t('channels.dialogs.cpa.compatibility')}</FormLabel>
+                                <div className='md:col-span-6'>
+                                  <Select value={field.value ?? 'V8'} onValueChange={field.onChange}>
+                                    <FormControl>
+                                      <SelectTrigger>
+                                        <SelectValue />
+                                      </SelectTrigger>
+                                    </FormControl>
+                                    <SelectContent>
+                                      <SelectItem value='V8'>{t('channels.dialogs.cpa.v8')}</SelectItem>
+                                      <SelectItem value='V0'>{t('channels.dialogs.cpa.v0')}</SelectItem>
+                                    </SelectContent>
+                                  </Select>
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name='settings.providerQuota.cpa.authIndex'
+                            render={({ field }) => (
+                              <FormItem className='grid grid-cols-1 items-start gap-x-6 gap-y-2 md:grid-cols-8'>
+                                <FormLabel className='pt-2 font-medium md:col-span-2 md:text-right'>{t('channels.dialogs.cpa.authIndex')}</FormLabel>
+                                <div className='space-y-1 md:col-span-6'>
+                                  <FormControl>
+                                    <Input {...field} value={field.value ?? ''} placeholder={t('channels.dialogs.cpa.authIndexPlaceholder')} />
+                                  </FormControl>
+                                  <FormDescription>{t('channels.dialogs.cpa.authIndexHint')}</FormDescription>
+                                  <FormMessage />
+                                </div>
+                              </FormItem>
+                            )}
+                          />
+                        </>
+                      )}
 
                       {isZenmuxType && (
                         <FormField

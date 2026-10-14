@@ -348,3 +348,20 @@ test('channel queries recall the Qianwen quota cookie for edit, duplicate, and r
   assert.equal(providerQuotaBlocks.length, 7);
   assert.equal((source.match(/qianwenTokenPlan\s*\{\s*authCookie\s*\}/g) ?? []).length, providerQuotaBlocks.length);
 });
+
+
+test('CPA account windows stay separate while existing multi-key providers retain their collapse behavior', async () => {
+  const ast = ts.createSourceFile('columns.tsx', columnsSource, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const helper = ast.statements.find((node) => ts.isFunctionDeclaration(node) && node.name?.text === 'collapseQuotaLimitsByWindow');
+  assert.ok(helper);
+  const { outputText } = ts.transpileModule('export ' + helper.getText(ast), { compilerOptions: { module: ts.ModuleKind.ESNext, target: ts.ScriptTarget.ES2023 } });
+  const { collapseQuotaLimitsByWindow } = await import(`data:text/javascript;base64,${Buffer.from(outputText).toString('base64')}`);
+  const limits = parseQuotaLimits({ _limits: [
+    { type: 'token', window: '7d', status: 'exhausted', ready: false, usageRatio: 1, account: 'a', availabilityGroup: 'cpa_accounts' },
+    { type: 'token', window: '7d', status: 'available', ready: true, usageRatio: .11, account: 'b', availabilityGroup: 'cpa_accounts' },
+  ] });
+  assert.equal(limits[0].availabilityGroup, 'cpa_accounts');
+  assert.equal(collapseQuotaLimitsByWindow(limits).length, 2);
+  const oldProviderLimits = limits.map(({ availabilityGroup, ...limit }) => limit);
+  assert.deepEqual(collapseQuotaLimitsByWindow(oldProviderLimits), [oldProviderLimits[0]]);
+});

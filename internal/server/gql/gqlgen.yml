@@ -167,6 +167,15 @@ models:
   ChannelProviderQuotaSettings:
     model:
       - github.com/looplj/axonhub/internal/objects.ChannelProviderQuotaSettings
+  CPAManagementAPIVersion:
+    model:
+      - github.com/looplj/axonhub/internal/objects.CPAManagementAPIVersion
+  CPAQuotaSettings:
+    model:
+      - github.com/looplj/axonhub/internal/objects.CPAQuotaSettings
+  CPAQuotaSettingsInput:
+    model:
+      - github.com/looplj/axonhub/internal/objects.CPAQuotaSettings
   ChannelProviderQuotaSettingsInput:
     model:
       - github.com/looplj/axonhub/internal/objects.ChannelProviderQuotaSettings

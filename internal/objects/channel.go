@@ -261,6 +261,25 @@ type ChannelProviderQuotaSettings struct {
 	Ollama *OllamaQuotaSettings `json:"ollama,omitempty"`
 
 	QianwenTokenPlan *QianwenTokenPlanQuotaSettings `json:"qianwenTokenPlan,omitempty"`
+
+	// CPA is explicitly configured only for third-party Codex quota collection.
+	CPA *CPAQuotaSettings `json:"cpa,omitempty"`
+}
+
+type CPAManagementAPIVersion string
+
+const (
+	CPAManagementAPIVersionV8 CPAManagementAPIVersion = "V8"
+	CPAManagementAPIVersionV0 CPAManagementAPIVersion = "V0"
+)
+
+// CPAQuotaSettings selects the management endpoint and optional credential.
+// An empty AuthIndex collects the enabled Codex account pool. The management
+// key lives in ChannelCredentials, separate from inference credentials.
+type CPAQuotaSettings struct {
+	ManagementURL string                  `json:"managementURL"`
+	APIVersion    CPAManagementAPIVersion `json:"apiVersion,omitempty"`
+	AuthIndex     string                  `json:"authIndex,omitempty"`
 }
 
 // QianwenTokenPlanQuotaSettings authenticates personal-plan quota reads against

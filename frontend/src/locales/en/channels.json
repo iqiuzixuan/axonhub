@@ -979,5 +979,21 @@
   "channels.templates.manager.deleting": "Deleting...",
   "channels.templates.dialogs.edit.title": "Edit Template",
   "channels.templates.dialogs.edit.description": "Update the template configuration. Changes do not affect channels until you apply the template again.",
-  "channels.templates.validation.duplicateName": "A template named \"{{name}}\" already exists. Choose a different name."
+  "channels.templates.validation.duplicateName": "A template named \"{{name}}\" already exists. Choose a different name.",
+  "channels.dialogs.cpa.thirdPartyType": "Third-party type",
+  "channels.dialogs.cpa.generic": "Generic third-party",
+  "channels.dialogs.cpa.managementURL": "CPA management URL",
+  "channels.dialogs.cpa.managementURLHint": "Enter the CPA service URL, including any reverse-proxy prefix. Quota polling uses this URL; inference keeps the channel URL.",
+  "channels.dialogs.cpa.managementKey": "CPA management key",
+  "channels.dialogs.cpa.managementKeyHint": "Used only for backend quota polling, never inference. CPA management access is required. Collection follows the Codex switch in system settings.",
+  "channels.dialogs.cpa.keepKey": "Leave empty to keep the saved management key",
+  "channels.dialogs.cpa.enterKey": "Enter the CPA management key",
+  "channels.dialogs.cpa.keyRequired": "Enter a CPA management key",
+  "channels.dialogs.cpa.invalidURL": "Enter an HTTP(S) management URL without credentials, query parameters or a fragment.",
+  "channels.dialogs.cpa.compatibility": "CPA API compatibility",
+  "channels.dialogs.cpa.v8": "CPA 8 and later",
+  "channels.dialogs.cpa.v0": "Legacy CPA",
+  "channels.dialogs.cpa.authIndex": "Codex account ID (optional)",
+  "channels.dialogs.cpa.authIndexPlaceholder": "Leave empty to query the enabled Codex account pool",
+  "channels.dialogs.cpa.authIndexHint": "Enter the CPA auth_index to select one account, or leave empty to query all enabled Codex accounts. The selection should match the accounts this channel uses."
 }
