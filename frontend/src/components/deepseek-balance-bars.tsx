@@ -37,7 +37,7 @@ export function DeepSeekBalanceBars({ quotaData, status }: { quotaData: unknown;
                 style={{ width: `${remaining}%` }}
               />
             </div>
-            <span className={`shrink-0 text-right font-medium tabular-nums ${color}`}>{amount}</span>
+            <span className={`w-20 shrink-0 text-right font-medium tabular-nums ${color}`}>{amount}</span>
           </div>
         );
       })}
