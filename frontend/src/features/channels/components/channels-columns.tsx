@@ -89,6 +89,7 @@ function getQuotaLimits(channel: Channel) {
 // lets the tooltip list every account. Channels without account labels keep
 // their limits untouched.
 function collapseQuotaLimitsByWindow(limits: ReturnType<typeof getQuotaLimits>) {
+  if (limits.some((limit) => limit.availabilityGroup === 'cpa_accounts')) return limits;
   if (!limits.some((limit) => limit.account)) return limits;
 
   const worstByWindow = new Map<string, (typeof limits)[number]>();

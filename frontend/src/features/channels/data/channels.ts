@@ -151,6 +151,11 @@ const CREATE_CHANNEL_MUTATION = `
           qianwenTokenPlan {
             authCookie
           }
+          cpa {
+            managementURL
+            apiVersion
+            authIndex
+          }
         }
       }
       orderingWeight
@@ -245,6 +250,11 @@ const DUPLICATE_CHANNEL_MUTATION = `
           }
           qianwenTokenPlan {
             authCookie
+          }
+          cpa {
+            managementURL
+            apiVersion
+            authIndex
           }
         }
       }
@@ -341,6 +351,11 @@ const BULK_CREATE_CHANNELS_MUTATION = `
           qianwenTokenPlan {
             authCookie
           }
+          cpa {
+            managementURL
+            apiVersion
+            authIndex
+          }
         }
       }
       orderingWeight
@@ -435,6 +450,11 @@ const UPDATE_CHANNEL_MUTATION = `
           }
           qianwenTokenPlan {
             authCookie
+          }
+          cpa {
+            managementURL
+            apiVersion
+            authIndex
           }
         }
       }
@@ -655,6 +675,11 @@ const BULK_IMPORT_CHANNELS_MUTATION = `
             }
             qianwenTokenPlan {
               authCookie
+            }
+            cpa {
+              managementURL
+              apiVersion
+              authIndex
             }
           }
         }
@@ -897,6 +922,11 @@ const BULK_UPDATE_CHANNEL_ORDERING_MUTATION = `
             }
             qianwenTokenPlan {
               authCookie
+            }
+            cpa {
+              managementURL
+              apiVersion
+              authIndex
             }
           }
         }
@@ -1162,6 +1192,11 @@ const CHANNEL_QUERY_FULL_NODE_SELECTION = `
               }
               qianwenTokenPlan {
                 authCookie
+              }
+              cpa {
+                managementURL
+                apiVersion
+                authIndex
               }
             }
           }

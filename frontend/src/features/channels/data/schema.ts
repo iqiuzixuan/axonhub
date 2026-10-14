@@ -345,10 +345,18 @@ export const qianwenTokenPlanQuotaSettingsSchema = z.object({
 });
 export type QianwenTokenPlanQuotaSettings = z.infer<typeof qianwenTokenPlanQuotaSettingsSchema>;
 
+export const cpaQuotaSettingsSchema = z.object({
+  managementURL: z.string(),
+  apiVersion: z.enum(['V8', 'V0']).optional().nullable(),
+  authIndex: z.string().optional().nullable(),
+});
+export type CPAQuotaSettings = z.infer<typeof cpaQuotaSettingsSchema>;
+
 export const channelProviderQuotaSettingsSchema = z.object({
   commandCode: commandCodeQuotaSettingsSchema.optional().nullable(),
   ollama: ollamaQuotaSettingsSchema.optional().nullable(),
   qianwenTokenPlan: qianwenTokenPlanQuotaSettingsSchema.optional().nullable(),
+  cpa: cpaQuotaSettingsSchema.optional().nullable(),
 });
 export type ChannelProviderQuotaSettings = z.infer<typeof channelProviderQuotaSettingsSchema>;
 

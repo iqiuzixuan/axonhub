@@ -49,3 +49,12 @@ test('every settings selection block in channels.ts requests quotaRoutingMode', 
     `settings selection block(s) missing quotaRoutingMode: ${missing.map((b) => b.name).join(', ')}`
   );
 });
+
+
+test('every channel settings operation recalls CPA version, endpoint and account selection', () => {
+  const blocks = extractSettingsBlocks().filter(({ body }) => /providerQuota\s*\{/.test(body));
+  assert.equal(blocks.length, 7);
+  for (const { name, body } of blocks) {
+    assert.match(body, /cpa\s*\{\s*managementURL\s*apiVersion\s*authIndex\s*\}/, name);
+  }
+});

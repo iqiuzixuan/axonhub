@@ -191,16 +191,35 @@ input QianwenTokenPlanQuotaSettingsInput {
   authCookie: String
 }
 
+enum CPAManagementAPIVersion {
+  V8
+  V0
+}
+
+type CPAQuotaSettings {
+  managementURL: String!
+  apiVersion: CPAManagementAPIVersion
+  authIndex: String
+}
+
+input CPAQuotaSettingsInput {
+  managementURL: String!
+  apiVersion: CPAManagementAPIVersion
+  authIndex: String
+}
+
 type ChannelProviderQuotaSettings {
   commandCode: CommandCodeQuotaSettings
   ollama: OllamaQuotaSettings
   qianwenTokenPlan: QianwenTokenPlanQuotaSettings
+  cpa: CPAQuotaSettings
 }
 
 input ChannelProviderQuotaSettingsInput {
   commandCode: CommandCodeQuotaSettingsInput
   ollama: OllamaQuotaSettingsInput
   qianwenTokenPlan: QianwenTokenPlanQuotaSettingsInput
+  cpa: CPAQuotaSettingsInput
 }
 
 type ChannelSettings {

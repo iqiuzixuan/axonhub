@@ -127,3 +127,15 @@ test('other browser-session quota providers retain their own credentials after a
   assert.deepEqual(providerQuotaSettingsForSubmit('ollama_anthropic', settings), { ollama: { authCookie: 'ollama=fixture' } });
   assert.deepEqual(providerQuotaSettingsForSubmit('commandcode', settings), { commandCode: { authCookie: 'command=fixture' } });
 });
+
+
+test('CPA edit and duplicate preserve the explicit source; clearing or changing provider removes it', () => {
+  const cpa = { managementURL: 'http://cpa.example/prefix', apiVersion: 'V8', authIndex: 'account-one' };
+  const settings = { providerQuota: { cpa, qianwenTokenPlan: { authCookie: 'unrelated' } } };
+  const selected = providerQuotaSettingsForSubmit('codex', settings);
+  assert.deepEqual(selected, { cpa });
+  const recalled = wire(mergeChannelSettingsForUpdate({}, { providerQuota: selected }));
+  assert.deepEqual(recalled.providerQuota.cpa, cpa);
+  assert.equal(providerQuotaSettingsForSubmit('codex', { providerQuota: { cpa: null } }), null);
+  assert.equal(providerQuotaSettingsForSubmit('openai', settings), null);
+});

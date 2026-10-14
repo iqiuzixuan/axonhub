@@ -85,6 +85,8 @@ type ProviderClaudeQuotaData = ProviderQuotaDataCommon & {
 };
 
 type ProviderCodexQuotaData = ProviderQuotaDataCommon & {
+  quota_source?: 'cpa';
+  accounts?: Array<{ label: string; status: string }>;
   rate_limit?: {
     primary_window?: {
       used_percent?: number;
@@ -503,6 +505,7 @@ export type ProviderQuotaLimit = {
   ready: boolean;
   window?: string;
   account?: string;
+  availabilityGroup?: string;
   nextResetAt?: string;
   periodStart?: string;
   periodCost?: number;
@@ -562,6 +565,7 @@ function parseQuotaLimit(entry: unknown): ProviderQuotaLimit | undefined {
     ready: limit.ready === true,
     window,
     account,
+    availabilityGroup: optionalString(limit.availabilityGroup),
     nextResetAt,
     periodStart,
     periodCost,
