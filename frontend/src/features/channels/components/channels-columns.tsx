@@ -542,7 +542,7 @@ const QuotaCell = memo(({ row }: { row: Row<Channel> }) => {
         const accountLabel = limit.account ? ` · ${limit.account}` : '';
         return (
           <div key={`${label}-${index}`} className='flex min-w-0 items-center gap-1'>
-            <span className='text-muted-foreground w-28 shrink-0 truncate text-left' title={`${label}${accountLabel}`}>
+            <span className='text-muted-foreground w-20 shrink-0 truncate text-left' title={`${label}${accountLabel}`}>
               {`${label}${accountLabel}`}
             </span>
             <div className='bg-muted h-1.5 min-w-0 flex-1 overflow-hidden rounded-full'>
@@ -551,7 +551,7 @@ const QuotaCell = memo(({ row }: { row: Row<Channel> }) => {
                 style={{ width: `${remaining}%` }}
               />
             </div>
-            <span className={`w-9 shrink-0 text-right font-medium ${quotaColor(remaining)}`}>{remaining}%</span>
+            <span className={`w-20 shrink-0 text-right font-medium tabular-nums ${quotaColor(remaining)}`}>{remaining}%</span>
           </div>
         );
       })}
@@ -975,7 +975,7 @@ export const createColumns = (
       header: ({ column }) => <DataTableColumnHeader column={column} title={t('channels.columns.quota')} className='justify-center' />,
       cell: QuotaCell,
       meta: {
-         className: 'hidden w-[13%] min-w-0 2xl:table-cell text-center',
+        className: 'hidden w-64 min-w-64 2xl:table-cell text-center',
       },
       enableSorting: false,
       enableHiding: true,
