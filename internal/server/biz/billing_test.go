@@ -8,6 +8,7 @@ import (
 	"github.com/looplj/axonhub/internal/authz"
 	"github.com/looplj/axonhub/internal/ent"
 	"github.com/looplj/axonhub/internal/ent/enttest"
+	"github.com/looplj/axonhub/internal/ent/model"
 	"github.com/looplj/axonhub/internal/objects"
 	"github.com/looplj/axonhub/llm"
 	"github.com/samber/lo"
@@ -64,7 +65,7 @@ func TestChannelBillingModes(t *testing.T) {
 			policy, err := service.PrepareBilling(ctx, tc.original)
 			require.NoError(t, err)
 			require.Nil(t, policy.Price, "price must wait for channel selection")
-			billing, channelPrice, err := service.SnapshotRequestPrices(policy, tc.channelID, "actual-B")
+			billing, channelPrice, err := service.SnapshotRequestPrices(ctx, policy, tc.channelID, "actual-B")
 			require.NoError(t, err)
 			require.Equal(t, tc.source, billing.Source)
 			req := db.Request.Create().SetProjectID(1).SetModelID("route-model").SetOriginalModelID(tc.original).
@@ -106,13 +107,13 @@ func TestChannelBillingModes(t *testing.T) {
 
 			if tc.name == "original" {
 				// A retry must resolve the new channel, not retain a prior attempt's price.
-				retry, _, err := service.SnapshotRequestPrices(billing, 2, "actual-B")
+				retry, _, err := service.SnapshotRequestPrices(ctx, billing, 2, "actual-B")
 				require.NoError(t, err)
 				_, cost, ref := requestBillingCost(retry, usage)
 				require.InDelta(t, 20.8, *cost, 1e-9)
 				require.Equal(t, "retry-price", ref)
 				require.Equal(t, "original-price", billing.PriceReference)
-				missing, _, err := service.SnapshotRequestPrices(retry, 3, "actual-B")
+				missing, _, err := service.SnapshotRequestPrices(ctx, retry, 3, "actual-B")
 				require.NoError(t, err)
 				require.Nil(t, missing.Price, "a missing retry price must clear the previous price")
 			}
@@ -133,4 +134,46 @@ func TestRetiredModelPriceDoesNotAffectChannelBilling(t *testing.T) {
 	require.NotNil(t, cost)
 	require.Zero(t, *cost)
 	require.Equal(t, "model:1:legacy", ref)
+}
+
+func TestBillingSnapshotsUseModelLibraryFallback(t *testing.T) {
+	for _, source := range []objects.BillingModelSource{objects.BillingModelSourceOriginal, objects.BillingModelSourceRedirected} {
+		t.Run(string(source), func(t *testing.T) {
+			db := enttest.NewEntClient(t, "sqlite3", "file:billing-library-fallback?mode=memory&_fk=0")
+			defer db.Close()
+			ctx := authz.WithTestBypass(ent.NewContext(t.Context(), db))
+			createModelLibraryPriceEntry(t, ctx, db, "public-A", model.StatusEnabled, objects.ModelCardCost{Input: 10})
+			createModelLibraryPriceEntry(t, ctx, db, "actual-B", model.StatusEnabled, objects.ModelCardCost{Input: 2})
+			channels := NewChannelServiceForTest(db)
+			channels.SetEnabledChannelsForTest([]*Channel{{Channel: &ent.Channel{ID: 1}}})
+			service := NewUsageLogService(db, NewSystemService(SystemServiceParams{Ent: db}), channels)
+			policy := &objects.RequestBilling{Source: source, OriginalModel: "public-A"}
+			billing, costPrice, err := service.SnapshotRequestPrices(ctx, policy, 1, "actual-B")
+			require.NoError(t, err)
+			usage := &llm.Usage{PromptTokens: 1_000_000, TotalTokens: 1_000_000}
+			_, cost, ref := requestBillingCost(costPrice, usage)
+			require.Equal(t, 2.0, *cost)
+			require.Equal(t, "model_library:actual-B", ref)
+			_, charge, billingRef := requestBillingCost(billing, usage)
+			if source == objects.BillingModelSourceOriginal {
+				require.Equal(t, 10.0, *charge)
+				require.Equal(t, "model_library:public-A", billingRef)
+			} else {
+				require.Equal(t, 2.0, *charge)
+				require.Equal(t, ref, billingRef)
+			}
+			row := db.Request.Create().SetProjectID(1).SetModelID("actual-B").SetOriginalModelID("public-A").SetBilling(billing).SetStatus("completed").SetRequestBody([]byte(`{}`)).SaveX(ctx)
+			log, err := service.CreateUsageLog(ctx, CreateUsageLogParams{RequestID: row.ID, ProjectID: 1, ChannelID: 1, ActualModelID: "actual-B", Usage: usage, Billing: billing, ChannelPrice: costPrice, Source: "api", Format: "openai/chat_completions"})
+			require.NoError(t, err)
+			require.Equal(t, charge, log.TotalCost)
+			require.Equal(t, cost, log.ChannelCost)
+			require.Equal(t, billingRef, log.CostPriceReferenceID)
+			// Later catalog edits must not mutate this request's retained billing price.
+			catalog, ok := channels.resolveModelLibraryPrice(ctx, "actual-B")
+			require.True(t, ok)
+			catalog.Items[0].Pricing.UsagePerUnit = lo.ToPtr(decimal.NewFromInt(99))
+			_, frozen, _ := requestBillingCost(billing, usage)
+			require.Equal(t, charge, frozen)
+		})
+	}
 }
