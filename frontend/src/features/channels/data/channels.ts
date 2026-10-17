@@ -1100,6 +1100,11 @@ const CHANNEL_QUERY_FULL_NODE_SELECTION = `
           credentials {
             apiKey
             apiKeys
+            vertexApiKeys {
+              projectID
+              apiKey
+              region
+            }
             gcp {
               region
               projectID
@@ -2277,7 +2282,7 @@ export function useFetchModels() {
   const { handleError } = useErrorHandler();
 
   return useMutation({
-    mutationFn: async (input: { channelType: string; baseURL: string; apiKey?: string; channelID?: string }) => {
+    mutationFn: async (input: { channelType: string; baseURL: string; apiKey?: string; projectID?: string; region?: string; channelID?: string }) => {
       try {
         const data = await graphqlRequest<{
           fetchModels: {

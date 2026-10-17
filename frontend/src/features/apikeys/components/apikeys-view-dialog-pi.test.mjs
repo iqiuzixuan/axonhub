@@ -13,6 +13,7 @@ const pi = await load(readFileSync(new URL('../data/pi-models-config.ts', import
 const passthrough = ({ children }) => React.createElement(React.Fragment, null, children);
 let detail;
 let blocks;
+let codexEnabled = false;
 const models = ['allowed', 'blocked'].map((modelID) => ({ node: {
   modelID, name: modelID, type: 'chat', developer: 'test',
   modelCard: { reasoning: { supported: true }, reasoningEfforts: ['low', 'high'] },
@@ -26,6 +27,7 @@ const mocks = {
     isDialogOpen: { view: true }, closeDialog() {},
     selectedApiKey: { id: 'key-1', name: 'test key', type: 'personal', key: 'ah-test-not-a-real-key' },
   }),
+  useCodexCompatibilityEnabled: () => ({ data: codexEnabled }),
   useApiKey: (id) => { assert.equal(id, 'key-1'); return { data: detail }; },
   useQueryAllModels: () => ({ data: { edges: models } }),
   buildPiModelsConfig: pi.buildPiModelsConfig,
@@ -64,4 +66,19 @@ test('Pi export stays empty until key details arrive instead of using the unrest
   blocks = [];
   renderToStaticMarkup(React.createElement(ApiKeysViewDialog));
   assert.equal(blocks.find((item) => item.language === 'json').realCode, '');
+});
+
+
+test('Codex compatibility guide follows the saved switch and preserves the Pi export', () => {
+  for (const enabled of [false, true]) {
+    codexEnabled = enabled;
+    blocks = [];
+    const html = renderToStaticMarkup(React.createElement(ApiKeysViewDialog));
+    assert.equal(html.includes('data-tab="codexCompatibility"'), enabled);
+    assert.match(html, /data-tab="pi"/);
+    if (enabled) {
+      assert.ok(blocks.some((block) => block.realCode.includes('personal_access_token') && block.realCode.includes('/codex')));
+    }
+  }
+  codexEnabled = false;
 });

@@ -1,9 +1,12 @@
 package orchestrator
 
 import (
+	"context"
 	"github.com/looplj/axonhub/internal/ent"
 	"github.com/looplj/axonhub/internal/objects"
 	"github.com/looplj/axonhub/llm"
+	"github.com/looplj/axonhub/llm/httpclient"
+	"github.com/looplj/axonhub/llm/streams"
 	"github.com/samber/lo"
 	"github.com/shopspring/decimal"
 	"github.com/stretchr/testify/require"
@@ -59,4 +62,45 @@ func TestUnpricedOriginalResponseKeepsPublicModelWithoutCost(t *testing.T) {
 		require.Equal(t, "codex-auto-review", gjson.GetBytes(got, payload.modelPath).String())
 		require.False(t, gjson.GetBytes(got, payload.costPath).Exists())
 	}
+}
+
+type billingDeliveryProbe struct {
+	streams.Stream[*httpclient.StreamEvent]
+	acknowledged bool
+	finalized    bool
+	delivered    bool
+}
+
+func (s *billingDeliveryProbe) AcknowledgeDelivery()       { s.acknowledged = true }
+func (s *billingDeliveryProbe) DeliveryAcknowledged() bool { return s.acknowledged }
+func (s *billingDeliveryProbe) WaitForFinalization()       { s.finalized = true }
+func (s *billingDeliveryProbe) Deliver(ctx context.Context, write func() (bool, error)) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	s.delivered = true
+	terminal, err := write()
+	if terminal && err == nil {
+		s.AcknowledgeDelivery()
+	}
+	return err
+}
+func TestPublicRawStreamPreservesDeliveryCapabilities(t *testing.T) {
+	raw := &httpclient.StreamEvent{Data: []byte(`{"model":"internal-model","usage":{"cost":99}}`)}
+	source := &billingDeliveryProbe{Stream: streams.SliceStream([]*httpclient.StreamEvent{raw})}
+	state := &PersistenceState{Billing: &objects.RequestBilling{Source: objects.BillingModelSourceOriginal, OriginalModel: "public-model", InjectCost: true}}
+	projected := state.publicRawStream(source)
+	require.True(t, projected.Next())
+	event := projected.Current()
+	require.Equal(t, "public-model", gjson.GetBytes(event.Data, "model").String())
+	require.False(t, gjson.GetBytes(event.Data, "usage.cost").Exists())
+	require.False(t, source.acknowledged, "reading the terminal must not acknowledge delivery")
+	boundary, ok := projected.(streams.DeliveryBoundary)
+	require.True(t, ok)
+	require.NoError(t, boundary.Deliver(t.Context(), func() (bool, error) { return true, nil }))
+	require.True(t, source.delivered)
+	require.True(t, projected.(streams.DeliveryAcknowledger).DeliveryAcknowledged())
+	projected.(streams.FinalizationWaiter).WaitForFinalization()
+	require.True(t, source.finalized)
+	require.Equal(t, "internal-model", gjson.GetBytes(raw.Data, "model").String())
 }

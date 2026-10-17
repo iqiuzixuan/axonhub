@@ -36,16 +36,16 @@ func (s *UsageLogService) PrepareBilling(ctx context.Context, original string) (
 }
 
 // SnapshotRequestPrices uses the same channel lookup for both billing modes.
-// Missing prices stay missing; neither another channel nor another model is used.
+// Missing channel prices fall back to the model library using the upstream resolver.
 // The actual model's price is retained separately for provider cost accounting.
-func (s *UsageLogService) SnapshotRequestPrices(policy *objects.RequestBilling, channelID int, actual string) (*objects.RequestBilling, *objects.RequestBilling, error) {
-	cost, err := s.SnapshotChannelPrice(channelID, actual)
+func (s *UsageLogService) SnapshotRequestPrices(ctx context.Context, policy *objects.RequestBilling, channelID int, actual string) (*objects.RequestBilling, *objects.RequestBilling, error) {
+	cost, err := s.SnapshotChannelPrice(ctx, channelID, actual)
 	if err != nil || policy == nil {
 		return nil, cost, err
 	}
 	price := cost
 	if policy.Source == objects.BillingModelSourceOriginal && policy.OriginalModel != actual {
-		price, err = s.SnapshotChannelPrice(channelID, policy.OriginalModel)
+		price, err = s.SnapshotChannelPrice(ctx, channelID, policy.OriginalModel)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -81,7 +81,7 @@ func (s *UsageLogService) InjectRequestUsageCost(ctx context.Context, req *ent.R
 }
 
 // SnapshotChannelPrice freezes the selected channel's price for an exact model ID.
-func (s *UsageLogService) SnapshotChannelPrice(channelID int, modelID string) (*objects.RequestBilling, error) {
+func (s *UsageLogService) SnapshotChannelPrice(ctx context.Context, channelID int, modelID string) (*objects.RequestBilling, error) {
 	snapshot := &objects.RequestBilling{Source: objects.BillingModelSourceRedirected, OriginalModel: modelID, At: time.Now()}
 	ch := s.ChannelService.GetEnabledChannel(channelID)
 	if ch == nil {
@@ -96,6 +96,15 @@ func (s *UsageLogService) SnapshotChannelPrice(channelID int, modelID string) (*
 			return nil, err
 		}
 		snapshot.PriceReference = price.ReferenceID
+	} else if price, ok := s.ChannelService.resolveModelLibraryPrice(ctx, modelID); ok {
+		raw, err := json.Marshal(price)
+		if err != nil {
+			return nil, err
+		}
+		if err := json.Unmarshal(raw, &snapshot.Price); err != nil {
+			return nil, err
+		}
+		snapshot.PriceReference = modelLibraryPriceReferenceID(modelID)
 	}
 	return snapshot, nil
 }

@@ -81,14 +81,14 @@ func (s *PersistenceState) publicRawStream(stream streams.Stream[*httpclient.Str
 		return stream
 	}
 	usage := &llm.Usage{}
-	return streams.Map(stream, func(event *httpclient.StreamEvent) *httpclient.StreamEvent {
+	return preserveDeliveryCapabilities(stream, streams.Map(stream, func(event *httpclient.StreamEvent) *httpclient.StreamEvent {
 		if event == nil || event.IsBinaryAudioChunk() {
 			return event
 		}
 		copy := *event
 		copy.Data = s.publicResponseWithCost(event.Data, usage)
 		return &copy
-	})
+	}))
 }
 
 // Streaming message_start/message_delta split the usage across events. Keep a

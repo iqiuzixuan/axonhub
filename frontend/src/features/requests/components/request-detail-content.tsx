@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { DashboardIcon } from '@radix-ui/react-icons';
 import { zhCN, enUS } from 'date-fns/locale';
-import { Copy, Clock, Key, Database, FileText, Layers, Download, Terminal } from 'lucide-react';
+import { Copy, Clock, Key, Database, FileText, Layers, Download, Terminal, CircleDollarSign } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { copyTextToClipboard } from '@/lib/clipboard';
@@ -13,6 +13,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { JsonViewer } from '@/components/json-tree-view';
 import { useGeneralSettings } from '@/features/system/data/system';
 import { ensureFreshAccessToken } from '@/lib/auth-session';
@@ -433,6 +434,9 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
           const cacheHitRate = hasReadCache ? ((cachedTokens / promptTokens) * 100).toFixed(1) : '0.0';
           const writeCacheRate = hasWriteCache ? ((writeCachedTokens / promptTokens) * 100).toFixed(1) : '0.0';
           const cost = usage.totalCost ?? 0;
+          // Cost resolved from the model library price because the channel had no
+          // explicit price for this model (see computeUsageCost fallback).
+          const isModelLibraryPrice = (usage.costPriceReferenceID ?? '').startsWith('model_library:');
 
           const promptCost = usage.costItems?.find((i: any) => i.itemCode === 'prompt_tokens')?.subtotal;
           const completionCost = usage.costItems?.find((i: any) => i.itemCode === 'completion_tokens')?.subtotal;
@@ -463,9 +467,26 @@ export function RequestDetailContent({ requestId, projectId, previewRequest, isP
                     </div>
                     <span className='text-base'>{t('requests.detail.tabs.usage')}</span>
                   </div>
-                  <Badge className='bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' variant='secondary'>
-                    {t(`usageLogs.source.${usage.source}`)}
-                  </Badge>
+                  <div className='flex items-center gap-2'>
+                    {isModelLibraryPrice && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span
+                            className='inline-flex h-4 w-4 items-center justify-center text-amber-600 dark:text-amber-400'
+                            tabIndex={0}
+                            role='img'
+                            aria-label={t('usageLogs.modelLibraryPriceHint')}
+                          >
+                            <CircleDollarSign className='h-4 w-4' />
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>{t('usageLogs.modelLibraryPriceHint')}</TooltipContent>
+                      </Tooltip>
+                    )}
+                    <Badge className='bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' variant='secondary'>
+                      {t(`usageLogs.source.${usage.source}`)}
+                    </Badge>
+                  </div>
                 </CardTitle>
               </CardHeader>
               <CardContent>

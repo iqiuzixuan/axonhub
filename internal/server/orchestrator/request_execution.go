@@ -121,7 +121,7 @@ func (m *persistRequestExecutionMiddleware) OnOutboundRawRequest(ctx context.Con
 	candidate := state.ChannelModelsCandidates[state.CurrentCandidateIndex]
 	entry := candidate.Models[state.CurrentModelIndex]
 
-	billing, costPrice, err := state.UsageLogService.SnapshotRequestPrices(state.Billing, channel.ID, entry.ActualModel)
+	billing, costPrice, err := state.UsageLogService.SnapshotRequestPrices(ctx, state.Billing, channel.ID, entry.ActualModel)
 	if err != nil {
 		return nil, err
 	}
