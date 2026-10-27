@@ -8,6 +8,7 @@ import (
 
 	"github.com/looplj/axonhub/internal/authz"
 	"github.com/looplj/axonhub/internal/ent"
+	"github.com/looplj/axonhub/internal/ent/apikey"
 	"github.com/looplj/axonhub/internal/ent/user"
 	"github.com/looplj/axonhub/internal/scopes"
 )
@@ -32,4 +33,21 @@ func apiKeyUserName(key *ent.APIKey) *string {
 		return nil
 	}
 	return lo.ToPtr(name)
+}
+
+// apiKeyOwnerNames looks up owner names for the dashboard's top API keys. It runs
+// outside the shared dashboard cache because visibility depends on the caller's scopes.
+func apiKeyOwnerNames(ctx context.Context, client *ent.Client, ids []int) (map[int]*string, error) {
+	if len(ids) == 0 || !authz.HasScope(ctx, scopes.ScopeReadUsers) {
+		return map[int]*string{}, nil
+	}
+	keys, err := withAPIKeyOwner(ctx, client.APIKey.Query().
+		Where(apikey.IDIn(ids...))).
+		All(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return lo.SliceToMap(keys, func(key *ent.APIKey) (int, *string) {
+		return key.ID, apiKeyUserName(key)
+	}), nil
 }

@@ -78,6 +78,7 @@ const QUOTA_WINDOW_LABEL_KEYS: Record<string, string> = {
   credits: 'quota.label.credits_remaining',
   cycle: 'quota.window.cycle',
   overage: 'quota.label.overage_window',
+  search_hourly: 'quota.window.search_hourly',
 };
 
 function getQuotaLimits(channel: Channel) {
@@ -687,7 +688,7 @@ const SupportedModelsCell = memo(({ row }: { row: Row<Channel> }) => {
 
   return (
     <div className='flex min-w-0 items-center justify-center gap-2'>
-      <div className='flex min-w-0 flex-wrap justify-center gap-1 overflow-hidden'>
+      <div className='flex min-w-0 max-w-72 sm:max-w-80 flex-wrap justify-center gap-1 overflow-hidden'>
         {models.slice(0, 5).map((model) => (
           <Badge key={model} variant='secondary' className='block max-w-48 truncate text-left text-xs'>
             {model}
@@ -941,7 +942,7 @@ export const createColumns = (
       header: ({ column }) => <DataTableColumnHeader column={column} title={t('common.columns.name')} />,
       cell: ({ row }: { row: Row<Channel> }) => <NameCell row={row} globalDefaultMode={globalDefaultMode} />,
       meta: {
-        className: 'w-[13%] min-w-0 text-left',
+        className: 'w-[15%] min-w-40 text-left',
       },
       enableHiding: false,
       enableSorting: true,
@@ -952,7 +953,7 @@ export const createColumns = (
       header: ({ column }) => <DataTableColumnHeader column={column} title={t('channels.columns.provider')} className='justify-center' />,
       cell: ProviderCell,
       meta: {
-         className: 'w-[9%] min-w-0 text-center',
+        className: 'w-[19%] min-w-28 text-center',
       },
       filterFn: (row, _id, value) => {
         return value.includes(row.original.type);
@@ -965,7 +966,7 @@ export const createColumns = (
       header: ({ column }) => <DataTableColumnHeader column={column} title={t('common.columns.status')} className='justify-center' />,
       cell: StatusSwitchCell,
       meta: {
-         className: 'w-[8%] min-w-0 text-center',
+        className: 'w-[15%] min-w-20 text-center',
       },
       enableSorting: true,
       enableHiding: false,
@@ -976,7 +977,7 @@ export const createColumns = (
       header: ({ column }) => <DataTableColumnHeader column={column} title={t('channels.columns.quota')} className='justify-center' />,
       cell: QuotaCell,
       meta: {
-        className: 'hidden w-64 min-w-64 2xl:table-cell text-center',
+        className: 'w-[10%] min-w-64 text-center',
       },
       enableSorting: false,
       enableHiding: true,
@@ -987,7 +988,7 @@ export const createColumns = (
       header: ({ column }) => <DataTableColumnHeader column={column} title={t('channels.columns.tags')} className='justify-center' />,
       cell: TagsCell,
       meta: {
-        className: 'hidden min-w-0 xl:table-cell text-center',
+        className: 'w-[10%] min-w-28 text-center',
       },
       filterFn: (row, id, value) => {
         const tags = (row.getValue(id) as string[]) || [];
@@ -1015,7 +1016,7 @@ export const createColumns = (
       ),
       cell: SupportedModelsCell,
       meta: {
-         className: 'w-[20%] min-w-0 max-w-none text-center',
+        className: 'w-[18%] min-w-48 max-w-none text-center',
       },
       enableSorting: false,
     },
@@ -1038,7 +1039,7 @@ export const createColumns = (
       header: ({ column }) => <DataTableColumnHeader column={column} title={t('channels.columns.proxy')} className='justify-center' />,
       cell: ProxyCell,
       meta: {
-        className: 'hidden min-w-0 2xl:table-cell text-center',
+        className: 'w-[13%] min-w-28 text-center',
       },
       enableSorting: false,
       enableHiding: true,
@@ -1081,10 +1082,10 @@ export const createColumns = (
       header: ({ column }) => <DataTableColumnHeader column={column} title={t('common.columns.createdAt')} className='justify-center' />,
       cell: CreatedAtCell,
       meta: {
-        className: 'hidden w-28 min-w-28 xl:table-cell text-center',
+        className: 'w-28 min-w-28 text-center',
       },
       enableSorting: true,
-      enableHiding: false,
+      enableHiding: true,
     },
     ...(canWrite
       ? [

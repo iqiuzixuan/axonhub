@@ -3,6 +3,7 @@ package biz
 import (
 	"context"
 	"fmt"
+	"slices"
 	"strings"
 
 	"entgo.io/ent/dialect/sql"
@@ -38,6 +39,19 @@ func WithModelDisplay(ctx context.Context, source objects.BillingModelSource) co
 func ModelDisplaySource(ctx context.Context) objects.BillingModelSource {
 	p, _ := ctx.Value(modelDisplayKey{}).(modelDisplayPolicy)
 	return p.Source
+}
+
+// ModelDisplayCacheKey identifies the model projection applied to the context.
+// Shared result caches must include it because the same query returns different
+// model IDs per billing source and per request-detail access.
+func ModelDisplayCacheKey(ctx context.Context) string {
+	p, ok := ctx.Value(modelDisplayKey{}).(modelDisplayPolicy)
+	if !ok {
+		return ""
+	}
+	projects := slices.Clone(p.AdminProjects)
+	slices.Sort(projects)
+	return fmt.Sprintf("%s:%t:%v", p.Source, p.Admin, projects)
 }
 
 // ModelDisplayTable projects model_id before predicates, aggregation and pagination.

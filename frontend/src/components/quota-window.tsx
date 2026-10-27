@@ -69,21 +69,57 @@ export function UsageTimeBar({ usagePercent, durationPercent, tooltip }: { usage
   );
 }
 
+// periodStart only exists because the backend priced the window from usage
+// logs: only limits with a pinned period start take part in the cost
+// aggregation, and that pricing runs for no provider that reports the window's
+// money itself (Synthetic regenerates its weekly pool in ticks, and its limits
+// carry a regen time, not a window start). Its presence is therefore the
+// documented marker of a log-derived figure; a limit without one shows
+// provider-reported money.
+function periodMoneyIsProviderReported(limit: Pick<ProviderQuotaLimit, 'periodStart'>): boolean {
+  return limit.periodStart == null;
+}
+
 // PeriodQuotaEstimate prices each limit window: the backend sums what the
 // channel cost during the window from AxonHub usage logs and divides by the
 // usage ratio the provider reported, which yields what the whole window is
-// worth. Missing estimates explain which input is unavailable.
-export function PeriodQuotaEstimate({ limits, showUnavailable = false }: { limits: ProviderQuotaLimit[]; showUnavailable?: boolean }) {
+// worth — or the provider reports the window's money itself (Synthetic's
+// weekly credits), in which case those figures are shown directly. Missing
+// estimates explain which input is unavailable. The tooltip explains whichever
+// source produced the displayed rows, so a channel that mixes both never
+// suggests one explains the other's rows.
+export function PeriodQuotaEstimate({
+  limits,
+  currency,
+  showUnavailable = false,
+}: {
+  limits: ProviderQuotaLimit[];
+  currency?: string;
+  showUnavailable?: boolean;
+}) {
   const { t, i18n } = useTranslation();
   const { data: generalSettings } = useGeneralSettings();
 
   const windows = limits.filter((limit) => limit.periodQuota != null || (showUnavailable && hasPeriodQuotaWindow(limit)));
   if (windows.length === 0) return null;
 
+  // The tooltip must describe the rows it hangs over: when some rows are
+  // provider-reported and others log-derived, the shared dual-source wording
+  // is chosen so neither reading is dropped.
+  const sources = windows
+    .filter((limit) => limit.periodQuota != null)
+    .map((limit) => (periodMoneyIsProviderReported(limit) ? 'provider' : 'log'));
+  const mixedSources = sources.includes('provider') && sources.includes('log');
+  const hintKey = mixedSources
+    ? 'quota.label.period_quota_hint_mixed'
+    : sources[0] === 'provider'
+      ? 'quota.label.period_quota_hint_provider'
+      : 'quota.label.period_quota_hint';
+
   const formatCurrency = (val: number) =>
     t('currencies.format', {
       val,
-      currency: generalSettings?.currencyCode || 'USD',
+      currency: currency || generalSettings?.currencyCode || 'USD',
       locale: i18n.language.startsWith('zh') ? 'zh-CN' : 'en-US',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -96,17 +132,27 @@ export function PeriodQuotaEstimate({ limits, showUnavailable = false }: { limit
           <span className='text-muted-foreground cursor-default text-xs font-medium'>{t('quota.label.period_quota')}</span>
         </TooltipTrigger>
         <TooltipContent side='top' className='max-w-[260px]'>
-          {t('quota.label.period_quota_hint')}
+          {t(hintKey)}
         </TooltipContent>
       </Tooltip>
 
       {windows.map((limit, index) => {
         const label = quotaWindowLabel(limit.window, t) || t('quota.label.token_usage');
         const unavailableReason = getPeriodQuotaUnavailableReason(limit);
+        // A mark next to the window name identifies provider-reported rows
+        // while a sibling row of the same channel is log-derived, so the two
+        // readings stay separately attributable.
+        const sourceMark =
+          mixedSources && limit.periodQuota != null && periodMoneyIsProviderReported(limit)
+            ? ` · ${t('quota.label.period_quota_provider_source')}`
+            : '';
 
         return (
           <div key={`${limit.window ?? limit.type}-${index}`} className='flex items-center justify-between gap-3 text-xs'>
-            <span className='text-muted-foreground'>{label}</span>
+            <span className='text-muted-foreground'>
+              {label}
+              {sourceMark}
+            </span>
             <span className='text-foreground text-right font-medium'>
               {unavailableReason
                 ? t(unavailableReason)
