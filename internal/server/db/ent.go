@@ -61,6 +61,15 @@ func NewEntClient(cfg Config) *ent.Client {
 	client := ent.NewClient(opts...)
 
 	if !cfg.DisableAutoMigration {
+		// Purge rows for provider types removed from the enum before the
+		// schema DDL runs: on MySQL/TiDB the enum removal rewrites the
+		// column and a surviving 'wafer' row would abort the ALTER (strict
+		// mode) or be truncated.
+		if err := cleanupRemovedProviderQuotaTypes(context.Background(), masterDB, cfg.Dialect); err != nil {
+			_ = client.Close()
+			panic(err)
+		}
+
 		err = migrateSchema(context.Background(), masterDB, dbDialect)
 		if err != nil {
 			_ = client.Close()
