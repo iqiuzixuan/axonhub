@@ -18,7 +18,9 @@ func applyModelDisplaySQL(ctx context.Context, query string) string {
 	}
 	query = strings.ReplaceAll(query, "JOIN requests r ON", "JOIN "+biz.ModelDisplayTable(ctx, "requests")+" r ON")
 	// Display names must not reveal the developer/upstream identity of an alias.
-	query = strings.ReplaceAll(query, "JOIN models m ON", "LEFT JOIN models m ON")
+	// The ranking builder already uses LEFT JOIN; only upgrade a bare JOIN.
+	query = strings.ReplaceAll(query, "\nJOIN models m ON", "\nLEFT JOIN models m ON")
+	query = strings.ReplaceAll(query, "COALESCE(m.name, r.model_id) as model_name", "r.model_id as model_name")
 	query = strings.ReplaceAll(query, "m.name as model_name", "r.model_id as model_name")
 	return query
 }
