@@ -110,7 +110,7 @@ func TestChannelService_DeepSeekKeyChangeInvalidatesBalanceImmediately(t *testin
 	quotaService := &ProviderQuotaService{AbstractService: &AbstractService{db: client}}
 	svc.SetChannelProviderQuotaInvalidator(quotaService)
 	ch := createProviderQuotaCollectionChannel(t, ctx, client, "DeepSeek", channel.TypeDeepseek)
-	quotaService.saveQuotaStatus(ctx, ch.ID, "deepseek", "", provider_quota.QuotaData{Status: "available", Ready: true, RawData: map[string]any{"balance_infos": []any{}}}, ch.CreatedAt)
+	quotaService.saveQuotaStatus(ctx, ch, "deepseek", "", provider_quota.QuotaData{Status: "available", Ready: true, RawData: map[string]any{"balance_infos": []any{}}}, ch.CreatedAt, false)
 
 	_, err := svc.UpdateChannel(ctx, ch.ID, &ent.UpdateChannelInput{Credentials: &objects.ChannelCredentials{APIKey: "test-key"}})
 	require.NoError(t, err)

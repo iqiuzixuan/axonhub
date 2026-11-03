@@ -167,6 +167,46 @@ func TestChannelService_UpdateChannelSettings_PreservesUntouchedFields(t *testin
 	require.Error(t, err)
 }
 
+func TestChannelService_UpdateChannelSettings_ResponseTimeout(t *testing.T) {
+	svc, client := setupTestChannelService(t)
+	defer client.Close()
+	ctx := channelAutoPriceTestContext(client)
+	created, err := svc.CreateChannel(ctx, ent.CreateChannelInput{
+		Type: channel.TypeOpenai, Name: "Timeout Patch", BaseURL: lo.ToPtr("https://api.openai.com/v1"),
+		Credentials: objects.ChannelCredentials{APIKey: "fixture-key"}, SupportedModels: []string{"fixture-model"},
+		Settings: &objects.ChannelSettings{MaxSingleChannelRetries: lo.ToPtr(3)},
+	})
+	require.NoError(t, err)
+
+	updated, err := svc.UpdateChannelSettings(ctx, created.ID, &UpdateChannelSettingsInput{
+		ResponseTimeout: &objects.ChannelResponseTimeoutSettings{
+			Mode:                           objects.ChannelResponseTimeoutModeCustom,
+			StreamFirstEventTimeoutSeconds: lo.ToPtr(0), NonStreamResponseTimeoutSeconds: lo.ToPtr(45),
+		},
+	})
+	require.NoError(t, err)
+	require.Equal(t, lo.ToPtr(0), updated.Settings.ResponseTimeout.StreamFirstEventTimeoutSeconds)
+	require.Equal(t, lo.ToPtr(45), updated.Settings.ResponseTimeout.NonStreamResponseTimeoutSeconds)
+	require.Equal(t, lo.ToPtr(3), updated.Settings.MaxSingleChannelRetries)
+
+	updated, err = svc.UpdateChannelSettings(ctx, created.ID, &UpdateChannelSettingsInput{ExtraModelPrefix: lo.ToPtr("patched")})
+	require.NoError(t, err)
+	require.Equal(t, lo.ToPtr(45), updated.Settings.ResponseTimeout.NonStreamResponseTimeoutSeconds)
+
+	_, err = svc.UpdateChannelSettings(ctx, created.ID, &UpdateChannelSettingsInput{
+		ResponseTimeout: &objects.ChannelResponseTimeoutSettings{Mode: objects.ChannelResponseTimeoutModeCustom, NonStreamResponseTimeoutSeconds: lo.ToPtr(601)},
+	})
+	require.Error(t, err)
+
+	updated, err = svc.UpdateChannelSettings(ctx, created.ID, &UpdateChannelSettingsInput{
+		ResponseTimeout: &objects.ChannelResponseTimeoutSettings{Mode: objects.ChannelResponseTimeoutModeInherit},
+	})
+	require.NoError(t, err)
+	require.False(t, updated.Settings.ResponseTimeout.IsCustom())
+	require.Equal(t, "patched", updated.Settings.ExtraModelPrefix)
+	require.Equal(t, lo.ToPtr(3), updated.Settings.MaxSingleChannelRetries)
+}
+
 func TestChannelService_UpdateChannelSettings_ConcurrentPatchesBothSurvive(t *testing.T) {
 	svc, client := setupTestChannelService(t)
 	defer client.Close()
