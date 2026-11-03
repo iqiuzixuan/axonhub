@@ -3,7 +3,6 @@ package gql
 import (
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -60,7 +59,7 @@ func TestUserStatistics_UsesUnifiedName(t *testing.T) {
 		require.Equal(t, 2, stat.RequestCount)
 		require.Equal(t, 20, stat.TotalTokens)
 	}
-	analytics, err := resolver.queryUserStats(ctx, nil, nil, false, time.UTC)
+	analytics, err := resolver.queryUserStats(ctx, nil, nil, false)
 	require.NoError(t, err)
 	require.Len(t, analytics, 2)
 	for _, stat := range analytics {

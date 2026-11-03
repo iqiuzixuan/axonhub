@@ -360,7 +360,7 @@ func TestProviderQuotaService_PeriodQuotaSurvivesPersistence(t *testing.T) {
 		AbstractService: &AbstractService{db: client},
 		checkInterval:   5 * time.Minute,
 	}
-	svc.saveQuotaStatus(ctx, ch.ID, "claudecode", "", provider_quota.QuotaData{
+	svc.saveQuotaStatus(ctx, ch, "claudecode", "", provider_quota.QuotaData{
 		ProviderType: "claudecode",
 		Status:       string(providerquotastatus.StatusAvailable),
 		Ready:        true,
@@ -378,7 +378,7 @@ func TestProviderQuotaService_PeriodQuotaSurvivesPersistence(t *testing.T) {
 				PeriodQuota: lo.ToPtr(90.0),
 			},
 		},
-	}, now)
+	}, now, false)
 
 	persisted, err := client.ProviderQuotaStatus.Query().
 		Where(providerquotastatus.ChannelIDEQ(ch.ID)).
@@ -447,7 +447,7 @@ func TestProviderQuotaService_QianwenAndZhipuSharePeriodEstimatePipeline(t *test
 			require.NoError(t, err)
 			svc := &ProviderQuotaService{AbstractService: &AbstractService{db: client}, checkInterval: time.Minute}
 			svc.fillPeriodQuotas(ctx, ch.ID, &quota, now)
-			svc.saveQuotaStatus(ctx, ch.ID, quota.ProviderType, "", quota, now)
+			svc.saveQuotaStatus(ctx, ch, quota.ProviderType, "", quota, now, false)
 
 			persisted, err := client.ProviderQuotaStatus.Query().Where(providerquotastatus.ChannelIDEQ(ch.ID)).Only(ctx)
 			require.NoError(t, err)
