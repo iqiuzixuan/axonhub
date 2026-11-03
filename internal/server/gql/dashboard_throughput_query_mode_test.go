@@ -17,6 +17,7 @@ import (
 
 	"github.com/looplj/axonhub/internal/authz"
 	"github.com/looplj/axonhub/internal/ent"
+	"github.com/looplj/axonhub/internal/objects"
 	"github.com/looplj/axonhub/internal/server/biz"
 )
 
@@ -103,6 +104,7 @@ func TestFastestResolversUseDialectSpecificRankingQuery(t *testing.T) {
 			t.Cleanup(func() { _ = client.Close() })
 
 			ctx := authz.WithTestBypass(ent.NewContext(t.Context(), client))
+			ctx = biz.WithModelDisplay(ctx, objects.BillingModelSourceOriginal)
 			resolver := &queryResolver{&Resolver{
 				client:        client,
 				systemService: biz.NewSystemService(biz.SystemServiceParams{Ent: client}),
@@ -128,6 +130,11 @@ func TestFastestResolversUseDialectSpecificRankingQuery(t *testing.T) {
 			require.NotContains(t, rankingQuery, tc.otherMode)
 			require.Contains(t, rankingQuery, tc.placeholder)
 			require.NotContains(t, rankingQuery, tc.otherPlaceholder)
+			require.NotContains(t, rankingQuery, "LEFT LEFT JOIN")
+			require.Equal(t, rankingQuery, applyModelDisplaySQL(ctx, rankingQuery))
+			if tc.resolver == "fastestModels" {
+				require.Contains(t, rankingQuery, "r.model_id as model_name")
+			}
 		})
 	}
 }

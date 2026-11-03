@@ -20,6 +20,9 @@ func TestBillingPolicyGraphQLVisibilityAndAggregation(t *testing.T) {
 	system := biz.NewSystemService(biz.SystemServiceParams{Ent: db})
 	require.NoError(t, system.SetModelSettings(setup, biz.SystemModelSettings{BillingModelSource: objects.BillingModelSourceOriginal}))
 	p := db.Project.Create().SetName("billing").SaveX(setup)
+	db.Model.Create().SetModelID("public-A").SetName("internal developer name").
+		SetDeveloper("fixture").SetIcon("fixture").SetGroup("fixture").
+		SetModelCard(&objects.ModelCard{}).SetSettings(&objects.ModelSettings{}).SaveX(setup)
 	for _, actual := range []string{"secret-C", "secret-D"} {
 		req := db.Request.Create().SetProjectID(p.ID).SetModelID("route-B").SetOriginalModelID("public-A").SetStatus("completed").SetRequestBody(objects.JSONRawMessage(`{}`)).SaveX(setup)
 		db.RequestExecution.Create().SetProjectID(p.ID).SetRequestID(req.ID).SetChannelID(1).SetModelID(actual).SetMetricsLatencyMs(1000).SetMetricsFirstTokenLatencyMs(10).SetStream(true).SetStatus("completed").SetFormat("openai/chat_completions").SetRequestBody(objects.JSONRawMessage(`{}`)).SaveX(setup)
@@ -66,6 +69,18 @@ func TestBillingPolicyGraphQLVisibilityAndAggregation(t *testing.T) {
 	require.Len(t, stats.RequestStatsByModel, 1)
 	require.Equal(t, "public-A", stats.RequestStatsByModel[0].ModelId)
 	require.Equal(t, 2, stats.RequestStatsByModel[0].Count)
+	var fastest struct {
+		FastestModels []struct {
+			ModelId      string
+			ModelName    string
+			RequestCount int
+		}
+	}
+	require.NoError(t, gql.Post(`{fastestModels(input:{timeWindow:"day",limit:5}){modelId modelName requestCount}}`, &fastest))
+	require.Len(t, fastest.FastestModels, 1)
+	require.Equal(t, "public-A", fastest.FastestModels[0].ModelId)
+	require.Equal(t, "public-A", fastest.FastestModels[0].ModelName)
+	require.Equal(t, 2, fastest.FastestModels[0].RequestCount)
 	var performance struct {
 		ModelPerformanceStats []struct {
 			ModelId      string
