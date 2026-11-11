@@ -86,7 +86,7 @@ const renderCell = (key = apiKey) => renderToStaticMarkup(React.createElement(ce
 test('three independent limits stay visible with the channel remaining-percent convention', () => {
   const html = renderCell();
   assert.equal((html.match(/role="progressbar"/g) ?? []).length, 3);
-  for (const expected of ['86.00%', '77.50%', '18.00%', '请求次数', '总 Token', '费用']) assert.ok(html.includes(expected));
+  for (const expected of ['86.00%', '77.50%', '18.00%', '请求次数', zh['apikeys.profiles.quotaTotalTokens'], '费用']) assert.ok(html.includes(expected));
   assert.doesNotMatch(html, /chevron|aria-expanded/);
   assert.match(html, /滚动统计/);
   assert.equal(queryOptions.refetchInterval, 30000);

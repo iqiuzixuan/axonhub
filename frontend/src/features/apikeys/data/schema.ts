@@ -358,6 +358,8 @@ export const updateApiKeyProfilesInputSchema = z.object({
   profiles: z.array(
     z.object({
       name: z.string().min(1, 'Profile name is required'),
+      templateID: z.number().optional().nullable(),
+      templateName: z.string().optional().nullable(),
       modelMappings: z.array(
         z.object({
           from: z.string().min(1, 'Source model is required'),

@@ -3,7 +3,7 @@ import { parseQuotaLimits } from '@/features/system/data/quotas';
 import type { Channel } from '../data/schema';
 
 export type ChannelQuotaRoutingIndicator = 'exhausted' | 'backpressure';
-type QuotaLimit = { window: string; status: string; usageRatio: number; periodStart?: string | null; nextResetAt?: string | null };
+type QuotaLimit = { window?: string; status: string; usageRatio: number; periodStart?: string | null; nextResetAt?: string | null };
 
 export function getChannelQuotaRoutingIndicator(
   channel: Pick<Channel, 'providerQuotaStatus' | 'settings'> & { quotaRoutingMode?: QuotaRoutingMode | null },

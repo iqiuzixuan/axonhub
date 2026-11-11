@@ -1,8 +1,8 @@
 import * as React from 'react';
 import { useLocation } from '@tanstack/react-router';
-import { usePersonalScope } from '@/stores/personalWorkspaceStore';
 import { ChevronsUpDown, FolderKanban } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import { usePersonalScope } from '@/stores/personalWorkspaceStore';
 import { useProjectStore } from '@/stores/projectStore';
 import {
   DropdownMenu,
@@ -14,14 +14,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useMyProjects } from '@/features/projects/data/projects';
 
-export function ProjectSwitcher() {
-  const { data: myProjects, isLoading: isLoadingProjects } = useMyProjects();
-  const { t } = useTranslation();
+// Keeps the selected project valid against the user's project list. Called from
+// the layout so it runs even while the switcher is hidden outside the project module.
+export function useEnsureSelectedProject() {
+  const { data: myProjects } = useMyProjects();
   const { selectedProjectId, setSelectedProjectId } = useProjectStore();
   const pathname = useLocation({ select: (location) => location.pathname });
   const isPersonal = pathname.startsWith('/me/');
   const personal = usePersonalScope();
-  const activeProjectId = isPersonal ? personal.projectId : selectedProjectId;
 
   React.useEffect(() => {
     if (isPersonal && personal.projectId && myProjects && !myProjects.some((project) => project.id === personal.projectId)) {
@@ -58,6 +58,17 @@ export function ProjectSwitcher() {
     const firstProject = myProjects[0];
     setSelectedProjectId(firstProject.id);
   }, [myProjects, selectedProjectId, setSelectedProjectId]);
+}
+
+export function ProjectSwitcher() {
+  const { data: myProjects, isLoading: isLoadingProjects } = useMyProjects();
+  const { t } = useTranslation();
+  const { selectedProjectId, setSelectedProjectId } = useProjectStore();
+
+  const pathname = useLocation({ select: (location) => location.pathname });
+  const isPersonal = pathname.startsWith('/me/');
+  const personal = usePersonalScope();
+  const activeProjectId = isPersonal ? personal.projectId : selectedProjectId;
 
   // 处理项目切换
   const handleProjectChange = (projectId: string) => {
@@ -77,7 +88,8 @@ export function ProjectSwitcher() {
     return null;
   }
 
-  const displayName = isPersonal && !activeProjectId ? t('personal.allProjects') : selectedProject?.name || t('sidebar.projectSwitcher.selectProject');
+  const displayName =
+    isPersonal && !activeProjectId ? t('personal.allProjects') : selectedProject?.name || t('sidebar.projectSwitcher.selectProject');
 
   return (
     <DropdownMenu>
@@ -89,11 +101,15 @@ export function ProjectSwitcher() {
       </DropdownMenuTrigger>
       <DropdownMenuContent className='min-w-56 rounded-lg' align='start' sideOffset={4}>
         <DropdownMenuLabel className='text-muted-foreground text-xs'>{t('sidebar.projectSwitcher.projects')}</DropdownMenuLabel>
-        {isPersonal && <DropdownMenuItem onClick={() => personal.setProjectId(null)} className='gap-2 p-2'>
-          <div className='flex size-6 items-center justify-center rounded-sm border'><FolderKanban className='size-4' /></div>
-          <span className='text-sm font-medium'>{t('personal.allProjects')}</span>
-          {!activeProjectId && <DropdownMenuShortcut>✓</DropdownMenuShortcut>}
-        </DropdownMenuItem>}
+        {isPersonal && (
+          <DropdownMenuItem onClick={() => personal.setProjectId(null)} className='gap-2 p-2'>
+            <div className='flex size-6 items-center justify-center rounded-sm border'>
+              <FolderKanban className='size-4' />
+            </div>
+            <span className='text-sm font-medium'>{t('personal.allProjects')}</span>
+            {!activeProjectId && <DropdownMenuShortcut>✓</DropdownMenuShortcut>}
+          </DropdownMenuItem>
+        )}
         {myProjects.map((project) => (
           <DropdownMenuItem key={project.id} onClick={() => handleProjectChange(project.id)} className='gap-2 p-2'>
             <div className='flex size-6 items-center justify-center rounded-sm border'>

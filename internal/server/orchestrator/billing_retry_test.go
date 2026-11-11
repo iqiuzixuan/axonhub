@@ -67,7 +67,7 @@ func TestBillingSnapshotRefreshesForEachExecution(t *testing.T) {
 				state.CurrentCandidate = candidates[attempt.candidate]
 				_, err := middleware.OnOutboundRawRequest(ctx, &httpclient.Request{APIFormat: string(llm.APIFormatOpenAIChatCompletion), Body: []byte(`{"model":"gpt-4"}`)})
 				require.NoError(t, err, "attempt %d", i)
-				stored := db.Request.GetX(ctx, req.ID)
+				stored := state.Request
 				require.Equal(t, ch.ID, stored.ChannelID)
 				require.Equal(t, state.Billing.Source, stored.Billing.Source)
 				require.Equal(t, state.Billing.OriginalModel, stored.Billing.OriginalModel)
@@ -95,6 +95,11 @@ func TestBillingSnapshotRefreshesForEachExecution(t *testing.T) {
 					require.Equal(t, want, gjson.GetBytes(raw, "usage.cost").Float())
 				}
 			}
+			require.NoError(t, requests.UpdateRequestFinalized(ctx, state.Request, "completed", "", map[string]any{}, nil))
+			final := db.Request.GetX(ctx, req.ID)
+			require.Equal(t, state.Request.ChannelID, final.ChannelID)
+			require.Equal(t, state.Billing.PriceReference, final.Billing.PriceReference)
+			require.Nil(t, final.Billing.Price)
 			// Retry updates must not rewrite previously stored charges.
 			logs := db.UsageLog.Query().Order(ent.Asc("id")).AllX(ctx)
 			require.Len(t, logs, 4)

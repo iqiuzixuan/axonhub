@@ -43,7 +43,7 @@ func TestSystemService_ProviderQuotaCollectionSettings_DefaultsToEnabled(t *test
 	require.True(t, settings.Providers["minimax"])
 	require.True(t, settings.Providers["zhipu"])
 	require.Contains(t, settings.Providers, "deepseek")
-	require.False(t, settings.Providers["deepseek"])
+	require.True(t, settings.Providers["deepseek"])
 }
 
 func TestSystemService_ProviderQuotaCollectionSettings_CachesDefaults(t *testing.T) {
@@ -84,7 +84,7 @@ func TestSystemService_ProviderQuotaCollectionSettings_DefaultsMissingProvidersT
 	require.False(t, settings.Providers["minimax"])
 	require.True(t, settings.Providers["zhipu"])
 	require.Contains(t, settings.Providers, "deepseek")
-	require.False(t, settings.Providers["deepseek"])
+	require.True(t, settings.Providers["deepseek"])
 }
 
 func TestSystemService_ProviderQuotaCollectionSettings_DeepSeekRequiresOptIn(t *testing.T) {

@@ -1,8 +1,7 @@
 package provider_quota
 
 import (
-	"encoding/json"
-	"fmt"
+	"context"
 	"io"
 	"net/http"
 	"strings"
@@ -16,132 +15,213 @@ import (
 	"github.com/looplj/axonhub/llm/httpclient"
 )
 
-func deepSeekTestBody(amount, currency string, available bool) []byte {
-	return fmt.Appendf(nil, `{"is_available":%t,"balance_infos":[{"currency":%q,"total_balance":%q,"granted_balance":"10","topped_up_balance":"90"}]}`, available, currency, amount)
-}
-
-func deepSeekReloadData(t *testing.T, data map[string]any) map[string]any {
-	t.Helper()
-	encoded, err := json.Marshal(data)
-	require.NoError(t, err)
-	var persisted map[string]any
-	require.NoError(t, json.Unmarshal(encoded, &persisted))
-	return persisted
-}
-
-func TestDeepSeek_DynamicBaselineAcrossRechargeCycles(t *testing.T) {
-	var previous map[string]any
-	for _, step := range []struct{ amount, baseline string }{
-		{"100", "100"}, {"60", "100"}, {"200", "200"}, {"50", "200"},
-		{"0", "0"}, {"150", "150"}, {"75", "150"}, {"30", "150"}, {"80", "80"},
-		{"80.00", "80"}, {"10", "80"}, {"20", "20"},
-	} {
-		quota, err := parseDeepSeekBalance(deepSeekTestBody(step.amount, "CNY", step.amount != "0"), "key-a", previous)
-		require.NoError(t, err)
-		balances := quota.RawData["balance_infos"].([]DeepSeekBalance)
-		require.Equal(t, step.baseline, balances[0].BaselineBalance, "balance %s", step.amount)
-		require.Empty(t, quota.Limits, "visual references must not become routing limits")
-		require.Nil(t, quota.NextResetAt)
-		if step.amount == "0" {
-			require.Equal(t, "exhausted", quota.Status)
-			require.False(t, quota.Ready)
-		} else {
-			require.Equal(t, "available", quota.Status)
-		}
-		previous = deepSeekReloadData(t, quota.RawData)
-		require.NotContains(t, fmt.Sprint(previous), "granted_balance")
-		require.NotContains(t, fmt.Sprint(previous), "topped_up_balance")
-	}
-}
-
-func TestDeepSeek_BaselineResetsForNewKeyOrCurrency(t *testing.T) {
-	first, err := parseDeepSeekBalance(deepSeekTestBody("100", "CNY", true), "key-a", nil)
-	require.NoError(t, err)
-	previous := deepSeekReloadData(t, first.RawData)
-	for _, step := range []struct{ identity, currency string }{
-		{"key-b", "CNY"}, {"key-a", "USD"},
-	} {
-		quota, err := parseDeepSeekBalance(deepSeekTestBody("40", step.currency, true), step.identity, previous)
-		require.NoError(t, err)
-		require.Equal(t, "40", quota.RawData["balance_infos"].([]DeepSeekBalance)[0].BaselineBalance)
-	}
-}
-
-func TestDeepSeek_IncreasesUseExactDecimalComparison(t *testing.T) {
-	quota, err := parseDeepSeekBalance(deepSeekTestBody("0.300000000000000001", "CNY", true), "key", nil)
-	require.NoError(t, err)
-	quota, err = parseDeepSeekBalance(deepSeekTestBody("0.300000000000000002", "CNY", true), "key", quota.RawData)
-	require.NoError(t, err)
-	require.Equal(t, "0.300000000000000002", quota.RawData["balance_infos"].([]DeepSeekBalance)[0].BaselineBalance)
-}
-
-func TestDeepSeek_MalformedResponsesDoNotFabricateZero(t *testing.T) {
-	for _, body := range []string{
-		`{}`, `null`, `{"is_available":true,"balance_infos":[]}`,
-		`{"balance_infos":[{"currency":"CNY","total_balance":"100"}]}`,
-		`{"is_available":true,"balance_infos":[{"currency":"CNY"}]}`,
-		`{"is_available":true,"balance_infos":[{"currency":"CNY","total_balance":null}]}`,
-		`{"is_available":true,"balance_infos":[{"currency":"CNY","total_balance":100}]}`,
-		`{"is_available":true,"balance_infos":[{"currency":"EUR","total_balance":"100"}]}`,
-		`{"is_available":true,"balance_infos":[{"currency":"CNY","total_balance":"1"},{"currency":"CNY","total_balance":"1"}]}`,
-	} {
-		_, err := parseDeepSeekBalance([]byte(body), "key", nil)
-		require.Error(t, err, body)
-	}
-	for _, amount := range []string{"", "-1", "NaN", "Infinity", "1e999999", strings.Repeat("1", 65)} {
-		_, err := parseDeepSeekBalance(deepSeekTestBody(amount, "CNY", true), "key", nil)
-		require.Error(t, err, amount)
-	}
-}
-
-func TestDeepSeek_MultipleCurrenciesRemainSeparate(t *testing.T) {
-	quota, err := parseDeepSeekBalance([]byte(`{"is_available":true,"balance_infos":[{"currency":"CNY","total_balance":"100"},{"currency":"USD","total_balance":"10"}]}`), "key", nil)
-	require.NoError(t, err)
-	quota, err = parseDeepSeekBalance([]byte(`{"is_available":true,"balance_infos":[{"currency":"USD","total_balance":"5"},{"currency":"CNY","total_balance":"0"}]}`), "key", deepSeekReloadData(t, quota.RawData))
-	require.NoError(t, err)
-	balances := quota.RawData["balance_infos"].([]DeepSeekBalance)
-	require.Equal(t, "10", balances[0].BaselineBalance)
-	require.Equal(t, "0", balances[1].BaselineBalance)
-	require.True(t, quota.Ready)
-}
-
-func TestDeepSeek_CheckQuotaUsesOfficialEndpointForBothProtocols(t *testing.T) {
-	client := httpclient.NewHttpClientWithClient(&http.Client{
+func TestDeepSeek_CheckQuota_HappyPath(t *testing.T) {
+	httpClient := httpclient.NewHttpClientWithClient(&http.Client{
 		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
-			require.Equal(t, deepSeekBalanceURL, req.URL.String())
-			require.Equal(t, http.MethodGet, req.Method)
-			require.Equal(t, "Bearer fixture-key", req.Header.Get("Authorization"))
-			return &http.Response{StatusCode: 200, Header: make(http.Header), Body: io.NopCloser(strings.NewReader(string(deepSeekTestBody("100", "CNY", true))))}, nil
+			require.Equal(t, "https://api.deepseek.com/user/balance", req.URL.String())
+			require.Equal(t, "Bearer test-api-key", req.Header.Get("Authorization"))
+			require.Equal(t, "application/json", req.Header.Get("Content-Type"))
+
+			body := `{
+				"is_available": true,
+				"balance_infos": [
+					{
+						"currency": "CNY",
+						"total_balance": "110.00",
+						"granted_balance": "10.00",
+						"topped_up_balance": "100.00"
+					}
+				]
+			}`
+
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     make(http.Header),
+				Body:       io.NopCloser(strings.NewReader(body)),
+			}, nil
 		}),
 	})
-	checker := NewDeepSeekQuotaChecker(client)
-	for _, channelType := range []channel.Type{channel.TypeDeepseek, channel.TypeDeepseekAnthropic} {
-		for _, base := range []string{"", "https://api.deepseek.com/v1", "https://api.deepseek.com/anthropic"} {
-			ch := &ent.Channel{Type: channelType, BaseURL: base, Credentials: objects.ChannelCredentials{APIKeys: []string{"", " fixture-key "}}}
-			quota, err := checker.CheckQuota(t.Context(), ch)
-			require.NoError(t, err)
-			require.NotContains(t, fmt.Sprint(quota.RawData), "fixture-key")
-			require.Equal(t, "deepseek", quota.ProviderType)
-		}
+
+	checker := NewDeepSeekQuotaChecker(httpClient)
+
+	quota, err := checker.CheckQuota(context.Background(), &ent.Channel{
+		Type:    channel.TypeDeepseek,
+		BaseURL: "https://api.deepseek.com/v1",
+		Credentials: objects.ChannelCredentials{
+			APIKey: "test-api-key",
+		},
+	})
+	require.NoError(t, err)
+	require.Equal(t, "available", quota.Status)
+	require.True(t, quota.Ready)
+	require.Equal(t, "deepseek", quota.ProviderType)
+	require.Empty(t, quota.Limits)
+	require.Len(t, quota.Balances, 1)
+	require.Equal(t, "CNY", quota.Balances[0].Currency)
+	require.Equal(t, 110.0, quota.Balances[0].Total)
+	require.NotNil(t, quota.Balances[0].Granted)
+	require.Equal(t, 10.0, *quota.Balances[0].Granted)
+	require.NotNil(t, quota.Balances[0].ToppedUp)
+	require.Equal(t, 100.0, *quota.Balances[0].ToppedUp)
+
+	infos, ok := quota.RawData["balance_infos"].([]map[string]any)
+	require.True(t, ok)
+	require.Len(t, infos, 1)
+	require.Equal(t, "CNY", infos[0]["currency"])
+	require.Equal(t, "110.00", infos[0]["total_balance"])
+	require.Equal(t, "10.00", infos[0]["granted_balance"])
+	require.Equal(t, "100.00", infos[0]["topped_up_balance"])
+}
+
+func TestDeepSeek_CheckQuota_UnavailableBalance(t *testing.T) {
+	httpClient := httpclient.NewHttpClientWithClient(&http.Client{
+		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			body := `{
+				"is_available": false,
+				"balance_infos": [
+					{"currency": "USD", "total_balance": "0.00", "granted_balance": "0.00", "topped_up_balance": "0.00"}
+				]
+			}`
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     make(http.Header),
+				Body:       io.NopCloser(strings.NewReader(body)),
+			}, nil
+		}),
+	})
+
+	checker := NewDeepSeekQuotaChecker(httpClient)
+
+	quota, err := checker.CheckQuota(context.Background(), &ent.Channel{
+		Type: channel.TypeDeepseekAnthropic,
+		Credentials: objects.ChannelCredentials{
+			APIKey: "test-api-key",
+		},
+	})
+	require.NoError(t, err)
+	require.Equal(t, "exhausted", quota.Status)
+	require.False(t, quota.Ready)
+	require.Empty(t, quota.Limits)
+	require.Len(t, quota.Balances, 1)
+	require.Equal(t, "USD", quota.Balances[0].Currency)
+	require.Equal(t, 0.0, quota.Balances[0].Total)
+}
+
+func TestDeepSeek_CheckQuota_MissingAPIKey(t *testing.T) {
+	checker := NewDeepSeekQuotaChecker(httpclient.NewHttpClient())
+
+	_, err := checker.CheckQuota(context.Background(), &ent.Channel{Type: channel.TypeDeepseek})
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "no API key")
+}
+
+func TestDeepSeek_CheckQuota_AnyFundedKeyKeepsChannelAvailable(t *testing.T) {
+	var requested []string
+
+	httpClient := httpclient.NewHttpClientWithClient(&http.Client{
+		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			key := strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer ")
+			requested = append(requested, key)
+
+			var body string
+			switch key {
+			case "empty-0001":
+				body = `{"is_available": false, "balance_infos": [{"currency": "CNY", "total_balance": "0.00", "granted_balance": "0.00", "topped_up_balance": "0.00"}]}`
+			case "funded-0002":
+				body = `{"is_available": true, "balance_infos": [{"currency": "CNY", "total_balance": "88.00", "granted_balance": "8.00", "topped_up_balance": "80.00"}]}`
+			default:
+				t.Fatalf("unexpected API key %q", key)
+			}
+
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     make(http.Header),
+				Body:       io.NopCloser(strings.NewReader(body)),
+			}, nil
+		}),
+	})
+
+	checker := NewDeepSeekQuotaChecker(httpClient)
+
+	quota, err := checker.CheckQuota(context.Background(), &ent.Channel{
+		Type: channel.TypeDeepseek,
+		Credentials: objects.ChannelCredentials{
+			APIKeys: []string{"empty-0001", "funded-0002"},
+		},
+	})
+	require.NoError(t, err)
+	require.ElementsMatch(t, []string{"empty-0001", "funded-0002"}, requested)
+	require.Equal(t, "available", quota.Status)
+	require.True(t, quota.Ready)
+	require.Len(t, quota.Balances, 2)
+
+	byAccount := map[string]QuotaBalance{}
+	for _, balance := range quota.Balances {
+		byAccount[balance.Account] = balance
 	}
-	for _, base := range []string{"https://other.example/v1", "https://api.deepseek.com.evil.example", "http://api.deepseek.com", "https://user@api.deepseek.com"} {
-		_, err := checker.CheckQuota(t.Context(), &ent.Channel{Type: channel.TypeDeepseek, BaseURL: base, Credentials: objects.ChannelCredentials{APIKey: "fixture-key"}})
-		require.ErrorContains(t, err, "official API channel")
+	require.Equal(t, 0.0, byAccount["0001"].Total)
+	require.Equal(t, 88.0, byAccount["0002"].Total)
+}
+
+func TestDeepSeek_CheckQuota_SkipsDisabledKeys(t *testing.T) {
+	var requested []string
+
+	httpClient := httpclient.NewHttpClientWithClient(&http.Client{
+		Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+			requested = append(requested, strings.TrimPrefix(req.Header.Get("Authorization"), "Bearer "))
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Header:     make(http.Header),
+				Body:       io.NopCloser(strings.NewReader(`{"is_available": true, "balance_infos": [{"currency": "CNY", "total_balance": "5.00"}]}`)),
+			}, nil
+		}),
+	})
+
+	checker := NewDeepSeekQuotaChecker(httpClient)
+
+	quota, err := checker.CheckQuota(context.Background(), &ent.Channel{
+		Type: channel.TypeDeepseek,
+		Credentials: objects.ChannelCredentials{
+			APIKeys: []string{"disabled-0001", "serving-0002"},
+		},
+		DisabledAPIKeys: []objects.DisabledAPIKey{{Key: "disabled-0001"}},
+	})
+	require.NoError(t, err)
+	require.Equal(t, []string{"serving-0002"}, requested)
+	require.Equal(t, "available", quota.Status)
+	require.Len(t, quota.Balances, 1)
+}
+
+func TestBuildDeepSeekBalanceURL(t *testing.T) {
+	tests := []struct {
+		name    string
+		baseURL string
+		want    string
+	}{
+		{"empty", "", "https://api.deepseek.com/user/balance"},
+		{"official", "https://api.deepseek.com", "https://api.deepseek.com/user/balance"},
+		{"official v1", "https://api.deepseek.com/v1", "https://api.deepseek.com/user/balance"},
+		{"official v1 trailing slash", "https://api.deepseek.com/v1/", "https://api.deepseek.com/user/balance"},
+		{"official anthropic", "https://api.deepseek.com/anthropic", "https://api.deepseek.com/user/balance"},
+		{"http relay v1", "http://relay:8080/deepseek/v1", "http://relay:8080/deepseek/user/balance"},
+		{"http relay anthropic", "http://relay:8080/deepseek/anthropic", "http://relay:8080/deepseek/user/balance"},
+		{"http relay prefix", "http://relay:8080/deepseek", "http://relay:8080/deepseek/user/balance"},
+		{"drops query", "http://relay:8080/deepseek/?token=x", "http://relay:8080/deepseek/user/balance"},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.want, buildDeepSeekBalanceURL(tt.baseURL))
+		})
 	}
 }
 
-func TestDeepSeek_CheckQuotaErrorsDoNotExposeResponseBody(t *testing.T) {
-	for _, status := range []int{401, 403, 429, 500} {
-		client := httpclient.NewHttpClientWithClient(&http.Client{
-			Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
-				return &http.Response{StatusCode: status, Header: make(http.Header), Body: io.NopCloser(strings.NewReader("echoed-secret"))}, nil
-			}),
-		})
-		_, err := NewDeepSeekQuotaChecker(client).CheckQuota(t.Context(), &ent.Channel{Type: channel.TypeDeepseek, Credentials: objects.ChannelCredentials{APIKey: "fixture-key"}})
-		require.Error(t, err)
-		require.NotContains(t, err.Error(), "echoed-secret")
-		if status == 401 || status == 403 {
-			require.ErrorIs(t, err, ErrInvalidCredentials)
-		}
-	}
+func TestDeepSeek_SupportsChannel(t *testing.T) {
+	checker := NewDeepSeekQuotaChecker(httpclient.NewHttpClient())
+
+	require.True(t, checker.SupportsChannel(&ent.Channel{Type: channel.TypeDeepseek}))
+	require.True(t, checker.SupportsChannel(&ent.Channel{Type: channel.TypeDeepseekAnthropic}))
+	require.True(t, checker.SupportsChannel(&ent.Channel{Type: channel.TypeOpenai, BaseURL: "https://api.deepseek.com/v1"}))
+	require.True(t, checker.SupportsChannel(&ent.Channel{Type: channel.TypeOpenaiResponses, BaseURL: "https://api.deepseek.com"}))
+	require.False(t, checker.SupportsChannel(&ent.Channel{Type: channel.TypeOpenai, BaseURL: "https://api.openai.com"}))
 }

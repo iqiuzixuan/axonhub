@@ -143,7 +143,7 @@ func TestUserService_NameValidationAndUpdates(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, "张三 的昵称", updated.Name)
 
-	selfCtx := contexts.WithUser(ctx, updated)
+	selfCtx := contexts.WithUser(authz.NewUserContext(ctx, updated.ID), updated)
 	for _, name := range []string{"", " \t　", strings.Repeat("张", 101)} {
 		_, err := service.UpdateUser(ctx, created.ID, ent.UpdateUserInput{Name: &name})
 		require.Error(t, err)
