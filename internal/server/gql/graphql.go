@@ -161,7 +161,7 @@ func NewGraphqlHandlers(deps Dependencies) *GraphqlHandler {
 	return &GraphqlHandler{
 		Graphql:       gqlSrv,
 		Playground:    playground.Handler("AxonHub", "/admin/graphql"),
-		PluginGraphql: newPluginGraphqlHandler(schema, deps.Ent, deps.PluginManager),
+		PluginGraphql: newPluginGraphqlHandler(schema, deps.Ent, deps.PluginManager, deps.SystemService),
 		PluginFetch:   newPluginFetchHandler(deps.PluginManager),
 		executable:    schema,
 	}
@@ -253,13 +253,24 @@ func rejectPluginGraphqlOperation(ctx context.Context, next graphql.OperationHan
 	return next(ctx)
 }
 
-func newPluginGraphqlHandler(schema graphql.ExecutableSchema, client *ent.Client, manager *plugin.Manager) http.Handler {
+func newPluginGraphqlHandler(schema graphql.ExecutableSchema, client *ent.Client, manager *plugin.Manager, system *biz.SystemService) http.Handler {
 	srv := handler.New(schema)
 	srv.AddTransport(transport.POST{})
 	srv.SetQueryCache(lru.New[*ast.QueryDocument](1024))
 	srv.Use(extension.FixedComplexityLimit(pluginGraphqlComplexityLimit))
 	srv.Use(&loggingTracer{})
 	srv.AroundOperations(rejectPluginGraphqlOperation)
+	srv.AroundFields(requestDetailsMiddleware)
+	srv.AroundFields(modelRoutingMiddleware)
+	if system != nil {
+		srv.AroundOperations(func(ctx context.Context, next graphql.OperationHandler) graphql.ResponseHandler {
+			source, err := authz.RunAsHost(ctx, client, "plugin-model-display-policy", system.BillingModelSource)
+			if err != nil {
+				return graphql.OneShot(graphql.ErrorResponse(ctx, "unable to load model display policy"))
+			}
+			return next(biz.WithModelDisplay(ctx, source))
+		})
+	}
 	srv.Use(entgql.Transactioner{
 		TxOpener:   client,
 		SkipTxFunc: skipGraphqlTransaction,

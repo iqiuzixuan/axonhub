@@ -288,6 +288,26 @@ type pluginEndpointFixture struct {
 	other          *ent.Plugin
 }
 
+func TestPluginRequestDetailsAndModelDisplay(t *testing.T) {
+	fx := newPluginEndpointFixture(t, "plugin_request_content_policy")
+	project := fx.db.Project.Query().OnlyX(fx.setupCtx)
+	row := fx.db.Request.Create().SetProjectID(project.ID).
+		SetModelID("internal-model").SetOriginalModelID("public-model").
+		SetStatus("completed").SetRequestBody([]byte(`{"fixture":"protected-payload"}`)).SaveX(fx.setupCtx)
+	require.NoError(t, fx.manager.Enable(fx.setupCtx, fx.pages.ID, []string{"read_requests"}, nil))
+	_, payload, raw := fx.postAdmin(fx.ownerToken, `mutation { updateSystemModelSettings(input:{billingModelSource:original}) }`)
+	require.NotContains(t, payload, "errors", raw)
+	query := fmt.Sprintf(`{ node(id:"gid://axonhub/Request/%d") { ... on Request { id modelID } } }`, row.ID)
+	_, payload, raw = fx.postPlugin(fx.ownerToken, pluginPagesID, query)
+	require.NotContains(t, payload, "errors", raw)
+	require.Contains(t, raw, "public-model")
+	require.NotContains(t, raw, "internal-model")
+	query = fmt.Sprintf(`{ node(id:"gid://axonhub/Request/%d") { ... on Request { requestBody } } }`, row.ID)
+	_, payload, raw = fx.postPlugin(fx.ownerToken, pluginPagesID, query)
+	require.Contains(t, payload, "errors", raw)
+	require.NotContains(t, raw, "protected-payload")
+}
+
 func newPluginEndpointFixture(t *testing.T, name string) *pluginEndpointFixture {
 	t.Helper()
 	gin.SetMode(gin.TestMode)
