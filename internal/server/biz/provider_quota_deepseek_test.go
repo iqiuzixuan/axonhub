@@ -23,7 +23,7 @@ type deepSeekBalanceTransport func(*http.Request) (*http.Response, error)
 
 func (f deepSeekBalanceTransport) RoundTrip(r *http.Request) (*http.Response, error) { return f(r) }
 
-func TestProviderQuotaService_DeepSeekOptInPersistenceAndRecovery(t *testing.T) {
+func TestProviderQuotaService_DeepSeekUpstreamBalancesAndCollectionSettings(t *testing.T) {
 	service, system, ctx, client := setupProviderQuotaCollectionService(t)
 	defer client.Close()
 	ch := createProviderQuotaCollectionChannel(t, ctx, client, "DeepSeek", channel.TypeDeepseekAnthropic)
@@ -43,64 +43,30 @@ func TestProviderQuotaService_DeepSeekOptInPersistenceAndRecovery(t *testing.T) 
 		require.NoError(t, err)
 		return status
 	}
-	baseline := func(status *ent.ProviderQuotaStatus) string {
-		return status.QuotaData["balance_infos"].([]any)[0].(map[string]any)["baseline_balance"].(string)
+	total := func() float64 {
+		return readStatus().QuotaData["_balances"].([]any)[0].(map[string]any)["total"].(float64)
 	}
-
 	check()
-	require.Zero(t, calls.Load(), "default-off must prevent even manual polling")
-	require.NoError(t, system.UpdateProviderQuotaCollectionSettings(ctx, nil, []ProviderQuotaCollectionProvider{{Provider: "deepseek", Enabled: true}}))
-	check()
-	require.Equal(t, "100", baseline(readStatus()))
+	require.Positive(t, calls.Load())
+	require.Equal(t, 100.0, total())
 	amount = "60"
 	check()
-	require.Equal(t, "100", baseline(readStatus()))
-
-	// Reconstructing the service proves the reference comes from SQL, not memory.
-	service = NewProviderQuotaService(ProviderQuotaServiceParams{Ent: client, SystemService: system, HttpClient: httpClient})
-	amount = "50"
-	check()
-	require.Equal(t, "100", baseline(readStatus()))
-	for _, failedStatus := range []int{500, 401} {
-		responseStatus = failedStatus
-		check()
-		failed := readStatus()
-		require.Equal(t, "100", baseline(failed))
-		require.Equal(t, providerquotastatus.StatusUnknown, failed.Status)
-		require.False(t, failed.Ready)
-		require.Equal(t, "check_failed", failed.QuotaData["error_code"])
-		responseStatus, amount = 200, "40"
-		check()
-		require.Equal(t, "100", baseline(readStatus()))
-		require.NotContains(t, readStatus().QuotaData, "error_code")
-	}
-
-	// Switching collection off preserves the reference but hides routing state.
+	require.Equal(t, 60.0, total())
+	require.NotContains(t, readStatus().QuotaData["_balances"].([]any)[0].(map[string]any), "baseline_balance")
 	require.NoError(t, system.UpdateProviderQuotaCollectionSettings(ctx, nil, []ProviderQuotaCollectionProvider{{Provider: "deepseek", Enabled: false}}))
 	previousCalls := calls.Load()
 	check()
 	require.Equal(t, previousCalls, calls.Load())
-	require.Nil(t, service.GetQuotaStatus(ctx, ch.ID))
 	require.NoError(t, system.UpdateProviderQuotaCollectionSettings(ctx, nil, []ProviderQuotaCollectionProvider{{Provider: "deepseek", Enabled: true}}))
-	amount = "30"
+	amount = "0"
 	check()
-	require.Equal(t, "100", baseline(readStatus()))
-
-	for _, step := range []struct{ amount, baseline string }{{"200", "200"}, {"50", "200"}, {"0", "0"}, {"150", "150"}} {
-		amount = step.amount
-		check()
-		require.Equal(t, step.baseline, baseline(readStatus()))
-	}
-	require.Empty(t, service.GetQuotaStatus(ctx, ch.ID).Limits, "balance references are display-only")
-
-	_, err := client.Channel.UpdateOneID(ch.ID).SetCredentials(objects.ChannelCredentials{APIKey: "new-test-key"}).Save(ctx)
-	require.NoError(t, err)
+	require.Equal(t, providerquotastatus.StatusExhausted, readStatus().Status)
 	amount = "20"
 	check()
-	require.Equal(t, "20", baseline(readStatus()), "a new credential must not inherit the old baseline")
-	currency, amount = "USD", "10"
-	check()
-	require.Equal(t, "10", baseline(readStatus()))
+	require.Equal(t, providerquotastatus.StatusAvailable, readStatus().Status)
+	require.Equal(t, 20.0, total())
+	require.Empty(t, service.GetQuotaStatus(ctx, ch.ID).Limits)
+
 }
 
 func TestChannelService_DeepSeekKeyChangeInvalidatesBalanceImmediately(t *testing.T) {

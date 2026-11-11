@@ -35,7 +35,7 @@ const { pageInfoSchema } = await import(
 );
 globalThis.__importStubs = { z, pageInfoSchema };
 
-const { parseQuotaLimits, parseChannelNode } = await loadModule('features/system/data/quotas.ts', (s) =>
+const { parseQuotaBalances, parseQuotaLimits, parseChannelNode } = await loadModule('features/system/data/quotas.ts', (s) =>
   s.replace(/export function useProviderQuotaStatuses[\s\S]*$/m, '').replace('function parseChannelNode(', 'export function parseChannelNode(')
 );
 
@@ -52,23 +52,6 @@ const { buildQueryChannelsQuery } = await import(
 );
 
 const columnsSource = read('features/channels/components/channels-columns.tsx');
-
-test('DeepSeek balance-only data reaches the shared amount bar for both protocols', () => {
-  for (const type of ['deepseek', 'deepseek_anthropic']) {
-    const quotaData = { balance_infos: [{ currency: 'CNY', total_balance: '60', baseline_balance: '100' }] };
-    const channel = channelSchema.parse(channelFixture({
-      type,
-      providerQuotaStatus: { status: 'available', ready: true, nextResetAt: null, quotaData, providerType: 'deepseek' },
-    }));
-    const parsed = parseChannelNode(channel);
-    assert.equal(parsed.type, type);
-    assert.deepEqual(parsed.quotaStatus.quotaData, quotaData);
-    assert.deepEqual(parsed.quotaStatus.limits, []);
-  }
-  const cell = columnsSource.slice(columnsSource.indexOf('const QuotaCell ='), columnsSource.indexOf("QuotaCell.displayName"));
-  assert.match(cell, /channel\.type === 'deepseek' \|\| channel\.type === 'deepseek_anthropic'/);
-  assert.match(cell, /<DeepSeekBalanceBars/);
-});
 
 function channelFixture({ type, providerQuotaStatus }) {
   return {
@@ -172,6 +155,30 @@ test('normalized limits: malformed required fields produce no rendered limits', 
   assert.deepEqual(limits, []);
 });
 
+test('normalized balances: parser returns every _balances entry without fabrication', () => {
+  const balances = parseQuotaBalances({
+    _balances: [
+      { currency: 'CNY', total: 110, granted: 10, topped_up: 100 },
+      { currency: 'USD', total: 5 },
+    ],
+  });
+
+  assert.equal(balances.length, 2);
+  assert.deepEqual(balances[0], { account: undefined, currency: 'CNY', total: 110, granted: 10, topped_up: 100 });
+  assert.deepEqual(balances[1], { account: undefined, currency: 'USD', total: 5, granted: undefined, topped_up: undefined });
+});
+
+test('normalized balances: malformed entries fail closed', () => {
+  for (const rawBalances of [null, {}, 'broken', 42]) {
+    assert.deepEqual(parseQuotaBalances({ _balances: rawBalances }), [], `malformed _balances value ${String(rawBalances)} must be unavailable`);
+  }
+
+  const balances = parseQuotaBalances({
+    _balances: [null, 42, { currency: 'CNY' }, { total: '110' }, { total: 10, granted: 'x', topped_up: 5 }],
+  });
+  assert.deepEqual(balances, [{ account: undefined, currency: undefined, total: 10, granted: undefined, topped_up: 5 }]);
+});
+
 test('no provider fallback: channels table renders quota for any channel type with normalized limits', () => {
   // Given a non-allowlisted channel type whose quota status carries _limits,
   // When the quota cell decides whether to render rows,
@@ -216,6 +223,11 @@ test('no provider fallback: channels table renders quota for any channel type wi
     /parseQuotaLimits/,
     'the channel table should consume the shared provider-neutral normalized-limit parser'
   );
+  assert.match(
+    columnsSource,
+    /parseQuotaBalances/,
+    'the channel table should consume the shared provider-neutral normalized-balance parser'
+  );
 });
 
 test('no provider fallback: quota cell has no provider-specific raw-data parsing branches', () => {
@@ -230,6 +242,8 @@ test('no provider fallback: quota cell has no provider-specific raw-data parsing
     /channel\.type === 'codex'/,
     /channel\.type === 'antigravity'/,
     /channel\.type === 'github_copilot'/,
+    /providerType === 'deepseek'/,
+    /balance_infos/,
     /data\.billing/,
     /data\.windows/,
     /data\.models/,

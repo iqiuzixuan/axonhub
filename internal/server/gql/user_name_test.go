@@ -26,7 +26,7 @@ func TestUserNameGraphQLRoundTrip(t *testing.T) {
 	h := NewGraphqlHandlers(Dependencies{Ent: db, UserService: svc})
 	c := client.New(h.Graphql, func(req *client.Request) {
 		requestCtx := ent.NewContext(authz.WithTestBypass(req.HTTP.Context()), db)
-		req.HTTP = req.HTTP.WithContext(contexts.WithUser(requestCtx, owner))
+		req.HTTP = req.HTTP.WithContext(contexts.WithUser(authz.NewUserContext(requestCtx, owner.ID), owner))
 	})
 
 	var me struct{ Me struct{ Name string } }

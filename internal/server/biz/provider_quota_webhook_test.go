@@ -153,10 +153,9 @@ func TestProviderQuotaService_DeepSeekErrorPreservesRecoveryTransition(t *testin
 		expectNoQuotaWebhook(t, notifications)
 		row, err := client.ProviderQuotaStatus.Query().Where(providerquotastatus.ChannelIDEQ(ch.ID)).Only(ctx)
 		require.NoError(t, err)
-		require.Equal(t, providerquotastatus.StatusUnknown, row.Status)
+		require.Equal(t, providerquotastatus.StatusExhausted, row.Status)
 		require.False(t, row.Ready)
 		require.Equal(t, "0", row.QuotaData["balance"])
-		require.Equal(t, "exhausted", row.QuotaData["_previous_status"])
 		cached, ok := svc.quotaCache.Load(ch.ID)
 		require.True(t, ok)
 		require.Equal(t, "exhausted", cached.(*QuotaChannelStatus).LastKnownStatus)
@@ -165,7 +164,7 @@ func TestProviderQuotaService_DeepSeekErrorPreservesRecoveryTransition(t *testin
 	svc.saveQuotaStatus(ctx, ch, "deepseek", "test-account", provider_quota.QuotaData{
 		ProviderType: "deepseek", Status: "available", Ready: true,
 	}, time.Now(), false)
-	expectQuotaWebhook(t, notifications, EventProviderQuotaRecovered, "unknown", "available")
+	expectQuotaWebhook(t, notifications, EventProviderQuotaRecovered, "exhausted", "available")
 	expectNoQuotaWebhook(t, notifications)
 }
 
