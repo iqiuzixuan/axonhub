@@ -25,7 +25,7 @@ export function AppHeader({ sidebarData }: { sidebarData: SidebarData }) {
   const queryClient = useQueryClient();
   const { isMobile } = useSidebar();
   const displayName = brandSettings?.brandName || 'AxonHub';
-  const showProjectSwitcher = sidebarData.activeModuleId === 'project';
+  const showProjectSwitcher = sidebarData.activeModuleId === 'project' || sidebarData.activeModuleId === 'personal';
 
   const refreshMutation = useMutation({
     mutationFn: async () => {
