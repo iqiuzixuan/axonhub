@@ -13,10 +13,22 @@ import (
 func innerProvider(t *testing.T, ch *Channel) any {
 	t.Helper()
 
-	wrapped, ok := getAPIKeyProvider(ch).(*channelAPIKeyContextProvider)
+	provider, err := getAPIKeyProvider(ch)
+	require.NoError(t, err)
+
+	wrapped, ok := provider.(*channelAPIKeyContextProvider)
 	require.True(t, ok, "getAPIKeyProvider must wrap the selected provider")
 
 	return wrapped.inner
+}
+
+func TestGetAPIKeyProvider_RejectsWhenAllKeysAreDisabled(t *testing.T) {
+	ch := newKeyChannel(1, []string{"k1", "k2"}, "k1", "k2")
+	require.Empty(t, ch.cachedEnabledAPIKeys)
+
+	provider, err := getAPIKeyProvider(ch)
+	require.Nil(t, provider)
+	require.ErrorContains(t, err, "no enabled api key")
 }
 
 // A multi-key channel that temporarily drops to a single selectable key must
