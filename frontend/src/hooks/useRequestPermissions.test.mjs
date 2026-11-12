@@ -29,6 +29,8 @@ const { useRequestPermissions } = load('./useRequestPermissions.ts', {
   '@/features/auth/data/auth': { useMe: () => ({ data: meData }) },
 });
 const ui = (tag) => ({ children }) => React.createElement(tag, null, children);
+const metricColors = load('../features/requests/utils/metric-colors.ts', {});
+const metricColorHook = load('../features/requests/utils/use-metric-colors.ts', { './metric-colors': metricColors });
 const { useRequestsColumns } = load('../features/requests/components/requests-columns.tsx', {
   'react-i18next': { useTranslation: () => ({ t: (key) => key, i18n: { language: 'en' } }) },
   '@/lib/utils': { extractNumberID: (id) => id.split('/').at(-1) },
@@ -42,6 +44,8 @@ const { useRequestsColumns } = load('../features/requests/components/requests-co
   '@/components/data-table-column-header': { DataTableColumnHeader: ui('div') },
   '@/features/system/data/system': { useGeneralSettings: () => ({}), useSecuritySettings: () => ({}), useUpdateSecuritySettings: () => ({}) },
   '../../../hooks/useRequestPermissions': { useRequestPermissions },
+  '../utils/metric-colors': metricColors,
+  '../utils/use-metric-colors': metricColorHook,
   '../utils/tokens-per-second': {},
   '../utils/upstream-model-audit': { getUpstreamModelAudit: () => ({ status: 'matched' }), getRequestModelAuditTooltip: () => '' },
   './help': { getStatusColor: () => '' },
