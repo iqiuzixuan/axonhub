@@ -95,7 +95,7 @@ func TestBillingSnapshotRefreshesForEachExecution(t *testing.T) {
 					require.Equal(t, want, gjson.GetBytes(raw, "usage.cost").Float())
 				}
 			}
-			require.NoError(t, requests.UpdateRequestFinalized(ctx, state.Request, "completed", "", map[string]any{}, nil))
+			require.NoError(t, requests.UpdateRequestFinalized(ctx, state.Request, "completed", "", map[string]any{}, nil, nil))
 			final := db.Request.GetX(ctx, req.ID)
 			require.Equal(t, state.Request.ChannelID, final.ChannelID)
 			require.Equal(t, state.Billing.PriceReference, final.Billing.PriceReference)
