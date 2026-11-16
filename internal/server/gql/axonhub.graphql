@@ -60,6 +60,7 @@ type ReasoningEffortMapping {
 type TransformOptions {
   forceArrayInstructions: Boolean!
   forceArrayInputs: Boolean!
+  forceArrayStop: Boolean!
   replaceDeveloperRoleWithSystem: Boolean!
   reasoningEffortMapping: [ReasoningEffortMapping!]
 }
@@ -78,6 +79,7 @@ input ReasoningEffortMappingInput {
 input TransformOptionsInput {
   forceArrayInstructions: Boolean
   forceArrayInputs: Boolean
+  forceArrayStop: Boolean
   replaceDeveloperRoleWithSystem: Boolean
   reasoningEffortMapping: [ReasoningEffortMappingInput!]
 }
@@ -183,14 +185,6 @@ input OllamaQuotaSettingsInput {
   authCookie: String
 }
 
-type QianwenTokenPlanQuotaSettings {
-  authCookie: String
-}
-
-input QianwenTokenPlanQuotaSettingsInput {
-  authCookie: String
-}
-
 enum CPAManagementAPIVersion {
   V8
   V0
@@ -211,14 +205,12 @@ input CPAQuotaSettingsInput {
 type ChannelProviderQuotaSettings {
   commandCode: CommandCodeQuotaSettings
   ollama: OllamaQuotaSettings
-  qianwenTokenPlan: QianwenTokenPlanQuotaSettings
   cpa: CPAQuotaSettings
 }
 
 input ChannelProviderQuotaSettingsInput {
   commandCode: CommandCodeQuotaSettingsInput
   ollama: OllamaQuotaSettingsInput
-  qianwenTokenPlan: QianwenTokenPlanQuotaSettingsInput
   cpa: CPAQuotaSettingsInput
 }
 
@@ -412,6 +404,11 @@ type DisabledAPIKey {
   errorCode: Int!
   reason: String
   expiresAt: Time
+  """
+  True when a proactive provider quota observation owns this disable, which
+  means a later quota check may clear it once the key reports recovery.
+  """
+  quotaDisabled: Boolean!
 }
 
 type OAuthCredentials {

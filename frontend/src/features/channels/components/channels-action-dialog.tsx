@@ -145,9 +145,7 @@ export function providerQuotaSettingsForSubmit(
 ): ChannelSettings['providerQuota'] {
   if (type === 'codex') return settings?.providerQuota?.cpa ? { cpa: settings.providerQuota.cpa } : null;
   const key =
-    type === 'qianwen_token_plan' || type === 'qianwen_token_plan_anthropic'
-      ? 'qianwenTokenPlan'
-      : type === 'commandcode' || type === 'commandcode_anthropic'
+    type === 'commandcode' || type === 'commandcode_anthropic'
         ? 'commandCode'
         : type === 'ollama' || type === 'ollama_anthropic'
           ? 'ollama'
@@ -594,7 +592,6 @@ export function ChannelsActionDialog({
   const [showApiKey, setShowApiKey] = useState(false);
   const [showCommandCodeAuthCookie, setShowCommandCodeAuthCookie] = useState(false);
   const [showOllamaAuthCookie, setShowOllamaAuthCookie] = useState(false);
-  const [showQianwenAuthCookie, setShowQianwenAuthCookie] = useState(false);
   const [showApiKeysPanel, setShowApiKeysPanel] = useState(false);
   const [apiKeysSearch, setApiKeysSearch] = useState('');
   const [selectedKeysToRemove, setSelectedKeysToRemove] = useState<Set<string>>(new Set());
@@ -829,7 +826,6 @@ export function ChannelsActionDialog({
       setShowApiKey(false);
       setShowCommandCodeAuthCookie(false);
       setShowOllamaAuthCookie(false);
-      setShowQianwenAuthCookie(false);
       setShowApiKeysPanel(false);
       setApiKeysSearch('');
       setSelectedKeysToRemove(new Set());
@@ -1113,7 +1109,6 @@ export function ChannelsActionDialog({
   const cpaSettings = form.watch('settings.providerQuota.cpa');
   const isCPAType = isCodexType && authMode === 'third-party' && !!cpaSettings;
   const isOllamaType = activeChannelType === 'ollama' || activeChannelType === 'ollama_anthropic';
-  const isQianwenTokenPlanType = activeChannelType === 'qianwen_token_plan' || activeChannelType === 'qianwen_token_plan_anthropic';
 
   // OAuth providers cannot have their provider/API format changed during edit.
   // Derived from currentRow credentials so it stays stable across re-renders
@@ -1395,10 +1390,7 @@ export function ChannelsActionDialog({
     if (!isOllamaType) {
       setShowOllamaAuthCookie(false);
     }
-    if (!isQianwenTokenPlanType) {
-      setShowQianwenAuthCookie(false);
-    }
-  }, [isCommandCodeType, isOllamaType, isQianwenTokenPlanType]);
+  }, [isCommandCodeType, isOllamaType]);
 
   useEffect(() => {
     if (isEdit || isDuplicate) return;
@@ -3280,50 +3272,6 @@ export function ChannelsActionDialog({
                                 </div>
                                 <FormDescription className='text-xs'>
                                   {t('channels.dialogs.fields.ollamaQuota.authCookie.description')}
-                                </FormDescription>
-                                <FormMessage />
-                              </div>
-                            </FormItem>
-                          )}
-                        />
-                      )}
-
-                      {isQianwenTokenPlanType && (
-                        <FormField
-                          control={form.control}
-                          name='settings.providerQuota.qianwenTokenPlan.authCookie'
-                          render={({ field, fieldState }) => (
-                            <FormItem className='grid grid-cols-1 items-start gap-x-6 gap-y-2 md:grid-cols-8'>
-                              <FormLabel className='pt-2 font-medium md:col-span-2 md:text-right'>
-                                {t('channels.dialogs.fields.qianwenTokenPlanQuota.authCookie.label')}
-                              </FormLabel>
-                              <div className='space-y-1 md:col-span-6'>
-                                <div className='relative'>
-                                  <Input
-                                    type={showQianwenAuthCookie ? 'text' : 'password'}
-                                    value={field.value ?? ''}
-                                    onChange={field.onChange}
-                                    onBlur={field.onBlur}
-                                    placeholder={t('channels.dialogs.fields.qianwenTokenPlanQuota.authCookie.placeholder')}
-                                    autoComplete='new-password'
-                                    data-form-type='other'
-                                    spellCheck={false}
-                                    aria-invalid={!!fieldState.error}
-                                    data-testid='channel-qianwen-auth-cookie-input'
-                                    className='pr-10 font-mono text-xs'
-                                  />
-                                  <Button
-                                    type='button'
-                                    variant='ghost'
-                                    size='sm'
-                                    className='absolute top-0 right-0 h-full px-3'
-                                    onClick={() => setShowQianwenAuthCookie((visible) => !visible)}
-                                  >
-                                    {showQianwenAuthCookie ? <EyeOff className='h-4 w-4' /> : <Eye className='h-4 w-4' />}
-                                  </Button>
-                                </div>
-                                <FormDescription className='text-xs'>
-                                  {t('channels.dialogs.fields.qianwenTokenPlanQuota.authCookie.description')}
                                 </FormDescription>
                                 <FormMessage />
                               </div>

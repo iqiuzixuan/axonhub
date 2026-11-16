@@ -563,10 +563,6 @@ func (svc *ChannelService) createChannel(ctx context.Context, input ent.CreateCh
 	if quotaErr != nil {
 		return nil, quotaErr
 	}
-	input.Settings, quotaErr = normalizeQianwenQuotaSettings(input.Settings, input.Type)
-	if quotaErr != nil {
-		return nil, quotaErr
-	}
 	sanitizedSettings, err := normalizeCommandCodeQuotaCookieSettings(input.Settings, input.Type)
 	if err != nil {
 		return nil, err
@@ -944,11 +940,9 @@ func (svc *ChannelService) UpdateChannel(ctx context.Context, id int, input *ent
 	commandCodeQuotaSettings := input.Settings != nil &&
 		(isCommandCodeChannelType(effectiveType) ||
 			(input.Settings.ProviderQuota != nil && input.Settings.ProviderQuota.CommandCode != nil))
-	qianwenQuotaSettings := input.Settings != nil && (isQianwenTokenPlanChannelType(effectiveType) ||
-		(input.Settings.ProviderQuota != nil && input.Settings.ProviderQuota.QianwenTokenPlan != nil))
 	cpaQuotaSettings := provider_quota.CPASettings(existingIdentity) != nil || (input.Settings != nil && input.Settings.ProviderQuota != nil && input.Settings.ProviderQuota.CPA != nil)
 	deepSeekCredentials := input.Credentials != nil && (effectiveType == channel.TypeDeepseek || effectiveType == channel.TypeDeepseekAnthropic)
-	guardProviderIdentity := input.Type != nil || input.BaseURL != nil || input.Endpoints != nil || commandCodeQuotaSettings || qianwenQuotaSettings || deepSeekCredentials || cpaQuotaSettings ||
+	guardProviderIdentity := input.Type != nil || input.BaseURL != nil || input.Endpoints != nil || commandCodeQuotaSettings || deepSeekCredentials || cpaQuotaSettings ||
 		expectedUpdatedAt != nil
 
 	// A cleared Command Code quota cookie must invalidate the old persisted
@@ -957,10 +951,6 @@ func (svc *ChannelService) UpdateChannel(ctx context.Context, id int, input *ent
 
 	if input.Settings != nil {
 		input.Settings, err = normalizeCPAQuotaSettings(input.Settings, effectiveType)
-		if err != nil {
-			return nil, err
-		}
-		input.Settings, err = normalizeQianwenQuotaSettings(input.Settings, effectiveType)
 		if err != nil {
 			return nil, err
 		}
@@ -1181,10 +1171,6 @@ func (svc *ChannelService) UpdateChannel(ctx context.Context, id int, input *ent
 			if err != nil {
 				return err
 			}
-			settings, err = normalizeQianwenQuotaSettings(settings, *input.Type)
-			if err != nil {
-				return err
-			}
 			mut.SetSettings(settings)
 		}
 
@@ -1277,7 +1263,7 @@ func (svc *ChannelService) UpdateChannel(ctx context.Context, id int, input *ent
 	if ent.TxFromContext(ctx) == nil {
 		updated.Unwrap()
 	}
-	if providerIdentityChanged || quotaCookieCleared || qianwenQuotaSettings || deepSeekCredentialsChanged || cpaQuotaIdentityChanged(existingIdentity, updated) {
+	if providerIdentityChanged || quotaCookieCleared || deepSeekCredentialsChanged || cpaQuotaIdentityChanged(existingIdentity, updated) {
 		runAfterCommit(ctx, func(ctx context.Context) {
 			svc.invalidateProviderQuota(ctx, id)
 		})

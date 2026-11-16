@@ -53,6 +53,7 @@ var Module = fx.Module("biz",
 	}),
 	fx.Invoke(func(channelSvc *ChannelService, quotaSvc *ProviderQuotaService) {
 		channelSvc.SetChannelProviderQuotaInvalidator(quotaSvc)
+		quotaSvc.SetQuotaKeyReconciler(channelSvc)
 	}),
 	fx.Invoke(func(lc fx.Lifecycle, svc *APIKeyService) {
 		lc.Append(fx.Hook{

@@ -61,6 +61,12 @@ func NewEntClient(cfg Config) *ent.Client {
 	client := ent.NewClient(opts...)
 
 	if !cfg.DisableAutoMigration {
+		// Convert retired channel types before narrowing the channel enum. Keep
+		// their historical rows but ensure no retired channel continues serving.
+		if err := retireQianwenChannels(context.Background(), masterDB, cfg.Dialect); err != nil {
+			_ = client.Close()
+			panic(err)
+		}
 		// Purge rows for provider types removed from the enum before the
 		// schema DDL runs: on MySQL/TiDB the enum removal rewrites the
 		// column and a surviving 'wafer' row would abort the ALTER (strict

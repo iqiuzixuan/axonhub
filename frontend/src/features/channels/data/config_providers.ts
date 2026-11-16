@@ -41,7 +41,6 @@ import { EvolinkIcon } from '../components/evolink-icon';
 import { FennoIcon } from '../components/fenno-icon';
 import { TypeSafeIcon } from '../components/typesafe-icon';
 import { NanoGPTIcon } from '../components/nanogpt-icon';
-import { QianwenIcon } from '../components/qianwen-icon';
 import { CHANNEL_CONFIGS } from './config_channels';
 import {
   getApiFormatsForProvider as getApiFormatsForProviderFromConfigs,
@@ -236,12 +235,6 @@ export const PROVIDER_CONFIGS: Record<string, ProviderConfig> = {
     icon: ModelScope,
     color: 'bg-purple-100 text-purple-800 border-purple-200',
     channelTypes: ['modelscope'],
-  },
-  qianwen_token_plan: {
-    provider: 'qianwen_token_plan',
-    icon: QianwenIcon,
-    color: 'bg-blue-100 text-blue-800 border-blue-200',
-    channelTypes: ['qianwen_token_plan', 'qianwen_token_plan_anthropic'],
   },
   bailian: {
     provider: 'bailian',

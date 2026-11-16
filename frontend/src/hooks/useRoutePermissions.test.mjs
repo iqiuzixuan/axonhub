@@ -73,6 +73,7 @@ const { Route: homeRoute } = loadComponent('../routes/_authenticated/index.tsx',
   '@/hooks/useRoutePermissions': { useRoutePermissions },
   '@/features/projects/data/projects': { useMyProjects: () => ({ data: myProjects, isLoading: projectsLoading }) },
   '@/features/dashboard': {
+    __esModule: true,
     default: () => {
       dashboardMounts += 1;
       return React.createElement('div', null, 'dashboard-loaded');
@@ -109,7 +110,7 @@ const { useSignIn, useOIDCExchange } = loadComponent('../features/auth/data/auth
   '@/stores/projectStore': { useProjectStore: { getState: () => ({ selectedProjectId }) } },
   '@/lib/project-membership': {},
   '@/lib/api-client': {},
-  '@/lib/i18n': { default: { language: 'en', t: (key) => key } },
+  '@/lib/i18n': { __esModule: true, default: { language: 'en', t: (key) => key } },
 });
 
 const { useMyProjects } = loadComponent('../features/projects/data/projects.ts', {
