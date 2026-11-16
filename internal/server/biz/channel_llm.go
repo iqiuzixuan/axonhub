@@ -810,10 +810,6 @@ func (svc *ChannelService) buildChannelWithTransformer(c *ent.Channel, apiKeyOve
 			c.BaseURL = zenmuxAnthropicBaseURL
 		case channel.TypeZenmuxGemini:
 			c.BaseURL = zenmuxGeminiBaseURL
-		case channel.TypeQianwenTokenPlan:
-			c.BaseURL = "https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1"
-		case channel.TypeQianwenTokenPlanAnthropic:
-			c.BaseURL = "https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic"
 		default:
 		}
 	}
@@ -1340,7 +1336,7 @@ func (svc *ChannelService) buildChannelWithTransformer(c *ent.Channel, apiKeyOve
 		ch.Outbound = transformer
 
 		return ch, nil
-	case channel.TypeBailian, channel.TypeQianwenTokenPlan:
+	case channel.TypeBailian:
 		apiKeyProvider, err := getAPIKeyProvider(ch)
 		if err != nil {
 			return nil, err
@@ -1372,7 +1368,7 @@ func (svc *ChannelService) buildChannelWithTransformer(c *ent.Channel, apiKeyOve
 		ch.Outbound = transformer
 
 		return ch, nil
-	case channel.TypeBailianAnthropic, channel.TypeQianwenTokenPlanAnthropic, channel.TypeMoonshotCoding:
+	case channel.TypeBailianAnthropic, channel.TypeMoonshotCoding:
 		apiKeyProvider, err := getAPIKeyProvider(ch)
 		if err != nil {
 			return nil, err

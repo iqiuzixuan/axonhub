@@ -112,6 +112,12 @@ type TransformOptions struct {
 	// ForceArrayInputs forces the channel to accept array format for inputs.
 	ForceArrayInputs bool `json:"forceArrayInputs"`
 
+	// ForceArrayStop forces the outbound stop field to always be an array.
+	// OpenAI allows both "stop": "x" and "stop": ["x"], but some strict
+	// OpenAI-compatible upstreams only accept the array form and reject a
+	// plain string with HTTP 400.
+	ForceArrayStop bool `json:"forceArrayStop"`
+
 	// ReplaceDeveloperRoleWithSystem replaces developer role with system in messages for Bailian compatibility.
 	ReplaceDeveloperRoleWithSystem bool `json:"replaceDeveloperRoleWithSystem"`
 
@@ -328,8 +334,6 @@ type ChannelProviderQuotaSettings struct {
 	// Ollama holds the quota collection settings for Ollama Cloud channels.
 	Ollama *OllamaQuotaSettings `json:"ollama,omitempty"`
 
-	QianwenTokenPlan *QianwenTokenPlanQuotaSettings `json:"qianwenTokenPlan,omitempty"`
-
 	// CPA is explicitly configured only for third-party Codex quota collection.
 	CPA *CPAQuotaSettings `json:"cpa,omitempty"`
 }
@@ -348,16 +352,6 @@ type CPAQuotaSettings struct {
 	ManagementURL string                  `json:"managementURL"`
 	APIVersion    CPAManagementAPIVersion `json:"apiVersion,omitempty"`
 	AuthIndex     string                  `json:"authIndex,omitempty"`
-}
-
-// QianwenTokenPlanQuotaSettings authenticates personal-plan quota reads against
-// the Qianwen console. Inference continues to use the channel API key.
-type QianwenTokenPlanQuotaSettings struct {
-	AuthCookie string `json:"authCookie,omitempty"`
-}
-
-func (s QianwenTokenPlanQuotaSettings) String() string {
-	return "QianwenTokenPlanQuotaSettings{AuthCookie: <redacted>}"
 }
 
 // CommandCodeQuotaSettings holds the fallback credential used to query the
@@ -496,6 +490,14 @@ type DisabledAPIKey struct {
 	ErrorCode  int        `json:"errorCode"`
 	Reason     string     `json:"reason,omitempty"`
 	ExpiresAt  *time.Time `json:"expiresAt,omitempty"`
+
+	// QuotaDisabled marks a disable owned by a proactive provider quota
+	// observation rather than by a manual action, a plugin or an HTTP error
+	// rule. Only records with this flag are reconciled by quota checks;
+	// missing/false — including every record written before the field existed
+	// — means the channel lifecycle owns the record. Ownership is never
+	// inferred from the reason text, the error code or the expiry.
+	QuotaDisabled bool `json:"quotaDisabled,omitempty"`
 }
 
 // IsExpired reports whether a temporary API key disable has elapsed.

@@ -24,7 +24,7 @@ func TestProviderQuotaService_RegistryCoverageMatrix(t *testing.T) {
 		"apertis", "antigravity", "charm_hyper", "claudecode", "cline", "codex",
 		"commandcode", "deepseek", "github_copilot", "kimi_code", "minimax", "nanogpt",
 		"neuralwatt", "opencode_go", "synthetic", "xai_subscription",
-		"ollama", "zenmux", "zhipu", "zai", "qianwen_token_plan",
+		"ollama", "zenmux", "zhipu", "zai",
 	}
 	require.ElementsMatch(t, expectedCheckers, mapKeys(svc.checkers))
 
@@ -61,8 +61,6 @@ func TestProviderQuotaService_RegistryCoverageMatrix(t *testing.T) {
 		{"zhipu", channel.TypeZhipuAnthropic, ""},
 		{"zai", channel.TypeZai, ""},
 		{"zai", channel.TypeZaiAnthropic, ""},
-		{"qianwen_token_plan", channel.TypeQianwenTokenPlan, ""},
-		{"qianwen_token_plan", channel.TypeQianwenTokenPlanAnthropic, ""},
 		{"deepseek", channel.TypeDeepseek, ""},
 		{"deepseek", channel.TypeDeepseekAnthropic, ""},
 		{"deepseek", channel.TypeOpenai, "https://api.deepseek.com"},

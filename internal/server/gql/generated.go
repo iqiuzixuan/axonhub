@@ -559,10 +559,9 @@ type ComplexityRoot struct {
 	}
 
 	ChannelProviderQuotaSettings struct {
-		CPA              func(childComplexity int) int
-		CommandCode      func(childComplexity int) int
-		Ollama           func(childComplexity int) int
-		QianwenTokenPlan func(childComplexity int) int
+		CPA         func(childComplexity int) int
+		CommandCode func(childComplexity int) int
+		Ollama      func(childComplexity int) int
 	}
 
 	ChannelRateLimit struct {
@@ -795,11 +794,12 @@ type ComplexityRoot struct {
 	}
 
 	DisabledAPIKey struct {
-		DisabledAt func(childComplexity int) int
-		ErrorCode  func(childComplexity int) int
-		ExpiresAt  func(childComplexity int) int
-		Key        func(childComplexity int) int
-		Reason     func(childComplexity int) int
+		DisabledAt    func(childComplexity int) int
+		ErrorCode     func(childComplexity int) int
+		ExpiresAt     func(childComplexity int) int
+		Key           func(childComplexity int) int
+		QuotaDisabled func(childComplexity int) int
+		Reason        func(childComplexity int) int
 	}
 
 	ExcludeAssociation struct {
@@ -1670,10 +1670,6 @@ type ComplexityRoot struct {
 		Username func(childComplexity int) int
 	}
 
-	QianwenTokenPlanQuotaSettings struct {
-		AuthCookie func(childComplexity int) int
-	}
-
 	Query struct {
 		APIKeyProfileTemplates          func(childComplexity int, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.APIKeyProfileTemplateOrder, where *ent.APIKeyProfileTemplateWhereInput) int
 		APIKeyQuotaUsages               func(childComplexity int, apiKeyID objects.GUID) int
@@ -2279,6 +2275,7 @@ type ComplexityRoot struct {
 	TransformOptions struct {
 		ForceArrayInputs               func(childComplexity int) int
 		ForceArrayInstructions         func(childComplexity int) int
+		ForceArrayStop                 func(childComplexity int) int
 		ReasoningEffortMapping         func(childComplexity int) int
 		ReplaceDeveloperRoleWithSystem func(childComplexity int) int
 	}
@@ -4723,12 +4720,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.ChannelProviderQuotaSettings.Ollama(childComplexity), true
-	case "ChannelProviderQuotaSettings.qianwenTokenPlan":
-		if e.complexity.ChannelProviderQuotaSettings.QianwenTokenPlan == nil {
-			break
-		}
-
-		return e.complexity.ChannelProviderQuotaSettings.QianwenTokenPlan(childComplexity), true
 
 	case "ChannelRateLimit.maxConcurrent":
 		if e.complexity.ChannelRateLimit.MaxConcurrent == nil {
@@ -5577,6 +5568,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.DisabledAPIKey.Key(childComplexity), true
+	case "DisabledAPIKey.quotaDisabled":
+		if e.complexity.DisabledAPIKey.QuotaDisabled == nil {
+			break
+		}
+
+		return e.complexity.DisabledAPIKey.QuotaDisabled(childComplexity), true
 	case "DisabledAPIKey.reason":
 		if e.complexity.DisabledAPIKey.Reason == nil {
 			break
@@ -9849,13 +9846,6 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.ProxyPreset.Username(childComplexity), true
 
-	case "QianwenTokenPlanQuotaSettings.authCookie":
-		if e.complexity.QianwenTokenPlanQuotaSettings.AuthCookie == nil {
-			break
-		}
-
-		return e.complexity.QianwenTokenPlanQuotaSettings.AuthCookie(childComplexity), true
-
 	case "Query.apiKeyProfileTemplates":
 		if e.complexity.Query.APIKeyProfileTemplates == nil {
 			break
@@ -12692,6 +12682,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 		}
 
 		return e.complexity.TransformOptions.ForceArrayInstructions(childComplexity), true
+	case "TransformOptions.forceArrayStop":
+		if e.complexity.TransformOptions.ForceArrayStop == nil {
+			break
+		}
+
+		return e.complexity.TransformOptions.ForceArrayStop(childComplexity), true
 	case "TransformOptions.reasoningEffortMapping":
 		if e.complexity.TransformOptions.ReasoningEffortMapping == nil {
 			break
@@ -13694,7 +13690,6 @@ func (e *executableSchema) Exec(ctx context.Context) graphql.ResponseHandler {
 		ec.unmarshalInputProviderQuotaStatusOrder,
 		ec.unmarshalInputProviderQuotaStatusWhereInput,
 		ec.unmarshalInputProxyConfigInput,
-		ec.unmarshalInputQianwenTokenPlanQuotaSettingsInput,
 		ec.unmarshalInputQueryChannelInput,
 		ec.unmarshalInputQueryModelsInput,
 		ec.unmarshalInputReasoningEffortMappingInput,
@@ -23854,6 +23849,8 @@ func (ec *executionContext) fieldContext_Channel_disabledAPIKeys(_ context.Conte
 				return ec.fieldContext_DisabledAPIKey_reason(ctx, field)
 			case "expiresAt":
 				return ec.fieldContext_DisabledAPIKey_expiresAt(ctx, field)
+			case "quotaDisabled":
+				return ec.fieldContext_DisabledAPIKey_quotaDisabled(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type DisabledAPIKey", field.Name)
 		},
@@ -27309,39 +27306,6 @@ func (ec *executionContext) fieldContext_ChannelProviderQuotaSettings_ollama(_ c
 	return fc, nil
 }
 
-func (ec *executionContext) _ChannelProviderQuotaSettings_qianwenTokenPlan(ctx context.Context, field graphql.CollectedField, obj *objects.ChannelProviderQuotaSettings) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_ChannelProviderQuotaSettings_qianwenTokenPlan,
-		func(ctx context.Context) (any, error) {
-			return obj.QianwenTokenPlan, nil
-		},
-		nil,
-		ec.marshalOQianwenTokenPlanQuotaSettings2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐQianwenTokenPlanQuotaSettings,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_ChannelProviderQuotaSettings_qianwenTokenPlan(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "ChannelProviderQuotaSettings",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			switch field.Name {
-			case "authCookie":
-				return ec.fieldContext_QianwenTokenPlanQuotaSettings_authCookie(ctx, field)
-			}
-			return nil, fmt.Errorf("no field named %q was found under type QianwenTokenPlanQuotaSettings", field.Name)
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _ChannelProviderQuotaSettings_cpa(ctx context.Context, field graphql.CollectedField, obj *objects.ChannelProviderQuotaSettings) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -27918,6 +27882,8 @@ func (ec *executionContext) fieldContext_ChannelSettings_transformOptions(_ cont
 				return ec.fieldContext_TransformOptions_forceArrayInstructions(ctx, field)
 			case "forceArrayInputs":
 				return ec.fieldContext_TransformOptions_forceArrayInputs(ctx, field)
+			case "forceArrayStop":
+				return ec.fieldContext_TransformOptions_forceArrayStop(ctx, field)
 			case "replaceDeveloperRoleWithSystem":
 				return ec.fieldContext_TransformOptions_replaceDeveloperRoleWithSystem(ctx, field)
 			case "reasoningEffortMapping":
@@ -28379,8 +28345,6 @@ func (ec *executionContext) fieldContext_ChannelSettings_providerQuota(_ context
 				return ec.fieldContext_ChannelProviderQuotaSettings_commandCode(ctx, field)
 			case "ollama":
 				return ec.fieldContext_ChannelProviderQuotaSettings_ollama(ctx, field)
-			case "qianwenTokenPlan":
-				return ec.fieldContext_ChannelProviderQuotaSettings_qianwenTokenPlan(ctx, field)
 			case "cpa":
 				return ec.fieldContext_ChannelProviderQuotaSettings_cpa(ctx, field)
 			}
@@ -31653,6 +31617,35 @@ func (ec *executionContext) fieldContext_DisabledAPIKey_expiresAt(_ context.Cont
 		IsResolver: false,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			return nil, errors.New("field of type Time does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _DisabledAPIKey_quotaDisabled(ctx context.Context, field graphql.CollectedField, obj *objects.DisabledAPIKey) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_DisabledAPIKey_quotaDisabled,
+		func(ctx context.Context) (any, error) {
+			return obj.QuotaDisabled, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_DisabledAPIKey_quotaDisabled(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "DisabledAPIKey",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
 		},
 	}
 	return fc, nil
@@ -52885,35 +52878,6 @@ func (ec *executionContext) fieldContext_ProxyPreset_password(_ context.Context,
 	return fc, nil
 }
 
-func (ec *executionContext) _QianwenTokenPlanQuotaSettings_authCookie(ctx context.Context, field graphql.CollectedField, obj *objects.QianwenTokenPlanQuotaSettings) (ret graphql.Marshaler) {
-	return graphql.ResolveField(
-		ctx,
-		ec.OperationContext,
-		field,
-		ec.fieldContext_QianwenTokenPlanQuotaSettings_authCookie,
-		func(ctx context.Context) (any, error) {
-			return obj.AuthCookie, nil
-		},
-		nil,
-		ec.marshalOString2string,
-		true,
-		false,
-	)
-}
-
-func (ec *executionContext) fieldContext_QianwenTokenPlanQuotaSettings_authCookie(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
-	fc = &graphql.FieldContext{
-		Object:     "QianwenTokenPlanQuotaSettings",
-		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
-		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
-			return nil, errors.New("field of type String does not have child fields")
-		},
-	}
-	return fc, nil
-}
-
 func (ec *executionContext) _Query_node(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -67882,6 +67846,35 @@ func (ec *executionContext) fieldContext_TransformOptions_forceArrayInputs(_ con
 	return fc, nil
 }
 
+func (ec *executionContext) _TransformOptions_forceArrayStop(ctx context.Context, field graphql.CollectedField, obj *objects.TransformOptions) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_TransformOptions_forceArrayStop,
+		func(ctx context.Context) (any, error) {
+			return obj.ForceArrayStop, nil
+		},
+		nil,
+		ec.marshalNBoolean2bool,
+		true,
+		true,
+	)
+}
+
+func (ec *executionContext) fieldContext_TransformOptions_forceArrayStop(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "TransformOptions",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type Boolean does not have child fields")
+		},
+	}
+	return fc, nil
+}
+
 func (ec *executionContext) _TransformOptions_replaceDeveloperRoleWithSystem(ctx context.Context, field graphql.CollectedField, obj *objects.TransformOptions) (ret graphql.Marshaler) {
 	return graphql.ResolveField(
 		ctx,
@@ -78788,7 +78781,7 @@ func (ec *executionContext) unmarshalInputChannelProviderQuotaSettingsInput(ctx 
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"commandCode", "ollama", "qianwenTokenPlan", "cpa"}
+	fieldsInOrder := [...]string{"commandCode", "ollama", "cpa"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -78809,13 +78802,6 @@ func (ec *executionContext) unmarshalInputChannelProviderQuotaSettingsInput(ctx 
 				return it, err
 			}
 			it.Ollama = data
-		case "qianwenTokenPlan":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("qianwenTokenPlan"))
-			data, err := ec.unmarshalOQianwenTokenPlanQuotaSettingsInput2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐQianwenTokenPlanQuotaSettings(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.QianwenTokenPlan = data
 		case "cpa":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("cpa"))
 			data, err := ec.unmarshalOCPAQuotaSettingsInput2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐCPAQuotaSettings(ctx, v)
@@ -89039,33 +89025,6 @@ func (ec *executionContext) unmarshalInputProxyConfigInput(ctx context.Context, 
 	return it, nil
 }
 
-func (ec *executionContext) unmarshalInputQianwenTokenPlanQuotaSettingsInput(ctx context.Context, obj any) (objects.QianwenTokenPlanQuotaSettings, error) {
-	var it objects.QianwenTokenPlanQuotaSettings
-	asMap := map[string]any{}
-	for k, v := range obj.(map[string]any) {
-		asMap[k] = v
-	}
-
-	fieldsInOrder := [...]string{"authCookie"}
-	for _, k := range fieldsInOrder {
-		v, ok := asMap[k]
-		if !ok {
-			continue
-		}
-		switch k {
-		case "authCookie":
-			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("authCookie"))
-			data, err := ec.unmarshalOString2string(ctx, v)
-			if err != nil {
-				return it, err
-			}
-			it.AuthCookie = data
-		}
-	}
-
-	return it, nil
-}
-
 func (ec *executionContext) unmarshalInputQueryChannelInput(ctx context.Context, obj any) (biz.QueryChannelsInput, error) {
 	var it biz.QueryChannelsInput
 	asMap := map[string]any{}
@@ -95137,7 +95096,7 @@ func (ec *executionContext) unmarshalInputTransformOptionsInput(ctx context.Cont
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"forceArrayInstructions", "forceArrayInputs", "replaceDeveloperRoleWithSystem", "reasoningEffortMapping"}
+	fieldsInOrder := [...]string{"forceArrayInstructions", "forceArrayInputs", "forceArrayStop", "replaceDeveloperRoleWithSystem", "reasoningEffortMapping"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -95158,6 +95117,13 @@ func (ec *executionContext) unmarshalInputTransformOptionsInput(ctx context.Cont
 				return it, err
 			}
 			it.ForceArrayInputs = data
+		case "forceArrayStop":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("forceArrayStop"))
+			data, err := ec.unmarshalOBoolean2bool(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.ForceArrayStop = data
 		case "replaceDeveloperRoleWithSystem":
 			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("replaceDeveloperRoleWithSystem"))
 			data, err := ec.unmarshalOBoolean2bool(ctx, v)
@@ -106026,8 +105992,6 @@ func (ec *executionContext) _ChannelProviderQuotaSettings(ctx context.Context, s
 			out.Values[i] = ec._ChannelProviderQuotaSettings_commandCode(ctx, field, obj)
 		case "ollama":
 			out.Values[i] = ec._ChannelProviderQuotaSettings_ollama(ctx, field, obj)
-		case "qianwenTokenPlan":
-			out.Values[i] = ec._ChannelProviderQuotaSettings_qianwenTokenPlan(ctx, field, obj)
 		case "cpa":
 			out.Values[i] = ec._ChannelProviderQuotaSettings_cpa(ctx, field, obj)
 		default:
@@ -107909,6 +107873,11 @@ func (ec *executionContext) _DisabledAPIKey(ctx context.Context, sel ast.Selecti
 			out.Values[i] = ec._DisabledAPIKey_reason(ctx, field, obj)
 		case "expiresAt":
 			out.Values[i] = ec._DisabledAPIKey_expiresAt(ctx, field, obj)
+		case "quotaDisabled":
+			out.Values[i] = ec._DisabledAPIKey_quotaDisabled(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -114839,42 +114808,6 @@ func (ec *executionContext) _ProxyPreset(ctx context.Context, sel ast.SelectionS
 			out.Values[i] = ec._ProxyPreset_username(ctx, field, obj)
 		case "password":
 			out.Values[i] = ec._ProxyPreset_password(ctx, field, obj)
-		default:
-			panic("unknown field " + strconv.Quote(field.Name))
-		}
-	}
-	out.Dispatch(ctx)
-	if out.Invalids > 0 {
-		return graphql.Null
-	}
-
-	atomic.AddInt32(&ec.deferred, int32(len(deferred)))
-
-	for label, dfs := range deferred {
-		ec.processDeferredGroup(graphql.DeferredGroup{
-			Label:    label,
-			Path:     graphql.GetPath(ctx),
-			FieldSet: dfs,
-			Context:  ctx,
-		})
-	}
-
-	return out
-}
-
-var qianwenTokenPlanQuotaSettingsImplementors = []string{"QianwenTokenPlanQuotaSettings"}
-
-func (ec *executionContext) _QianwenTokenPlanQuotaSettings(ctx context.Context, sel ast.SelectionSet, obj *objects.QianwenTokenPlanQuotaSettings) graphql.Marshaler {
-	fields := graphql.CollectFields(ec.OperationContext, sel, qianwenTokenPlanQuotaSettingsImplementors)
-
-	out := graphql.NewFieldSet(fields)
-	deferred := make(map[string]*graphql.FieldSet)
-	for i, field := range fields {
-		switch field.Name {
-		case "__typename":
-			out.Values[i] = graphql.MarshalString("QianwenTokenPlanQuotaSettings")
-		case "authCookie":
-			out.Values[i] = ec._QianwenTokenPlanQuotaSettings_authCookie(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -122202,6 +122135,11 @@ func (ec *executionContext) _TransformOptions(ctx context.Context, sel ast.Selec
 			}
 		case "forceArrayInputs":
 			out.Values[i] = ec._TransformOptions_forceArrayInputs(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				out.Invalids++
+			}
+		case "forceArrayStop":
+			out.Values[i] = ec._TransformOptions_forceArrayStop(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				out.Invalids++
 			}
@@ -137005,21 +136943,6 @@ func (ec *executionContext) unmarshalOProxyConfigInput2ᚖgithubᚗcomᚋlooplj�
 		return nil, nil
 	}
 	res, err := ec.unmarshalInputProxyConfigInput(ctx, v)
-	return &res, graphql.ErrorOnPath(ctx, err)
-}
-
-func (ec *executionContext) marshalOQianwenTokenPlanQuotaSettings2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐQianwenTokenPlanQuotaSettings(ctx context.Context, sel ast.SelectionSet, v *objects.QianwenTokenPlanQuotaSettings) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec._QianwenTokenPlanQuotaSettings(ctx, sel, v)
-}
-
-func (ec *executionContext) unmarshalOQianwenTokenPlanQuotaSettingsInput2ᚖgithubᚗcomᚋloopljᚋaxonhubᚋinternalᚋobjectsᚐQianwenTokenPlanQuotaSettings(ctx context.Context, v any) (*objects.QianwenTokenPlanQuotaSettings, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalInputQianwenTokenPlanQuotaSettingsInput(ctx, v)
 	return &res, graphql.ErrorOnPath(ctx, err)
 }
 

@@ -88,38 +88,9 @@ test('inherit option includes the current global mode when available', () => {
   assert.match(source, /quotaRoutingSettings\.defaultMode/);
 });
 
-test('Qianwen edit and duplicate preserve only their own quota cookie, independently of inference credentials', () => {
-  const existing = {
-    providerQuota: {
-      qianwenTokenPlan: { authCookie: ' session=fixture ' },
-      ollama: { authCookie: 'ollama=fixture' },
-    },
-  };
-  for (const type of ['qianwen_token_plan', 'qianwen_token_plan_anthropic']) {
-    const patch = { providerQuota: providerQuotaSettingsForSubmit(type, existing) };
-    for (const previous of [existing, undefined]) {
-      assert.deepEqual(wire(mergeChannelSettingsForUpdate(previous, patch)).providerQuota, {
-        qianwenTokenPlan: { authCookie: 'session=fixture' },
-      });
-    }
-  }
-});
-
-test('clearing a Qianwen cookie or switching provider removes the stored quota credentials', () => {
-  const existing = { providerQuota: { qianwenTokenPlan: { authCookie: 'session=fixture' } } };
-  for (const settings of [undefined, {}, { providerQuota: { qianwenTokenPlan: { authCookie: '  ' } } }]) {
-    const patch = { providerQuota: providerQuotaSettingsForSubmit('qianwen_token_plan', settings) };
-    assert.equal(wire(mergeChannelSettingsForUpdate(existing, patch)).providerQuota, null);
-  }
-  for (const type of ['openai', 'bailian', 'ollama', 'commandcode']) {
-    assert.equal(providerQuotaSettingsForSubmit(type, existing), null);
-  }
-});
-
 test('other browser-session quota providers retain their own credentials after a type switch', () => {
   const settings = {
     providerQuota: {
-      qianwenTokenPlan: { authCookie: 'session=fixture' },
       ollama: { authCookie: 'ollama=fixture' },
       commandCode: { authCookie: 'command=fixture' },
     },
@@ -131,7 +102,7 @@ test('other browser-session quota providers retain their own credentials after a
 
 test('CPA edit and duplicate preserve the explicit source; clearing or changing provider removes it', () => {
   const cpa = { managementURL: 'http://cpa.example/prefix', apiVersion: 'V8', authIndex: 'account-one' };
-  const settings = { providerQuota: { cpa, qianwenTokenPlan: { authCookie: 'unrelated' } } };
+  const settings = { providerQuota: { cpa, ollama: { authCookie: 'unrelated' } } };
   const selected = providerQuotaSettingsForSubmit('codex', settings);
   assert.deepEqual(selected, { cpa });
   const recalled = wire(mergeChannelSettingsForUpdate({}, { providerQuota: selected }));

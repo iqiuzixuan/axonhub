@@ -408,8 +408,8 @@ func TestProviderQuotaService_PeriodQuotaSurvivesPersistence(t *testing.T) {
 	require.InDelta(t, 90.0, *cached.Limits[0].PeriodQuota, 1e-9)
 }
 
-func TestProviderQuotaService_QianwenAndZhipuSharePeriodEstimatePipeline(t *testing.T) {
-	for _, typ := range []channel.Type{channel.TypeQianwenTokenPlan, channel.TypeQianwenTokenPlanAnthropic, channel.TypeZhipuAnthropic} {
+func TestProviderQuotaService_ZhipuPeriodEstimatePipeline(t *testing.T) {
+	for _, typ := range []channel.Type{channel.TypeZhipuAnthropic} {
 		t.Run(string(typ), func(t *testing.T) {
 			client := enttest.NewEntClient(t, "sqlite3", "file:ent?mode=memory&_fk=0")
 			defer client.Close()
@@ -417,9 +417,6 @@ func TestProviderQuotaService_QianwenAndZhipuSharePeriodEstimatePipeline(t *test
 			ch, err := client.Channel.Create().
 				SetName(string(typ)).SetType(typ).
 				SetCredentials(objects.ChannelCredentials{APIKey: "fixture-inference-key"}).
-				SetSettings(&objects.ChannelSettings{ProviderQuota: &objects.ChannelProviderQuotaSettings{
-					QianwenTokenPlan: &objects.QianwenTokenPlanQuotaSettings{AuthCookie: "session=fixture"},
-				}}).
 				SetSupportedModels([]string{"test-model"}).SetDefaultTestModel("test-model").Save(ctx)
 			require.NoError(t, err)
 
@@ -431,18 +428,10 @@ func TestProviderQuotaService_QianwenAndZhipuSharePeriodEstimatePipeline(t *test
 			// Exercise each provider's actual parser before the common cost and
 			// persistence pipeline used by the table and the global quota popover.
 			hc := httpclient.NewHttpClientWithClient(&http.Client{Transport: roundTripperFunc(func(req *http.Request) (*http.Response, error) {
-				body := fmt.Sprintf(`{"code":"200","data":{"DataV2":{"data":{"per1WeekPercentage":0.25,"per1WeekResetTime":%d}}}}`, reset.UnixMilli())
-				if req.URL.Path == "/tool/user/info.json" {
-					body = `{"code":"200","data":{"secToken":"fixture-csrf"}}`
-				} else if typ == channel.TypeZhipuAnthropic {
-					body = fmt.Sprintf(`{"success":true,"data":{"limits":[{"type":"TOKENS_LIMIT","percentage":50,"nextResetTime":%d},{"type":"TOKENS_LIMIT","percentage":25,"nextResetTime":%d}]}}`, now.Add(time.Hour).UnixMilli(), reset.UnixMilli())
-				}
+				body := fmt.Sprintf(`{"success":true,"data":{"limits":[{"type":"TOKENS_LIMIT","percentage":50,"nextResetTime":%d},{"type":"TOKENS_LIMIT","percentage":25,"nextResetTime":%d}]}}`, now.Add(time.Hour).UnixMilli(), reset.UnixMilli())
 				return &http.Response{StatusCode: http.StatusOK, Header: make(http.Header), Body: io.NopCloser(strings.NewReader(body))}, nil
 			})})
-			var checker provider_quota.QuotaChecker = provider_quota.NewQianwenTokenPlanQuotaChecker(hc)
-			if typ == channel.TypeZhipuAnthropic {
-				checker = provider_quota.NewZhipuQuotaChecker(hc)
-			}
+			checker := provider_quota.NewZhipuQuotaChecker(hc)
 			quota, err := checker.CheckQuota(ctx, ch)
 			require.NoError(t, err)
 			svc := &ProviderQuotaService{AbstractService: &AbstractService{db: client}, checkInterval: time.Minute}

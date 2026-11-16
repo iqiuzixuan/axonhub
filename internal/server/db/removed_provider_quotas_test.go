@@ -78,6 +78,7 @@ func TestCleanupRemovedProviderQuotaTypes(t *testing.T) {
 
 	insertQuotaRow(t, db, "wafer", 0)
 	insertQuotaRow(t, db, "wafer", 1) // soft-deleted
+	insertQuotaRow(t, db, "qianwen_token_plan", 0)
 	insertQuotaRow(t, db, "synthetic", 0)
 
 	if err := cleanupRemovedProviderQuotaTypes(ctx, db, "sqlite"); err != nil {
@@ -92,6 +93,9 @@ func TestCleanupRemovedProviderQuotaTypes(t *testing.T) {
 	}
 	if got := countQuotaRows(t, db, "synthetic", false); got != 1 {
 		t.Fatalf("synthetic rows = %d, want 1", got)
+	}
+	if got := countQuotaRows(t, db, "qianwen_token_plan", false); got != 0 {
+		t.Fatalf("retired qianwen quota rows remain: %d", got)
 	}
 
 	// Idempotent: a second run does nothing and returns no error.

@@ -18,7 +18,7 @@ import (
 // mode or be truncated to an empty string — both corrupt the upgrade. The
 // rows are therefore purged before schema creation (see
 // cleanupRemovedProviderQuotaTypes) so the enum DDL never sees them.
-var removedProviderQuotaTypes = []string{"wafer"}
+var removedProviderQuotaTypes = []string{"wafer", "qianwen_token_plan"}
 
 // dialectFamily maps every config dialect alias (see driverName/entDialect)
 // to the driver family the raw SQL in this file is written for.

@@ -41,7 +41,6 @@ import { EvolinkIcon } from '../components/evolink-icon';
 import { FennoIcon } from '../components/fenno-icon';
 import { TypeSafeIcon } from '../components/typesafe-icon';
 import { NanoGPTIcon } from '../components/nanogpt-icon';
-import { QianwenIcon } from '../components/qianwen-icon';
 import { BURNCLOUD_DEFAULT_MODELS } from './burncloud-models';
 import { ApiFormat, ChannelType } from './schema';
 import { isSuggestedModel } from '../../models/data/model-suggestions';
@@ -646,22 +645,6 @@ export const CHANNEL_CONFIGS: Record<ChannelType, ChannelConfig> = {
     color: 'bg-blue-100 text-blue-800 border-blue-200',
     icon: Bailian,
   },
-  qianwen_token_plan: {
-    channelType: 'qianwen_token_plan',
-    baseURL: 'https://token-plan.cn-beijing.maas.aliyuncs.com/compatible-mode/v1',
-    defaultModels: ['qwen3.8-max', 'qwen3.8-flash', 'qwen3.7-plus', 'glm-5.2', 'deepseek-v4-pro'],
-    apiFormat: OPENAI_CHAT_COMPLETIONS,
-    color: 'bg-blue-100 text-blue-800 border-blue-200',
-    icon: QianwenIcon,
-  },
-  qianwen_token_plan_anthropic: {
-    channelType: 'qianwen_token_plan_anthropic',
-    baseURL: 'https://token-plan.cn-beijing.maas.aliyuncs.com/apps/anthropic',
-    defaultModels: ['qwen3.8-max', 'qwen3.8-flash', 'qwen3.7-plus', 'glm-5.2', 'deepseek-v4-pro'],
-    apiFormat: ANTHROPIC_MESSAGES,
-    color: 'bg-blue-100 text-blue-800 border-blue-200',
-    icon: QianwenIcon,
-  },
   moonshot_coding: {
     channelType: 'moonshot_coding',
     baseURL: 'https://api.kimi.com/coding',
@@ -992,7 +975,6 @@ export type Provider =
   | 'burncloud'
   | 'modelscope'
   | 'bailian'
-  | 'qianwen_token_plan'
   | 'jina'
   | 'typesafe'
   | 'cloudflare'
@@ -1062,8 +1044,6 @@ export const CHANNEL_TYPE_TO_PROVIDER: Record<ChannelType, Provider> = {
   bailian: 'bailian',
   bailian_responses: 'bailian',
   bailian_anthropic: 'bailian',
-  qianwen_token_plan: 'qianwen_token_plan',
-  qianwen_token_plan_anthropic: 'qianwen_token_plan',
   moonshot_coding: 'moonshot',
   jina: 'jina',
   typesafe: 'typesafe',

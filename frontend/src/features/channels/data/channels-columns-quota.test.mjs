@@ -35,8 +35,9 @@ const { pageInfoSchema } = await import(
 );
 globalThis.__importStubs = { z, pageInfoSchema };
 
-const { parseQuotaBalances, parseQuotaLimits, parseChannelNode } = await loadModule('features/system/data/quotas.ts', (s) =>
-  s.replace(/export function useProviderQuotaStatuses[\s\S]*$/m, '').replace('function parseChannelNode(', 'export function parseChannelNode(')
+const { parseAPIKeyQuotas, parseQuotaBalances, parseQuotaLimits, parseChannelNode, applyDisabledKeyOwnershipSync } = await loadModule(
+  'features/system/data/quotas.ts',
+  (s) => s.replace(/export function useProviderQuotaStatuses[\s\S]*$/m, '').replace('function parseChannelNode(', 'export function parseChannelNode(')
 );
 
 const { channelSchema } = await loadModule('features/channels/data/schema.ts', (s) => s.replace(/z\.url\(/g, 'z.string().url('));
@@ -179,6 +180,272 @@ test('normalized balances: malformed entries fail closed', () => {
   assert.deepEqual(balances, [{ account: undefined, currency: undefined, total: 10, granted: undefined, topped_up: 5 }]);
 });
 
+function apiKeyQuotaFixture(overrides = {}) {
+  return {
+    ref: 'opaque-key-one',
+    index: 1,
+    suffix: 'same',
+    disabled: false,
+    quotaDisabled: false,
+    status: 'available',
+    ready: true,
+    quotaData: {},
+    ...overrides,
+  };
+}
+
+test('per-key quotas: every key retains all normalized windows and its provider payload', () => {
+  const resetAt = '2026-11-13T00:00:00Z';
+  const windows = (ratios) =>
+    ['5h', 'weekly', 'monthly'].map((window, index) => ({
+      type: 'token',
+      window,
+      usageRatio: ratios[index],
+      status: ratios[index] === 1 ? 'exhausted' : 'available',
+      ready: ratios[index] !== 1,
+      periodStart: '2026-11-12T00:00:00Z',
+      nextResetAt: resetAt,
+    }));
+  const firstPayload = { level: 'PRO', rows: [{ window: 'five_hour', remaining: 50, usage: 100 }], _limits: windows([1, 0.2, 0.3]) };
+  const secondPayload = { _limits: windows([0.12, 0.3, 0.35]) };
+  const accounts = parseAPIKeyQuotas({
+    _api_key_quotas: [
+      apiKeyQuotaFixture({
+        disabled: true,
+        quotaDisabled: true,
+        status: 'exhausted',
+        ready: false,
+        nextResetAt: resetAt,
+        quotaData: firstPayload,
+      }),
+      apiKeyQuotaFixture({ ref: 'opaque-key-two', index: 2, quotaData: secondPayload }),
+    ],
+  });
+
+  assert.equal(accounts.length, 2);
+  assert.deepEqual(
+    accounts.map((account) => account.index),
+    [1, 2]
+  );
+  assert.deepEqual(
+    accounts.map((account) => account.limits.map((limit) => limit.window)),
+    [
+      ['5h', 'weekly', 'monthly'],
+      ['5h', 'weekly', 'monthly'],
+    ]
+  );
+  assert.deepEqual(
+    accounts.map((account) => account.limits.map((limit) => limit.usageRatio)),
+    [
+      [1, 0.2, 0.3],
+      [0.12, 0.3, 0.35],
+    ]
+  );
+  assert.equal(accounts[0].disabled, true);
+  assert.equal(accounts[0].quotaDisabled, true);
+  assert.equal(accounts[0].nextResetAt, resetAt);
+  assert.equal(accounts[0].limits[0].periodStart, '2026-11-12T00:00:00Z');
+  assert.deepEqual(accounts[0].quotaData, firstPayload);
+  assert.deepEqual(accounts[1].quotaData, secondPayload);
+});
+
+test('per-key quotas: malformed rows are omitted without dropping valid neighbors', () => {
+  const accounts = parseAPIKeyQuotas({
+    _api_key_quotas: [
+      apiKeyQuotaFixture(),
+      null,
+      42,
+      [],
+      apiKeyQuotaFixture({ ref: ' ' }),
+      apiKeyQuotaFixture({ index: 0 }),
+      apiKeyQuotaFixture({ index: 1.5 }),
+      apiKeyQuotaFixture({ status: 'invalid' }),
+      apiKeyQuotaFixture({ ready: 'true' }),
+      apiKeyQuotaFixture({ disabled: 'false' }),
+      apiKeyQuotaFixture({ quotaDisabled: undefined }),
+      apiKeyQuotaFixture({ nextResetAt: 'not-a-date' }),
+      apiKeyQuotaFixture({ ref: 'opaque-key-last', index: 7 }),
+    ],
+  });
+
+  assert.deepEqual(
+    accounts.map((account) => account.ref),
+    ['opaque-key-one', 'opaque-key-last']
+  );
+  assert.deepEqual(
+    accounts.map((account) => account.index),
+    [1, 7]
+  );
+});
+
+test('per-key ownership: a manually retained key is no longer quota-owned after the mutation', () => {
+  const parked = apiKeyQuotaFixture({ disabled: true, quotaDisabled: true, status: 'exhausted', ready: false });
+  const healthy = apiKeyQuotaFixture({ ref: 'opaque-key-two', index: 2 });
+
+  // Before the takeover: the persisted view from collection says the key is
+  // quota-owned, and the current records agree.
+  const current = applyDisabledKeyOwnershipSync([parked, healthy], [{ key: 'sk-one', expiresAt: null, quotaDisabled: true }], {
+    'sk-one': 'opaque-key-one',
+  });
+  assert.equal(current[0].disabled, true, 'the quota-owned record stays as persisted');
+  assert.equal(current[0].quotaDisabled, true);
+
+  // The operator keeps the key disabled manually: the record transfers. The
+  // persisted _api_key_quotas is only recomputed on the next collection, so
+  // the popover must derive the new ownership from the current records.
+  const afterTakeover = applyDisabledKeyOwnershipSync([parked, healthy], [{ key: 'sk-one', expiresAt: null, quotaDisabled: false }], {
+    'sk-one': 'opaque-key-one',
+  });
+  assert.equal(afterTakeover[0].disabled, true, 'the key stays disabled');
+  assert.equal(afterTakeover[0].quotaDisabled, false, 'the manual record is no longer quota-owned');
+  assert.equal(afterTakeover[1].quotaDisabled, false, 'an untouched key keeps its persisted ownership');
+
+  // The reverse direction: re-enabling a key the operator had kept disabled
+  // must restore the quota-owned flag a later collection would stamp.
+  const reOwned = applyDisabledKeyOwnershipSync(
+    [{ ...parked, disabled: false, quotaDisabled: false }],
+    [{ key: 'sk-one', expiresAt: null, quotaDisabled: true }],
+    { 'sk-one': 'opaque-key-one' }
+  );
+  assert.equal(reOwned[0].quotaDisabled, true);
+
+  // An expired record no longer disables its key, so the row is usable again
+  // even when the persisted view still says parked.
+  const expired = applyDisabledKeyOwnershipSync(
+    [parked, healthy],
+    [{ key: 'sk-one', expiresAt: new Date(Date.now() - 60000).toISOString(), quotaDisabled: false }],
+    { 'sk-one': 'opaque-key-one' }
+  );
+  assert.equal(expired[0].disabled, false, 'an expired record no longer disables the key');
+  assert.equal(expired[0].quotaDisabled, false, 'an expired record keeps no ownership');
+});
+
+test('per-key ownership: an unresolvable digest keeps the persisted row untouched', () => {
+  const parked = apiKeyQuotaFixture({ disabled: true, quotaDisabled: true, status: 'exhausted', ready: false });
+  const healthy = apiKeyQuotaFixture({ ref: 'opaque-key-two', index: 2 });
+
+  // The digest could not be computed (crypto.subtle missing or the digest call
+  // failed): the absence of a matching record proves nothing, so the stale row
+  // keeps its stored usability and ownership.
+  const unresolved = applyDisabledKeyOwnershipSync(
+    [parked, healthy],
+    [{ key: 'sk-one', expiresAt: null, quotaDisabled: true }],
+    {},
+    new Set(['sk-one'])
+  );
+  assert.equal(unresolved[0].disabled, true, 'the unresolvable key keeps its stored usability');
+  assert.equal(unresolved[0].quotaDisabled, true, 'the unresolvable key keeps its stored ownership');
+  assert.equal(unresolved[1].disabled, false, 'an unaffected row is not touched');
+  assert.equal(unresolved[1].quotaDisabled, false);
+
+  // Once the digest resolves and no active record matches, the row clears.
+  const resolved = applyDisabledKeyOwnershipSync([parked, healthy], [], { 'sk-one': 'opaque-key-one' });
+  assert.equal(resolved[0].disabled, false, 'a resolved absence clears the stale row');
+  assert.equal(resolved[0].quotaDisabled, false);
+});
+
+test('per-key ownership: an unavailable disable list leaves the persisted rows untouched', () => {
+  const parked = apiKeyQuotaFixture({ disabled: true, quotaDisabled: true, status: 'exhausted', ready: false });
+  const healthy = apiKeyQuotaFixture({ ref: 'opaque-key-two', index: 2 });
+
+  // A null/undefined list means the records are unavailable (e.g. the caller
+  // lacks write_channels), not that the channel has none: the persisted rows
+  // must stay exactly as stored, never cleared.
+  for (const unavailable of [null, undefined]) {
+    const kept = applyDisabledKeyOwnershipSync([parked, healthy], unavailable, {}, new Set(['sk-one']));
+    assert.equal(kept[0].disabled, true, `a ${String(unavailable)} list keeps the stored usability`);
+    assert.equal(kept[0].quotaDisabled, true, `a ${String(unavailable)} list keeps the stored ownership`);
+    assert.equal(kept[1].disabled, false, 'the healthy row is untouched');
+    assert.equal(kept[1].quotaDisabled, false);
+  }
+});
+
+test('per-key ownership: an empty disable list is a real answer and clears stale rows', () => {
+  const parked = apiKeyQuotaFixture({ disabled: true, quotaDisabled: true, status: 'exhausted', ready: false });
+
+  // Unlike null, an empty list is what the server returned: no active records,
+  // so a row that still says parked must clear.
+  const cleared = applyDisabledKeyOwnershipSync([parked], [], { 'sk-one': 'opaque-key-one' }, new Set(['sk-unrelated']));
+  assert.equal(cleared[0].disabled, false, 'an empty list clears the stale row');
+  assert.equal(cleared[0].quotaDisabled, false, 'an empty list clears the stale ownership');
+});
+
+test('per-key ownership: an unresolved digest from another channel does not protect this channel', () => {
+  const parked = apiKeyQuotaFixture({ disabled: true, quotaDisabled: true, status: 'exhausted', ready: false });
+
+  // Channel A's digest could not be computed, but this channel has no disable
+  // records of its own: the global unresolved set says nothing about this
+  // channel, so its stale row clears.
+  const cleared = applyDisabledKeyOwnershipSync([parked], [], {}, new Set(['sk-channel-a']));
+  assert.equal(cleared[0].disabled, false, 'an unrelated unresolved digest does not protect the row');
+  assert.equal(cleared[0].quotaDisabled, false);
+
+  // The same digest failing for this channel's own key does protect it.
+  const protectedRow = applyDisabledKeyOwnershipSync(
+    [parked],
+    [{ key: 'sk-one', expiresAt: null, quotaDisabled: true }],
+    {},
+    new Set(['sk-one'])
+  );
+  assert.equal(protectedRow[0].disabled, true, 'an own-channel unresolved digest keeps the stored usability');
+  assert.equal(protectedRow[0].quotaDisabled, true, 'an own-channel unresolved digest keeps the stored ownership');
+});
+
+test('per-key quotas: unknown and failed accounts stay unknown without invented usage', () => {
+  const accounts = parseAPIKeyQuotas({
+    _api_key_quotas: [
+      apiKeyQuotaFixture({ status: 'unknown', ready: false }),
+      apiKeyQuotaFixture({ ref: 'opaque-failed-key', index: 2, status: 'unknown', ready: false, errorCode: 'check_failed' }),
+    ],
+  });
+
+  assert.deepEqual(accounts.map((account) => account.status), ['unknown', 'unknown']);
+  assert.deepEqual(accounts.map((account) => account.ready), [false, false]);
+  assert.deepEqual(accounts.map((account) => account.errorCode), [undefined, 'check_failed']);
+  for (const account of accounts) {
+    assert.deepEqual(account.limits, []);
+    assert.deepEqual(account.balances, []);
+  }
+});
+
+test('per-key quotas: balances retain their own key and currency instead of being summed', () => {
+  const accounts = parseAPIKeyQuotas({
+    _api_key_quotas: [
+      apiKeyQuotaFixture({ quotaData: { _balances: [{ currency: 'CNY', total: 110, granted: 10, topped_up: 100 }, { currency: 'USD', total: 5 }] } }),
+      apiKeyQuotaFixture({ ref: 'opaque-key-two', index: 2, quotaData: { _balances: [{ currency: 'CNY', total: 2 }] } }),
+    ],
+  });
+
+  assert.deepEqual(accounts.map((account) => account.balances.map(({ currency, total }) => ({ currency, total }))), [
+    [{ currency: 'CNY', total: 110 }, { currency: 'USD', total: 5 }], [{ currency: 'CNY', total: 2 }],
+  ]);
+  assert.equal(accounts[0].balances[0].granted, 10);
+  assert.equal(accounts[0].balances[0].topped_up, 100);
+  assert.deepEqual(accounts.map((account) => account.limits), [[], []]);
+});
+
+test('per-key quotas: duplicate suffixes remain distinct and short keys have no visible suffix', () => {
+  const accounts = parseAPIKeyQuotas({
+    _api_key_quotas: [
+      apiKeyQuotaFixture(),
+      apiKeyQuotaFixture({ ref: 'opaque-key-two', index: 2 }),
+      apiKeyQuotaFixture({ ref: 'opaque-short-key', index: 3, suffix: '' }),
+    ],
+  });
+
+  assert.deepEqual(accounts.map(({ ref, index, suffix }) => ({ ref, index, suffix })), [
+    { ref: 'opaque-key-one', index: 1, suffix: 'same' },
+    { ref: 'opaque-key-two', index: 2, suffix: 'same' },
+    { ref: 'opaque-short-key', index: 3, suffix: '' },
+  ]);
+});
+
+test('per-key quotas: absent or malformed account containers preserve the legacy empty list', () => {
+  for (const quotaData of [undefined, null, 42, 'invalid', {}, { _api_key_quotas: null }, { _api_key_quotas: {} }]) {
+    assert.deepEqual(parseAPIKeyQuotas(quotaData), []);
+  }
+});
+
 test('no provider fallback: channels table renders quota for any channel type with normalized limits', () => {
   // Given a non-allowlisted channel type whose quota status carries _limits,
   // When the quota cell decides whether to render rows,
@@ -192,8 +459,6 @@ test('no provider fallback: channels table renders quota for any channel type wi
     'cline',
     'nanogpt',
     'minimax',
-    'qianwen_token_plan',
-    'qianwen_token_plan_anthropic',
     'openai',
   ]) {
     const parsed = channelSchema.safeParse(
@@ -311,56 +576,6 @@ test('more than five normalized limits expose the remaining rows for expansion',
   assert.deepEqual(limits.map((limit) => limit.window), ['5h', '7d', '30d', 'daily', 'weekly', 'monthly']);
   assert.match(columns, /const visibleLimits = isExpanded \? limits : limits\.slice\(0, QUOTA_VISIBLE_LIMIT\)/);
   assert.match(columns, /const hiddenCount = limits\.length - QUOTA_VISIBLE_LIMIT/);
-});
-
-test('Qianwen personal quota retains its seven-day remaining percentage and reset without fabricated credit totals', () => {
-  assert.match(columnsSource, /limit\.nextResetAt &&[\s\S]*?quota\.label\.resets_at_time[\s\S]*?format\(new Date\(limit\.nextResetAt\)/);
-  for (const type of ['qianwen_token_plan', 'qianwen_token_plan_anthropic']) {
-    const providerQuotaStatus = {
-      providerType: 'qianwen_token_plan', status: 'available', ready: true,
-      quotaData: { _limits: [{ type: 'token', window: '7d', usageRatio: 0.52, status: 'available', ready: true, nextResetAt: '2026-09-13T00:00:00Z' }] },
-    };
-    const channel = channelSchema.parse(channelFixture({ type, providerQuotaStatus }));
-    const parsed = parseChannelNode(channel);
-    assert.equal(parsed.type, type);
-    assert.equal(parsed.quotaStatus.limits.length, 1);
-    const [limit] = parsed.quotaStatus.limits;
-    assert.equal(Math.round(100 - limit.usageRatio * 100), 48);
-    assert.equal(limit.window, '7d');
-    assert.equal(limit.nextResetAt, '2026-09-13T00:00:00Z');
-    assert.equal(limit.periodQuota, undefined);
-    assert.equal(limit.periodCost, undefined);
-    const unavailable = parseChannelNode({ ...channel, providerQuotaStatus: { ...providerQuotaStatus, quotaData: {} } });
-    assert.deepEqual(unavailable.quotaStatus.limits, []);
-  }
-});
-
-test('Qianwen monthly usage reaches the channel display without being relabeled as weekly', () => {
-  for (const type of ['qianwen_token_plan', 'qianwen_token_plan_anthropic']) {
-    const providerQuotaStatus = {
-      providerType: 'qianwen_token_plan', status: 'available', ready: true,
-      quotaData: { _limits: [{
-        type: 'token', window: 'monthly', usageRatio: 0.27052849091666664, status: 'available', ready: true,
-        nextResetAt: '2026-10-20T16:00:00Z', periodStart: '2026-09-20T16:00:00Z',
-      }] },
-    };
-    const channel = channelSchema.parse(channelFixture({ type, providerQuotaStatus }));
-    const parsed = parseChannelNode(channel);
-    assert.equal(parsed.quotaStatus.limits.length, 1);
-    const [limit] = parsed.quotaStatus.limits;
-    assert.equal(limit.window, 'monthly');
-    assert.equal(Math.round(100 - limit.usageRatio * 100), 73);
-    assert.equal(limit.nextResetAt, '2026-10-20T16:00:00Z');
-    assert.equal(limit.periodStart, '2026-09-20T16:00:00Z');
-    assert.equal(limit.periodQuota, undefined);
-  }
-});
-
-test('channel queries recall the Qianwen quota cookie for edit, duplicate, and refresh flows', () => {
-  const source = read('features/channels/data/channels.ts');
-  const providerQuotaBlocks = source.match(/providerQuota\s*\{[\s\S]*?ollama\s*\{\s*authCookie\s*\}/g) ?? [];
-  assert.equal(providerQuotaBlocks.length, 7);
-  assert.equal((source.match(/qianwenTokenPlan\s*\{\s*authCookie\s*\}/g) ?? []).length, providerQuotaBlocks.length);
 });
 
 
