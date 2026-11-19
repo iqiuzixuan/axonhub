@@ -21,6 +21,7 @@ func TestUpdateChannelSettingsInput_Apply(t *testing.T) {
 		AutoTrimedModelPrefixes: []string{"openai"},
 		HideOriginalModels:      true,
 		LowercaseModelID:        true,
+		SyncModelPrices:         true,
 		Proxy:                   &httpclient.ProxyConfig{Type: "http", URL: "http://proxy.example.com:8080"},
 		RateLimit:               &objects.ChannelRateLimit{RPM: lo.ToPtr(int64(60))},
 		RetryableStatusCodes:    []int{429},
@@ -48,6 +49,7 @@ func TestUpdateChannelSettingsInput_Apply(t *testing.T) {
 		require.Equal(t, "anthropic", merged.ExtraModelPrefix)
 		require.True(t, merged.HideOriginalModels)
 		require.True(t, merged.LowercaseModelID)
+		require.True(t, merged.SyncModelPrices)
 		require.Equal(t, []string{"openai"}, merged.AutoTrimedModelPrefixes)
 		require.Equal(t, base.Proxy, merged.Proxy)
 		require.Equal(t, base.RateLimit, merged.RateLimit)
@@ -83,12 +85,14 @@ func TestUpdateChannelSettingsInput_Apply(t *testing.T) {
 		patch := &UpdateChannelSettingsInput{
 			ExtraModelPrefix:   lo.ToPtr(""),
 			HideOriginalModels: lo.ToPtr(false),
+			SyncModelPrices:    lo.ToPtr(false),
 			Proxy:              &httpclient.ProxyConfig{Type: "socks5", URL: "socks5://other.example.com:1080"},
 			RateLimit:          &objects.ChannelRateLimit{TPM: lo.ToPtr(int64(1000))},
 		}
 		merged := patch.Apply(base)
 		require.Equal(t, "", merged.ExtraModelPrefix)
 		require.False(t, merged.HideOriginalModels)
+		require.False(t, merged.SyncModelPrices)
 		require.Equal(t, patch.Proxy, merged.Proxy)
 		require.Equal(t, patch.RateLimit, merged.RateLimit)
 		// Untouched fields survive.
@@ -179,6 +183,7 @@ func TestChannelService_UpdateChannelSettings_ResponseTimeout(t *testing.T) {
 	require.NoError(t, err)
 
 	updated, err := svc.UpdateChannelSettings(ctx, created.ID, &UpdateChannelSettingsInput{
+		SyncModelPrices: lo.ToPtr(true),
 		ResponseTimeout: &objects.ChannelResponseTimeoutSettings{
 			Mode:                           objects.ChannelResponseTimeoutModeCustom,
 			StreamFirstEventTimeoutSeconds: lo.ToPtr(0), NonStreamResponseTimeoutSeconds: lo.ToPtr(45),
@@ -188,10 +193,15 @@ func TestChannelService_UpdateChannelSettings_ResponseTimeout(t *testing.T) {
 	require.Equal(t, lo.ToPtr(0), updated.Settings.ResponseTimeout.StreamFirstEventTimeoutSeconds)
 	require.Equal(t, lo.ToPtr(45), updated.Settings.ResponseTimeout.NonStreamResponseTimeoutSeconds)
 	require.Equal(t, lo.ToPtr(3), updated.Settings.MaxSingleChannelRetries)
+	require.True(t, updated.Settings.SyncModelPrices)
 
-	updated, err = svc.UpdateChannelSettings(ctx, created.ID, &UpdateChannelSettingsInput{ExtraModelPrefix: lo.ToPtr("patched")})
+	updated, err = svc.UpdateChannelSettings(ctx, created.ID, &UpdateChannelSettingsInput{
+		ExtraModelPrefix: lo.ToPtr("patched"),
+		SyncModelPrices:  lo.ToPtr(false),
+	})
 	require.NoError(t, err)
 	require.Equal(t, lo.ToPtr(45), updated.Settings.ResponseTimeout.NonStreamResponseTimeoutSeconds)
+	require.False(t, updated.Settings.SyncModelPrices)
 
 	_, err = svc.UpdateChannelSettings(ctx, created.ID, &UpdateChannelSettingsInput{
 		ResponseTimeout: &objects.ChannelResponseTimeoutSettings{Mode: objects.ChannelResponseTimeoutModeCustom, NonStreamResponseTimeoutSeconds: lo.ToPtr(601)},

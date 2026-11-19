@@ -34,6 +34,7 @@ import {
   ProxyConfig,
   ChannelPolicies,
   ChannelModelPrice,
+  ModelPrice,
   SaveChannelModelPriceInput,
   channelModelPriceSchema,
   TestChannelAPIKeysPayload,
@@ -115,6 +116,7 @@ const CREATE_CHANNEL_MUTATION = `
         hideOriginalModels
         hideMappedModels
         lowercaseModelId
+        syncModelPrices
         quotaRoutingMode
         proxy {
           type
@@ -221,6 +223,7 @@ const DUPLICATE_CHANNEL_MUTATION = `
         hideOriginalModels
         hideMappedModels
         lowercaseModelId
+        syncModelPrices
         quotaRoutingMode
         proxy {
           type
@@ -327,6 +330,7 @@ const BULK_CREATE_CHANNELS_MUTATION = `
         hideOriginalModels
         hideMappedModels
         lowercaseModelId
+        syncModelPrices
         quotaRoutingMode
         proxy {
           type
@@ -432,6 +436,7 @@ const CHANNEL_FIELDS_FRAGMENT = `
         hideOriginalModels
         hideMappedModels
         lowercaseModelId
+        syncModelPrices
         quotaRoutingMode
         proxy {
           type
@@ -687,6 +692,7 @@ const BULK_IMPORT_CHANNELS_MUTATION = `
           hideOriginalModels
           hideMappedModels
           lowercaseModelId
+          syncModelPrices
           quotaRoutingMode
           transformOptions {
             forceArrayInstructions
@@ -941,6 +947,7 @@ const BULK_UPDATE_CHANNEL_ORDERING_MUTATION = `
           hideOriginalModels
           hideMappedModels
           lowercaseModelId
+          syncModelPrices
           quotaRoutingMode
           transformOptions {
             forceArrayInstructions
@@ -1066,6 +1073,22 @@ const FETCH_MODELS_QUERY = `
     fetchModels(input: $input) {
       models {
         id
+        pricing {
+          items {
+            itemCode
+            pricing {
+              mode
+              usagePerUnit
+            }
+            promptWriteCacheVariants {
+              variantCode
+              pricing {
+                mode
+                usagePerUnit
+              }
+            }
+          }
+        }
       }
       error
     }
@@ -1180,6 +1203,7 @@ const CHANNEL_QUERY_FULL_NODE_SELECTION = `
             hideOriginalModels
             hideMappedModels
             lowercaseModelId
+            syncModelPrices
             quotaRoutingMode
             bodyOverrideOperations {
               op
@@ -1326,6 +1350,7 @@ const CHANNEL_QUERY_LIST_NODE_BASE_SELECTION = `
 const CHANNEL_QUERY_ROUTING_STATUS_SELECTION = `
            settings {
              quotaRoutingMode
+             syncModelPrices
            }
            providerQuotaStatus {
              status
@@ -1346,6 +1371,7 @@ const CHANNEL_QUERY_TAGS_SELECTION = `
 const CHANNEL_QUERY_PROXY_SELECTION = `
           settings {
             quotaRoutingMode
+            syncModelPrices
             proxy {
               type
               url
@@ -2390,7 +2416,7 @@ export function useFetchModels() {
       try {
         const data = await graphqlRequest<{
           fetchModels: {
-            models: Array<{ id: string }>;
+            models: Array<{ id: string; pricing?: ModelPrice | null }>;
             error?: string | null;
           };
         }>(FETCH_MODELS_QUERY, { input });
