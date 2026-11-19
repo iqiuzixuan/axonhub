@@ -227,6 +227,7 @@ type ChannelSettings {
   bodyOverrideOperations: [OverrideOperation!]! @goField(forceResolver: true)
   passThroughUserAgent: Boolean
   passThroughBody: Boolean
+  syncModelPrices: Boolean
   rateLimit: ChannelRateLimit
   retryableStatusCodes: [Int!]
   retryableErrorPatterns: [RetryableErrorPattern!]
@@ -333,6 +334,7 @@ input ChannelSettingsInput {
   bodyOverrideOperations: [OverrideOperationInput!]
   passThroughUserAgent: Boolean
   passThroughBody: Boolean
+  syncModelPrices: Boolean
   rateLimit: ChannelRateLimitInput
   retryableStatusCodes: [Int!]
   retryableErrorPatterns: [RetryableErrorPatternInput!]
@@ -364,6 +366,7 @@ input UpdateChannelSettingsInput {
   bodyOverrideOperations: [OverrideOperationInput!]
   passThroughUserAgent: Boolean
   passThroughBody: Boolean
+  syncModelPrices: Boolean
   rateLimit: ChannelRateLimitInput
   retryableStatusCodes: [Int!]
   retryableErrorPatterns: [RetryableErrorPatternInput!]
@@ -750,6 +753,7 @@ type FetchModelsPayload {
 
 type ModelIdentify {
   id: String!
+  pricing: ModelPrice
 }
 
 type ModelIdentityWithStatus {
